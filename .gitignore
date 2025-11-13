@@ -1,0 +1,10 @@
+!.gitignore
+!bids/**/*.tsv
+code/hpc_output/
+derivatives/fmriprep*
+derivatives/tedana*
+derivatives/warpkit
+logs/
+*.nii.gz
+*.nii
+*.html
