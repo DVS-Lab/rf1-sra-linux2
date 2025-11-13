@@ -8,3 +8,5 @@ logs/
 *.nii.gz
 *.nii
 *.html
+bids/.heudiconv
+bids/.datalad
