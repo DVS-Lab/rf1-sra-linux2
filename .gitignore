@@ -1,5 +1,7 @@
 !.gitignore
 !bids/**/*.tsv
+!bids/participants.tsv
+bids/.*
 code/hpc_output/
 derivatives/fmriprep*
 derivatives/tedana*
@@ -8,5 +10,3 @@ logs/
 *.nii.gz
 *.nii
 *.html
-bids/.heudiconv
-bids/.datalad
