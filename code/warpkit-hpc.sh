@@ -4,6 +4,8 @@
 #PBS -q normal
 #PBS -l nodes=1:ppn=28
 
+# Melanie note: have not been able to get this to run on hpc
+
 # ── Paths ────────────────────────────────────────────────────────
 maindir=/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2
 toolsdir=/gpfs/scratch/tug87422/smithlab-shared/tools
