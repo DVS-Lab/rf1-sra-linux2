@@ -16,5 +16,3 @@ for sub in `cat ${scriptdir}/sublist_fix.txt` ; do
   done
 done
 
-wait
-

@@ -1,107 +1,105 @@
 #!/usr/bin/env python
-import os, shlex, datetime, glob, re, json, sys
+import os, shlex, datetime, json, sys
 from nipype import Workflow, Node
 from nipype.interfaces.base import CommandLine
 
-# ── CONFIGURATION ───────────────────────────────────────────────────────────────
-SUBLIST_FILE = os.path.join(os.path.dirname(__file__), "sublist_new.txt")
+# ── CONFIG (only sublist pointed to may change; rest of script should not be touched)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJ_DIR   = os.path.dirname(SCRIPT_DIR)
+
+SUBLIST_FILE = os.path.join(SCRIPT_DIR, "sublist_all.txt")
 SESSIONS     = ["01", "02"]
 SOURCEDATA   = "/ZPOOL/data/sourcedata/sourcedata/rf1-sra"
 
-# OPTIMIZED FOR: AMD Threadripper PRO 5995WX (128 threads), 251GB RAM, Local ZFS
-MAX_CONCURRENT_SUBJECTS = int(os.environ.get("RF1_MAX_SUBJECTS", "16"))
-CPUS_PER_SUBJECT = int(os.environ.get("RF1_CPUS_PER_SUBJECT", "6"))
-
-# ────────────────────────────────────────────────────────────────────────────────
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJ_DIR   = os.path.dirname(SCRIPT_DIR)
-LOG_FILE   = os.path.join(PROJ_DIR, "rf1_forhpc_preprocessing.log")
+LOG_FILE      = os.path.join(PROJ_DIR, "rf1_preprocessing_forhpc.log")
 SESSION_CACHE = os.path.join(SCRIPT_DIR, ".session_cache.json")
 
-# Cleanup from previous batch of subjects before processing new subjects so locks/caches don't impede
-# Remove lock file from previous runs
-lock_file = os.path.join(PROJ_DIR, ".sourcedata_scan.lock")
-if os.path.isdir(lock_file):
-    try:
-        os.rmdir(lock_file)
-        print(f" Removed lock: {lock_file}")
-    except Exception as e:
-        print(f"Could not remove lock (may be in use): {e}")
-
-# Remove session cache
-if os.path.exists(SESSION_CACHE):
-    try:
-        os.remove(SESSION_CACHE)
-        print(f"Removed session cache: {SESSION_CACHE}")
-    except Exception as e:
-        print(f"Could not remove cache: {e}")
-
-# Clean up old nipype work directory (optional - comment out if you want to keep it)
-nipype_work = os.path.join(PROJ_DIR, "nipype_work")
-if os.path.isdir(nipype_work):
-    import shutil
-    try:
-        shutil.rmtree(nipype_work)
-        print(f"Removed nipype work: {nipype_work}")
-    except Exception as e:
-        print(f"Could not remove nipype work: {e}")
-
-print("Cleanup complete.\n")
-
-with open(SUBLIST_FILE) as f:
-    SUBJECTS = [ln.strip() for ln in f if ln.strip()]
+# Linux2 ZPOOL: 128 threads, 251GB RAM
+MAX_CONCURRENT_SUBJECTS = int(os.environ.get("RF1_MAX_SUBJECTS", "40"))
+CPUS_PER_SUBJECT        = int(os.environ.get("RF1_CPUS_PER_SUBJECT", "12"))
 
 j   = os.path.join
 q   = lambda *a: " ".join(shlex.quote(x) for x in a)
 cmd = lambda s, *args: q("bash", j(SCRIPT_DIR, s), *args)
 
+# ── ONE-TIME CLEANUP ───────────────────────────────────────────────────────────
+def cleanup_previous_run():
+    """Remove old locks and nipype_work so they don't interfere."""
+    lock_file = os.path.join(PROJ_DIR, ".sourcedata_scan.lock")
+    if os.path.isdir(lock_file):
+        try:
+            os.rmdir(lock_file)
+            print(f" Removed lock: {lock_file}")
+        except Exception as e:
+            print(f"Could not remove lock (may be in use): {e}")
+
+    if os.path.exists(SESSION_CACHE):
+        try:
+            os.remove(SESSION_CACHE)
+            print(f"Removed session cache: {SESSION_CACHE}")
+        except Exception as e:
+            print(f"Could not remove cache: {e}")
+
+    nipype_work = os.path.join(PROJ_DIR, "nipype_work")
+    if os.path.isdir(nipype_work):
+        import shutil
+        try:
+            shutil.rmtree(nipype_work)
+            print(f"Removed nipype work: {nipype_work}")
+        except Exception as e:
+            print(f"Could not remove nipype work: {e}")
+
+    print("Cleanup complete.\n")
+
+cleanup_previous_run()
+
+# ── SUBJECT LIST ───────────────────────────────────────────────────────────────
+with open(SUBLIST_FILE) as f:
+    SUBJECTS = [ln.strip() for ln in f if ln.strip()]
+
+# ── SESSION DETECTION ─────────────────────────────────────────────────────────
 def session_has_raw_fast(sub: str, ses: str) -> bool:
     """
-    Faster check: only look for the scans directory existence and check if ANY
-    .dcm file exists (not counting them all). Uses os.path.exists instead of glob
-    for initial directory checks.
+    Return True if Smith-SRA-{sub} (or -{sub}-2) has ANY .dcm under scans/*/DICOM.
     """
     if ses == "02":
         scandir = j(SOURCEDATA, f"Smith-SRA-{sub}-2", f"Smith-SRA-{sub}-2", "scans")
     else:
         scandir = j(SOURCEDATA, f"Smith-SRA-{sub}", f"Smith-SRA-{sub}", "scans")
-    
-    # Quick exit if scans dir doesn't exist
+
     if not os.path.isdir(scandir):
         return False
-    
-    # Use os.walk with early termination instead of glob (much faster)
+
     try:
         for root, dirs, files in os.walk(scandir):
-            if 'DICOM' in root and any(f.endswith('.dcm') for f in files):
+            if "DICOM" in root and any(f.endswith(".dcm") for f in files):
                 return True
-            # Limit depth to avoid deep recursion
+            # don't walk insanely deep
             if root.count(os.sep) - scandir.count(os.sep) > 5:
-                dirs[:] = []  # Don't recurse deeper
+                dirs[:] = []
     except (OSError, PermissionError):
         return False
-    
+
     return False
 
-def build_session_cache(force=False):
+def build_session_cache(force: bool = False):
     """
-    Pre-scan all subjects and cache which sessions exist.
-    This runs ONCE at startup instead of during workflow construction.
+    Pre-scan subjects and record which sessions exist.
+    Uses raw DICOM presence, with a fallback to existing BIDS folders.
     """
     if os.path.exists(SESSION_CACHE) and not force:
         print(f"Loading cached session info from {SESSION_CACHE}")
         with open(SESSION_CACHE) as f:
             return json.load(f)
-    
+
     print(f"Scanning {len(SUBJECTS)} subjects for available sessions...")
     print("This may take a few minutes on first run...")
-    
+
     cache = {}
     for i, sub in enumerate(SUBJECTS, 1):
         if i % 10 == 0:
             print(f"  Scanned {i}/{len(SUBJECTS)} subjects...", flush=True)
-        
+
         present = []
         for ses in SESSIONS:
             try:
@@ -110,20 +108,19 @@ def build_session_cache(force=False):
             except Exception as e:
                 print(f"  Warning: Error checking sub-{sub} ses-{ses}: {e}", file=sys.stderr)
                 continue
-        
-        # Fallback: check if BIDS already exists
+
+        # Fallback: if nothing in sourcedata, but BIDS already exists
         if not present:
             for ses in SESSIONS:
                 bids_ses = j(PROJ_DIR, "bids", f"sub-{sub}", f"ses-{ses}")
                 if os.path.isdir(bids_ses):
                     present.append(ses)
-        
+
         cache[sub] = sorted(set(present))
-    
-    # Save cache
-    with open(SESSION_CACHE, 'w') as f:
+
+    with open(SESSION_CACHE, "w") as f:
         json.dump(cache, f, indent=2)
-    
+
     print(f"Session cache saved to {SESSION_CACHE}")
     return cache
 
@@ -135,27 +132,27 @@ def write_wave2_list(session_cache):
             f.write(f"{s}\n")
     return subs_with_ses02
 
-# Build session cache BEFORE workflow construction
-print("="*80)
+print("=" * 80)
 print("PHASE 1: Scanning for available sessions...")
-print("="*80)
+print("=" * 80)
+
 session_cache = build_session_cache(force=False)
 
-# Filter to only subjects that have at least one session
 subjects_to_process = [s for s in SUBJECTS if session_cache.get(s, [])]
-subjects_skipped = [s for s in SUBJECTS if not session_cache.get(s, [])]
+subjects_skipped    = [s for s in SUBJECTS if not session_cache.get(s, [])]
 
 print(f"\nSubjects with data: {len(subjects_to_process)}")
 print(f"Subjects skipped (no sessions): {len(subjects_skipped)}")
 if subjects_skipped:
-    print(f"  Skipped: {', '.join(subjects_skipped[:10])}" + 
-          (f" ... and {len(subjects_skipped)-10} more" if len(subjects_skipped) > 10 else ""))
+    preview = ", ".join(subjects_skipped[:10])
+    tail    = f" ... and {len(subjects_skipped)-10} more" if len(subjects_skipped) > 10 else ""
+    print(f"  Skipped: {preview}{tail}")
 
 subs_with_ses02 = write_wave2_list(session_cache)
 
 os.makedirs(PROJ_DIR, exist_ok=True)
 with open(LOG_FILE, "a") as lf:
-    lf.write("\n" + "="*80 + "\n")
+    lf.write("\n" + "=" * 80 + "\n")
     lf.write(f"RF1 preprocessing launch: {datetime.datetime.now().isoformat()}\n")
     lf.write(f"Subjects total: {len(SUBJECTS)}\n")
     lf.write(f"Subjects to process: {len(subjects_to_process)}\n")
@@ -164,8 +161,9 @@ with open(LOG_FILE, "a") as lf:
     lf.write(f"CPUs per subject: {CPUS_PER_SUBJECT}\n")
     lf.write(f"Sessions (requested): {', '.join(SESSIONS)}\n")
     lf.write(f"Wave2 (have ses-02): {len(subs_with_ses02)}\n")
-    lf.write("="*80 + "\n")
+    lf.write("=" * 80 + "\n")
 
+# ── ENV BOOTSTRAP (for each subject process) ───────────────────────────────────
 ENV_BOOTSTRAP = r'''
 set -euo pipefail
 U0="$(id -un)"; U1="${USER:-$U0}"; U2="${U1%%@*}"
@@ -220,10 +218,10 @@ fi
 [ -d "/ZPOOL/data/tools/templateflow" ] && export TEMPLATEFLOW_HOME="/ZPOOL/data/tools/templateflow"
 [ -d "/ZPOOL/data/tools/mplconfigdir" ] && export MPLCONFIGDIR="/ZPOOL/data/tools/mplconfigdir"
 
-export OMP_NUM_THREADS="''' + str(max(1, CPUS_PER_SUBJECT // 2)) + '''"
-export MKL_NUM_THREADS="''' + str(max(1, CPUS_PER_SUBJECT // 2)) + '''"
-export OPENBLAS_NUM_THREADS="''' + str(max(1, CPUS_PER_SUBJECT // 2)) + '''"
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS="''' + str(max(1, CPUS_PER_SUBJECT // 2)) + '''"
+export OMP_NUM_THREADS="1"
+export MKL_NUM_THREADS="1"
+export OPENBLAS_NUM_THREADS="1"
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS="1"
 
 export SINGULARITY_CACHEDIR="${TMPDIR:-/tmp}/singularity-cache-$$"
 export APPTAINER_CACHEDIR="${TMPDIR:-/tmp}/apptainer-cache-$$"
@@ -231,33 +229,37 @@ mkdir -p "$SINGULARITY_CACHEDIR" "$APPTAINER_CACHEDIR" 2>/dev/null || true
 '''
 
 def wrap_logged(sub, chain):
-    start = f'echo "=== START sub-{sub} ==="'
-    endok = f'echo "=== END sub-{sub} STATUS=OK ==="'
-    endfl = f"trap 'rc=$?; echo \"=== END sub-{sub} STATUS=FAIL rc=${{rc}} ===\"' ERR"
-    body  = f"{ENV_BOOTSTRAP}\n{endfl}; {start}; {chain} ; {endok}"
-    prefixer = (
-        f'''stdbuf -oL -eL '''
-        f'''awk '{{printf "%s [sub-{sub}] %s\\n", strftime("[%Y-%m-%d %H:%M:%S]"), $0}}' '''
-        f'''>> {shlex.quote(LOG_FILE)}'''
+    start  = f'echo "=== START sub-{sub} ==="'
+    endok  = f'echo "=== END sub-{sub} STATUS=OK ==="'
+    endfl  = f"trap 'rc=$?; echo \"=== END sub-{sub} STATUS=FAIL rc=${{rc}} ===\"' ERR"
+    body   = f"{ENV_BOOTSTRAP}\n{endfl}; {start}; {chain} ; {endok}"
+    prefix = (
+        "stdbuf -oL -eL "
+        f"awk '{{printf \"%s [sub-{sub}] %s\\n\", strftime(\"[%Y-%m-%d %H:%M:%S]\"), $0}}' "
+        f">> {shlex.quote(LOG_FILE)}"
     )
-    return f'({body}) 2>&1 | {prefixer}'
+    return f"({body}) 2>&1 | {prefix}"
 
+# ── PER-SUBJECT COMMAND CHAIN ──────────────────────────────────────────────────
 def per_subject_chain(sub: str, present_ses: list) -> str:
     """Build processing chain using pre-cached session list."""
     if not present_ses:
         return f'echo "Skipping sub-{sub}: no sessions present"'
 
+    # If .processing_complete exists, skip this subject entirely
     skip_check = (
         f"[ -f {shlex.quote(j(PROJ_DIR, 'bids', f'sub-{sub}', '.processing_complete'))} ] && "
         f"{{ echo 'Subject {sub} already complete, skipping'; exit 0; }}"
     )
 
+    # Heudiconv/defacing/date shifting for de-identification using prepdata-linux2.sh
     prep_groups = []
     for ses in present_ses:
         # Use rate-limited prepdata to prevent I/O stampede
-        prep_groups.append("{ " + f"{cmd('prepdata_ratelimited.sh', sub, ses)}" + " ; } &")
-    par_prep = " ".join(prep_groups) + f" wait"
+        prep_groups.append("{ " + f"{cmd('prepdata-linux2.sh', sub, ses)}" + " ; } &")
+    par_prep = " ".join(prep_groups) + " wait"
 
+    # Warpkit per session (looking for sessions/runs), running warpkit.sh
     warp_groups = []
     for ses in present_ses:
         discover_and_warp = (
@@ -299,7 +301,7 @@ def per_subject_chain(sub: str, present_ses: list) -> str:
                 "PY\n"
                 "fi"
             ) +
-            f" | xargs -P {CPUS_PER_SUBJECT // 2} -n 2 bash -c '"
+            f" | xargs -P {CPUS_PER_SUBJECT} -n 2 bash -c '"
             + f"bash {shlex.quote(os.path.join(SCRIPT_DIR,'warpkit.sh'))} "
               f"{shlex.quote(sub)} {shlex.quote(ses)} \"$0\" \"$1\"' ; }} &"
         )
@@ -307,16 +309,19 @@ def per_subject_chain(sub: str, present_ses: list) -> str:
 
     par_warp = " ".join(warp_groups) + " wait"
 
-    add_intended = q("python", os.path.join(SCRIPT_DIR, "addIntendedFor-fmap.py"), 
-                     os.path.join(PROJ_DIR, "bids"))
+    # Rsync to HPC using script rsync_subject_forhpc.sh
+    rsync_subj = q("bash", os.path.join(SCRIPT_DIR, "rsync_subject_forhpc.sh"), sub)
+
+    # Mark subject as complete
     mark_complete = f"touch {shlex.quote(j(PROJ_DIR, 'bids', f'sub-{sub}', '.processing_complete'))}"
 
-    return " ; ".join([skip_check, par_prep, par_warp, add_intended, mark_complete])
+    # Full chain for this subject
+    return " ; ".join([skip_check, par_prep, par_warp, rsync_subj, mark_complete])
 
-# ── Build workflow ─────────────────────────────────────────────────────────────
-print("\n" + "="*80)
+# ── BUILD & RUN NIPYPE WORKFLOW ────────────────────────────────────────────────
+print("\n" + "=" * 80)
 print("PHASE 2: Building Nipype workflow...")
-print("="*80)
+print("=" * 80)
 
 wf = Workflow(name="rf1_prep_with_warpkit", base_dir=j(PROJ_DIR, "nipype_work"))
 
@@ -330,10 +335,11 @@ for sub in subjects_to_process:
 print(f"Workflow created with {len(subjects_to_process)} subjects")
 print(f"Starting execution with {MAX_CONCURRENT_SUBJECTS} concurrent subjects...")
 print(f"Monitor progress: tail -f {LOG_FILE}")
-print("="*80 + "\n")
+print("=" * 80 + "\n")
 
 if __name__ == "__main__":
     wf.run(plugin="MultiProc", plugin_args={
         "n_procs": MAX_CONCURRENT_SUBJECTS,
-        "raise_insufficient": False
+        "raise_insufficient": False,
     })
+

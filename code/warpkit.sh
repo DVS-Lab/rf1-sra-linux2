@@ -18,7 +18,7 @@ task=$3
 run=$4
 
 # If no session 2, don't run session-02 commands
-if [ ! -d "${maindir}/bids/sub-${sub}/ses-02" ]; then
+if [ "$ses" == "02" ] &&  [ ! -d "${maindir}/bids/sub-${sub}/ses-02" ]; then
     exit 0
 fi
 
