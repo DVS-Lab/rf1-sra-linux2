@@ -1,97 +1,99 @@
 #!/usr/bin/env python3
-import os, json, re
-from pathlib import Path
-from glob import glob
+import json
+import os
+import re
 
-HERE = Path(__file__).resolve().parent
-BIDS = (HERE / ".." / "bids").resolve()
+# Path to your BIDS directory
+bidsdir = "/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/bids/"
 
-def rel_from_subj(p: Path, subj: str) -> str:
-    """Return POSIX relative path anchored at sub-XXXX/…"""
-    sp = p.as_posix()
-    i = sp.index(subj)
-    return sp[i:]
+# Find all subject directories
+subs = [
+    d for d in os.listdir(bidsdir)
+    if d.startswith("sub-") and os.path.isdir(os.path.join(bidsdir, d))
+]
 
-def find_mag_targets(subj: str, ses: str|None, task: str|None, run: str|None, func_dir: Path):
-    """Prefer echo-specific MAG BOLD, then echo-specific MAG SBRef, then non-echo MAG BOLD/SBRef."""
-    if not (task and run):
-        return []
-    ses_tag = ses if ses else "ses-01"  # best guess if missing in filename
-    base = f"{subj}_{ses_tag}_task-{task}_run-{run}"
+for subj in subs:
+    print("Running subject:", subj)
+    subj_dir = os.path.join(bidsdir, subj)
 
-    patterns = [
-        f"{base}_echo-*_part-mag_bold.nii.gz",
-        f"{base}_echo-*_part-mag_sbref.nii.gz",
-        f"{base}_part-mag_bold.nii.gz",
-        f"{base}_part-mag_sbref.nii.gz",
+    # Find ses-* directories; if none, assume single-session layout
+    ses_dirs = [
+        d for d in os.listdir(subj_dir)
+        if d.startswith("ses-") and os.path.isdir(os.path.join(subj_dir, d))
     ]
-    for pat in patterns:
-        found = sorted(func_dir.glob(pat))
-        found = [x for x in found if "_part-phase_" not in x.name]
-        if found:
-            return found
-    return []
+    if not ses_dirs:
+        ses_dirs = [None]
 
-def main():
-    subs = sorted([d for d in BIDS.iterdir() if d.is_dir() and d.name.startswith("sub-")])
-    print("subjects:", len(subs))
+    for ses in ses_dirs:
+        if ses is None:
+            fmap_dir     = os.path.join(subj_dir, "fmap")
+            func_rel_dir = "func"          # IntendedFor will be "func/..."
+            ses_tag      = ""              # no "_ses-01" in filenames
+        else:
+            fmap_dir     = os.path.join(subj_dir, ses, "fmap")
+            func_rel_dir = f"{ses}/func"   # IntendedFor will be "ses-01/func/..."
+            ses_tag      = f"_{ses}"       # e.g. "_ses-01"
 
-    for subj_path in subs:
-        subj = subj_path.name
-        ses_dirs = sorted([d for d in subj_path.iterdir() if d.is_dir() and d.name.startswith("ses-")])
-        if not ses_dirs:
-            ses_dirs = [subj_path]  # single-session layout
+        if not os.path.isdir(fmap_dir):
+            continue
 
-        print("subject:", subj, "sessions:", [d.name if d!=subj_path else "(no-ses)" for d in ses_dirs])
+        # Only touch fmap/magnitude JSONs, not DWI/topup stuff
+        json_files = [
+            f for f in os.listdir(fmap_dir)
+            if f.endswith(".json")
+            and ("fieldmap" in f or "magnitude" in f)
+            and "dwi" not in f
+        ]
+        if not json_files:
+            continue
 
-        for base in ses_dirs:
-            ses = base.name if base.name.startswith("ses-") else ""
-            fmap_dir = base / "fmap"
-            func_dir = base / "func"
-            if not (fmap_dir.is_dir() and func_dir.is_dir()):
-                continue
+        for json_file in json_files:
+            json_path = os.path.join(fmap_dir, json_file)
 
-            fmap_jsons = sorted(fmap_dir.glob("*.json"))
-            bold_files = sorted(func_dir.glob("*_bold.nii.gz"))
-            if not fmap_jsons or not bold_files:
-                continue
+            with open(json_path, "r") as f:
+                data = json.load(f)
 
-            for jpath in fmap_jsons:
-                fname = jpath.name
-                # Parse task/run from the fmap filename
-                m_task = re.search(r"task-([A-Za-z0-9]+)", fname)
-                m_run  = re.search(r"run-([0-9]+)", fname)
-                task = m_task.group(1) if m_task else None
-                run  = m_run.group(1)  if m_run  else None
+            # 1) Task from JSON (e.g., "ugr", "trust", "doors", "socialdoors")
+            task = data.get("TaskName", None)
+            if isinstance(task, str):
+                task = task.lower()
+            else:
+                task = None
 
-                with open(jpath, "r") as f:
-                    data = json.load(f)
+            # 2) Run number from the FILENAME, e.g.
+            #    sub-10317_ses-01_acq-ugr_run-1_fieldmap.json
+            m_run = re.search(r"_run-([0-9]+)_", json_file)
+            run = m_run.group(1) if m_run else None
 
-                # Default: empty / don’t link if not run-specific
-                intended_rel = []
+            # For doors/socialdoors, if we somehow don't see run in the filename,
+            # assume run-1 (by design, they only ever have one run)
+            if run is None and task in {"doors", "socialdoors"}:
+                run = "1"
 
-                if task and run:
-                    targets = find_mag_targets(subj, ses if ses else None, task, run, func_dir)
-                    intended_rel = [rel_from_subj(t, subj) for t in targets]
+            intended_for = []
 
-                # Write the tight set; never include part-phase
-                if intended_rel:
-                    data["IntendedFor"] = intended_rel
-                else:
-                    # Ensure we don't accidentally re-introduce global links
-                    data.pop("IntendedFor", None)
+            if task and run:
+                # Build echo-specific magnitude BOLD targets:
+                #   sub-10317_ses-01_task-ugr_run-1_echo-1_part-mag_bold.nii.gz
+                for echo in range(1, 5):
+                    bold_name = (
+                        f"{subj}{ses_tag}_task-{task}_run-{run}_echo-{echo}_part-mag_bold.nii.gz"
+                    )
+                    intended_for.append(f"{func_rel_dir}/{bold_name}")
 
-                # Fieldmap hygiene
-                if "fieldmap" in fname:
-                    data["Units"] = data.get("Units", "Hz")
-                    data.pop("EchoTime1", None)
-                    data.pop("EchoTime2", None)
+                data["IntendedFor"] = intended_for
+                print(
+                    "  Updated", json_path,
+                    "with", len(intended_for), "targets (task =", task, ", run =", run, ")"
+                )
+            else:
+                print("  WARNING: could not parse task/run for", json_file)
 
-                with open(jpath, "w") as f:
-                    json.dump(data, f, indent=2, sort_keys=True)
+            # Fieldmap hygiene: always normalize units and drop EchoTime1/2
+            data["Units"] = "Hz"
+            data.pop("EchoTime1", None)
+            data.pop("EchoTime2", None)
 
-                print("updated:", jpath.relative_to(BIDS), "links:", len(data.get("IntendedFor", [])))
-
-if __name__ == "__main__":
-    main()
+            with open(json_path, "w") as f:
+                json.dump(data, f, indent=2, sort_keys=True)
 
