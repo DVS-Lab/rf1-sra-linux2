@@ -15,8 +15,8 @@ LOG_FILE      = os.path.join(PROJ_DIR, "rf1_preprocessing_forhpc.log")
 SESSION_CACHE = os.path.join(SCRIPT_DIR, ".session_cache.json")
 
 # Linux2 ZPOOL: 128 threads, 251GB RAM
-MAX_CONCURRENT_SUBJECTS = int(os.environ.get("RF1_MAX_SUBJECTS", "40"))
-CPUS_PER_SUBJECT        = int(os.environ.get("RF1_CPUS_PER_SUBJECT", "12"))
+MAX_CONCURRENT_SUBJECTS = int(os.environ.get("RF1_MAX_SUBJECTS", "60"))
+CPUS_PER_SUBJECT        = int(os.environ.get("RF1_CPUS_PER_SUBJECT", "4"))
 
 j   = os.path.join
 q   = lambda *a: " ".join(shlex.quote(x) for x in a)
@@ -218,10 +218,10 @@ fi
 [ -d "/ZPOOL/data/tools/templateflow" ] && export TEMPLATEFLOW_HOME="/ZPOOL/data/tools/templateflow"
 [ -d "/ZPOOL/data/tools/mplconfigdir" ] && export MPLCONFIGDIR="/ZPOOL/data/tools/mplconfigdir"
 
-export OMP_NUM_THREADS="1"
-export MKL_NUM_THREADS="1"
-export OPENBLAS_NUM_THREADS="1"
-export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS="1"
+export OMP_NUM_THREADS="2"
+export MKL_NUM_THREADS="2"
+export OPENBLAS_NUM_THREADS="2"
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS="2"
 
 export SINGULARITY_CACHEDIR="${TMPDIR:-/tmp}/singularity-cache-$$"
 export APPTAINER_CACHEDIR="${TMPDIR:-/tmp}/apptainer-cache-$$"

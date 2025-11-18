@@ -14,7 +14,7 @@ logfile="${logdir}/rsync_bids_tohpc.log"
 LOCALBIDS="${projectdir}/bids"
 
 # Remote target
-REMOTEBIDS="hpc:/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/bids"
+REMOTEBIDS="hpc:/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2"
 
 echo "Syncing:"
 echo "  FROM: $LOCALBIDS/"
