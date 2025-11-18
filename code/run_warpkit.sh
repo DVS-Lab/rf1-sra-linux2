@@ -1,35 +1,39 @@
 #!/bin/bash
 
-# ensure paths are correct irrespective from where user runs the script
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 script="${scriptdir}/warpkit.sh"
-NCORES=30
 
-for sub in `cat ${scriptdir}/sublist_fix.txt` ; do
-  for ses in "01" "02"; do
+NJOB=16
+OMP_THREADS=4
 
-    # Session 1, all tasks 
+for sub in $(cat "${scriptdir}/sublist_fix.txt"); do
+  for ses in 01 02; do
+
     if [ "$ses" = "01" ]; then
-        tasks="ugr trust sharedreward doors socialdoors"
+      tasks="ugr trust sharedreward doors socialdoors"
     else
-        # Session 2, only UGR, Doors
-        tasks="ugr doors socialdoors"
+      tasks="ugr doors socialdoors"
     fi
 
     for task in $tasks; do
-      for run in "1" "2"; do
+      for run in 1 2; do
 
-        # Skip run 2 for doors and socialdoors (don't exist)
+        # Skip nonexistent run 2 for doors/socialdoors
         if [[ ( "$task" == "doors" || "$task" == "socialdoors" ) && "$run" == "2" ]]; then
-            continue
+          continue
         fi
 
-        while [ $(ps -ef | grep -v grep | grep "$script" | wc -l) -ge $NCORES ]; do
-            sleep 5s
+        while [ "$(pgrep -f "bash $script" -c)" -ge "$NJOB" ]; do
+          sleep 2
         done
-        bash "$script" "$sub" "$ses" "$task" "$run" &
-        sleep 5s
 
+        APPTAINERENV_OMP_NUM_THREADS=$OMP_THREADS \
+        APPTAINERENV_OPENBLAS_NUM_THREADS=1 \
+        APPTAINERENV_NUMEXPR_NUM_THREADS=1 \
+        APPTAINERENV_MKL_NUM_THREADS=1 \
+          bash "$script" "$sub" "$ses" "$task" "$run" &
+
+        sleep 1
       done
     done
   done

@@ -1,25 +1,27 @@
 #!/bin/bash
 
-# ensure paths are correct irrespective from where user runs the script
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 script="${scriptdir}/prepdata-linux2.sh"
 
-# How many subject/session jobs in parallel and threads/job in container
-NCORES=28
-OMP_THREADS=4
+NJOB=3          # number of parallel subjects
+OMP_THREADS=6    # threads inside each container job
 
 for sub in $(cat "${scriptdir}/sublist_all.txt"); do
-  # for sub in 11058 11065 11301 11316 11345; do
-  for ses in "01" "02"; do
-    # Limit number of concurrent prepdata-linux2.sh jobs
-    while [ "$(ps -ef | grep -v grep | grep "$script" | wc -l)" -ge "$NCORES" ]; do
-      sleep 5s
+  for ses in 01 02; do
+
+    # Limit number of active prepdata jobs
+    while [ "$(pgrep -f "bash $script" -c)" -ge "$NJOB" ]; do
+      sleep 2
     done
 
+    # Launch job with multithreading inside Apptainer
     APPTAINERENV_OMP_NUM_THREADS=$OMP_THREADS \
+    APPTAINERENV_OPENBLAS_NUM_THREADS=1 \
+    APPTAINERENV_NUMEXPR_NUM_THREADS=1 \
+    APPTAINERENV_MKL_NUM_THREADS=1 \
       bash "$script" "$sub" "$ses" &
 
-    sleep 5s
+    sleep 1
   done
 done
 
