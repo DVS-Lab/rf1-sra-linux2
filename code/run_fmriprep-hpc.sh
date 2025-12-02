@@ -5,7 +5,7 @@ maindir=/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2 #this should be th
 scriptdir=$maindir/code
 
 
-mapfile -t myArray < ${scriptdir}/sublist_fix.txt
+mapfile -t myArray < ${scriptdir}/sublist_all.txt
 
 
 # grab the first ntask elements
