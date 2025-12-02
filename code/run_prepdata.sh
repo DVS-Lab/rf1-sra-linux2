@@ -3,10 +3,10 @@
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 script="${scriptdir}/prepdata-linux2.sh"
 
-NJOB=3          # number of parallel subjects
-OMP_THREADS=6    # threads inside each container job
+NJOB=6          # number of parallel subjects
+OMP_THREADS=12    # threads inside each container job
 
-for sub in $(cat "${scriptdir}/sublist_all.txt"); do
+for sub in $(cat "${scriptdir}/sublist_fix.txt"); do
   for ses in 01 02; do
 
     # Limit number of active prepdata jobs

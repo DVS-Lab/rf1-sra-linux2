@@ -3,7 +3,7 @@
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 script="${scriptdir}/warpkit.sh"
 
-NJOB=16
+NJOB=8
 OMP_THREADS=4
 
 for sub in $(cat "${scriptdir}/sublist_fix.txt"); do
