@@ -140,9 +140,6 @@ bids/
 bids/**/*.nii.gz
 bids/**/.*
 bids/**/*.tsv
-!bids/*.json
-!bids/participants.tsv
-!bids/sub-*/ses-*/func/*events.tsv
 
 derivatives/fsl/
 !derivatives/fsl/EVfiles/
@@ -158,17 +155,33 @@ derivatives/fmriprep-*/*/func/*_mask.json
 derivatives/fmriprep-*/*/func/*_bold.json
 derivatives/warpkit/
 derivatives/tedana*/
+derivatives/mriqc
 
 nipype_work/
 
 logs/
+scratch/
 
 code/hpc_output
-code/__pycache__
+code/__pycache__/
 code/.*
 
 sub-*.html
 
 # other files
 *.out
+
+*.nii.gz
+*.nii
+*.html
+*.json
+
+!bids/*.json
+!bids/participants.tsv
+!bids/sub-*/ses-*/func/*events.tsv
+
+!code/
+!code/**
+code/hpc_output
+!.gitignore
 
