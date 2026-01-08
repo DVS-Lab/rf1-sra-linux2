@@ -163,7 +163,7 @@ logs/
 scratch/
 
 code/hpc_output
-code/__pycache__/
+code/__pycache__
 code/.*
 
 sub-*.html
