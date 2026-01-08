@@ -16,7 +16,7 @@ set -euo pipefail
 
 sub=$1
 ses=$2
-
+[ "$sub" = "11433" ] && heuristics_file="/out/code/heuristics_rf1.py"
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 dsroot="$(dirname "$scriptdir")"
 sourcedata=/ZPOOL/data/sourcedata/sourcedata/rf1-sra
@@ -48,7 +48,7 @@ else
   scandir="$subdir/scans"
   epoch=$(find "$scandir" -type f -name '*.dcm' -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | awk '{print int($1)}' || true)
   [ -z "${epoch:-}" ] && epoch=$(stat -c %Y "$subdir" 2>/dev/null || echo 0)
-  if [ "$epoch" -le "$cutoff_epoch" ]; then
+  if [ "${heuristics_file:-}" = "/out/code/heuristics_rf1.py" ] || [ "$epoch" -le "$cutoff_epoch" ]; then
     heuristics_file="/out/code/heuristics_rf1.py"
   else
     heuristics_file="/out/code/heuristics_XA30.py"
