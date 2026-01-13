@@ -5,7 +5,7 @@ maindir=/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2 #this should be th
 scriptdir=$maindir/code
 
 
-mapfile -t myArray < ${scriptdir}/sublist_all.txt
+mapfile -t myArray < ${scriptdir}/sublist_new.txt
 
 
 # grab the first ntask elements
@@ -15,6 +15,6 @@ while [ $counter -lt ${#myArray[@]} ]; do
 	subjects=${myArray[@]:$counter:$ntasks}
 	echo $subjects
 	let counter=$counter+$ntasks
-	qsub -v subjects="${subjects[@]}" fmriprep24-hpc.sh
-	#qsub -v subjects="${subjects[@]}" fmriprep25-hpc.sh
+	#qsub -v subjects="${subjects[@]}" fmriprep24-hpc.sh
+	qsub -v subjects="${subjects[@]}" fmriprep25-hpc.sh
 done

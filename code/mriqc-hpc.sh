@@ -1,4 +1,3 @@
-#/usr/bin/env bash
 #!/bin/bash
 #PBS -l walltime=2:00:00
 #PBS -N mriqc-test
@@ -14,7 +13,7 @@ cd $PBS_O_WORKDIR
 umask 0000
 
 # ensure paths are correct irrespective from where user runs the script
-dsroot=/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-data
+dsroot=/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2
 codedir=$dsroot/code
 logdir=~/work/logs
 mkdir -p $logdir
