@@ -6,7 +6,7 @@ script="${scriptdir}/warpkit.sh"
 NJOB=8
 OMP_THREADS=4
 
-for sub in $(cat "${scriptdir}/sublist_new.txt"); do
+for sub in $(cat "${scriptdir}/sublist_fix.txt"); do
   for ses in 01 02; do
 
     if [ "$ses" = "01" ]; then
