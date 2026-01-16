@@ -66,7 +66,7 @@ for sub in ${subjects[@]}; do
         --skip-bids-validation \
         --nthreads 14 \
         --me-output-echos \
-        --output-spaces MNI152NLin6Asym \
+        --output-spaces T1w MNI152NLin6Asym \
         --bids-filter-file /base/code/fmriprep_config.json \
         --fs-no-reconall \
         --fs-license-file /opts/fs_license.txt \
