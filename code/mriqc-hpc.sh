@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l walltime=2:00:00
+#PBS -l walltime=6:00:00
 #PBS -N mriqc-test
 #PBS -q normal
 #PBS -l nodes=1:ppn=28
