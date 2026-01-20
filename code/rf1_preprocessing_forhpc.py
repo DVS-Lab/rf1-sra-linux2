@@ -79,21 +79,30 @@ def run_warp_all(sublist_file, bids_dir, script_dir, logfile, pass_id):
     open(marker, "w").close()
     return marker
 
-def run_rsync(logfile):
+def run_rsync(sublist_file, logfile):
     import subprocess, os
-    subprocess.run(["chmod", "-R", "777", "/ZPOOL/data/projects/rf1-sra-linux2/bids"], check = True)
-    RSYNC_CMD = [
-    "rsync", "-avL",
-    "/ZPOOL/data/projects/rf1-sra-linux2/bids",
-    "hpc:/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/"
-    ]
+    with open(sublist_file) as f:
+        subs = [s.strip() for s in f if s.strip()]
+    bids_root = "/ZPOOL/data/projects/rf1-sra-linux2/bids"
+    hpc_root  = "hpc:/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/bids"
+    subprocess.run(["chmod", "-R", "777", bids_root], check=True)
     with open(logfile, "a") as lf:
-        lf.write("\n$ chmod -R 777 /ZPOOL/data/projects/rf1-sra-linux2/bids\n")
-        lf.write("\n$ " + " ".join(RSYNC_CMD) + "\n")
-        subprocess.run(RSYNC_CMD, stdout=lf, stderr=lf, check=True)
+        lf.write(f"\n$ chmod -R 777 {bids_root}\n")
+        for sub in subs:
+            src = os.path.join(bids_root, f"sub-{sub}")
+            dst = os.path.join(hpc_root, f"sub-{sub}")
+
+            if not os.path.isdir(src):
+                lf.write(f"\n# SKIP: {src} does not exist\n")
+                continue
+
+            cmd = ["rsync", "-avL", src, dst]
+            lf.write("\n$ " + " ".join(cmd) + "\n")
+            subprocess.run(cmd, stdout=lf, stderr=lf, check=True)
     marker = os.path.join(os.path.dirname(logfile), ".rsync_done")
     open(marker, "w").close()
     return marker
+
 
 if os.path.isdir(WORKDIR):
     shutil.rmtree(WORKDIR)
@@ -142,17 +151,18 @@ warp2.inputs.pass_id = "pass2"
 
 rsync = Node(
     Function(
-        input_names=["logfile"],
+        input_names=["sublist_file", "logfile"],
         output_names=["marker"],
         function=run_rsync,
     ),
     name="final_rsync",
 )
+rsync.inputs.sublist_file = SUBLIST
 rsync.inputs.logfile = LOGFILE
 
 wf.connect(prep, "marker", warp1, "sublist_file")
 wf.connect(warp1, "marker", warp2, "sublist_file")
-wf.connect(warp2, "marker", rsync, "logfile")
+wf.connect(warp2, "marker", rsync, "sublist_file")
 
 if __name__ == "__main__":
     print(f"Log: {LOGFILE}")
