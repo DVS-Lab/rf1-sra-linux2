@@ -85,7 +85,7 @@ def run_rsync(sublist_file, logfile):
         subs = [s.strip() for s in f if s.strip()]
     bids_root = "/ZPOOL/data/projects/rf1-sra-linux2/bids"
     hpc_root  = "hpc:/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/bids"
-    subprocess.run(["chmod", "-R", "777", bids_root], check=True)
+    subprocess.run(["chmod", "-R", "777", bids_root], check=False)
     with open(logfile, "a") as lf:
         lf.write(f"\n$ chmod -R 777 {bids_root}\n")
         for sub in subs:
