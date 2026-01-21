@@ -185,3 +185,6 @@ sub-*.html
 code/hpc_output
 !.gitignore
 
+code/.warpkit*
+code/__pycache__*
+code/.prepdata**
