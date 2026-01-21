@@ -6,7 +6,7 @@ maindir=/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2
 scriptdir=$maindir/code
 
 
-mapfile -t myArray < ${scriptdir}/sublist_fix.txt
+mapfile -t myArray < ${scriptdir}/sublist_new.txt
 # sublist_check.txt
 #newsubs_rf1-sra-data.txt
 

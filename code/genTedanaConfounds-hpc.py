@@ -9,11 +9,11 @@ import numpy as np
 
 # Comment out fmriprep and tedana 24 or 25, depending on what to run
 
-#fmriprep_dir = '../derivatives/fmriprep-24/'
-#tedana_dir = '../derivatives/tedana-24/'
+fmriprep_dir = '../derivatives/fmriprep-24/'
+tedana_dir = '../derivatives/tedana-24/'
 
-fmriprep_dir = '../derivatives/fmriprep-25/'
-tedana_dir = '../derivatives/tedana-25/'
+#fmriprep_dir = '../derivatives/fmriprep-25/'
+#tedana_dir = '../derivatives/tedana-25/'
 
 metric_files = natsorted([
     os.path.join(root, f)
