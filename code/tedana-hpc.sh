@@ -1,6 +1,7 @@
 #!/bin/bash
 #PBS -l walltime=12:00:00
 #PBS -N tedana-test
+#PBS -M melanie.kos@temple.edu
 #PBS -q normal
 #PBS -l nodes=1:ppn=28
 

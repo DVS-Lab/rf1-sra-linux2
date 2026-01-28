@@ -1,6 +1,7 @@
 #!/bin/bash
 #PBS -l walltime=6:00:00
 #PBS -N mriqc-test
+#PBS -M melanie.kos@temple.edu
 #PBS -q normal
 #PBS -l nodes=1:ppn=28
 
