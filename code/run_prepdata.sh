@@ -6,7 +6,7 @@ script="${scriptdir}/prepdata-linux2.sh"
 NJOB=6          # number of parallel subjects
 OMP_THREADS=12    # threads inside each container job
 
-for sub in $(cat "${scriptdir}/sublist_fix.txt"); do
+for sub in $(cat "${scriptdir}/sublist_new.txt"); do
   for ses in 01 02; do
 
     # Limit number of active prepdata jobs
