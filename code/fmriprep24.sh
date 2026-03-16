@@ -11,9 +11,11 @@ if [ ! -d $maindir/derivatives ]; then
     mkdir -p $maindir/derivatives
 fi
 
-# Scratch dir under your account (not in ZPOOL) on linux
-scratchdir="$HOME/scratch"
-mkdir -p "$scratchdir"
+# Scratch dir under linux2
+scratchdir=/ZPOOL/data/scratch/$(whoami)
+if [ ! -d "$scratchdir" ]; then
+  mkdir -p "$scratchdir"
+fi
 
 logfile=${logdir}/fmriprep24_output.log
 touch ${logfile}
