@@ -53,6 +53,7 @@ singularity run --cleanenv \
     --me-output-echos \
     --output-spaces MNI152NLin6Asym \
     --bids-filter-file ${base_container}/code/fmriprep_config.json \
+    --skip-bids-validation \
     --fs-no-reconall \
     --fs-license-file ${licenses_container}/fs_license.txt \
     -w ${scratch_container}
