@@ -18,7 +18,7 @@ scratchdir=/ZPOOL/data/scratch/$(whoami)
 templateflow_host=/ZPOOL/data/tools/templateflow
 mplconfig_host=/ZPOOL/data/tools/mplconfigdir
 licenses_host=/ZPOOL/data/tools/licenses
-fmriprep_img=/ZPOOL/data/tools/fmriprep-25.2.4.simg
+fmriprep_img=/ZPOOL/data/tools/fmriprep-25.2.5.simg
 
 # container paths
 base_container=/base
