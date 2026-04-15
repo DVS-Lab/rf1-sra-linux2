@@ -37,8 +37,8 @@ if [ ! -d "$scratchdir" ]; then
     mkdir -p "$scratchdir"
 fi
 
-export SINGULARITYENV_TEMPLATEFLOW_HOME=$templateflow_container
-export SINGULARITYENV_MPLCONFIGDIR=$mplconfig_container
+export APPTAINERENV_TEMPLATEFLOW_HOME=$templateflow_container
+export APPTAINERENV_MPLCONFIGDIR=$mplconfig_container
 
 singularity run --cleanenv \
     -B ${templateflow_host}:${templateflow_container} \
