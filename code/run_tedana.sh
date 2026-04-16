@@ -15,7 +15,7 @@ else
     exit 1
 fi
 
-sublist="$scriptdir/sublist_fix.txt"
+sublist="$scriptdir/sublist_new.txt"
 mapfile -t myArray < "$sublist"
 
 ntasks=1

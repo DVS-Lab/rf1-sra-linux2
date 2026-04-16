@@ -16,13 +16,14 @@ touch $missinglog
 # estimated procs per subject: 4 tasks * 2 runs * 4 echoes = 32?
 # wow... can't be right, but let's go for 9 subjects per job (84 procs per job). watch for memory issues.
 # EDIT: sending only one subject/job currently in the run script
-for fmriprep in 24 25; do
+#for fmriprep in 24 25; do
   for sub in ${subjects[@]}; do
     for ses in 01 02; do 
 	    for task in "socialdoors" "doors" "trust" "sharedreward" "ugr"; do
 		    for run in 1 2; do
 
-			    indata=$maindir/derivatives/fmriprep-${fmriprep}/sub-${sub}/ses-${ses}/func
+			    #indata=$maindir/derivatives/fmriprep-${fmriprep}/sub-${sub}/ses-${ses}/func
+			    indata=$maindir/derivatives/fmriprep/sub-${sub}/ses-${ses}/func
 			    echo1=${indata}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-mag_desc-preproc_bold.nii.gz
 			    echo2=${indata}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-2_part-mag_desc-preproc_bold.nii.gz
 			    echo3=${indata}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-3_part-mag_desc-preproc_bold.nii.gz
@@ -32,7 +33,8 @@ for fmriprep in 24 25; do
 				    echo "Skipping sub-${sub}, ses-${ses}, task-${task}, run-${run}" >> ${logfile}
 				    continue
 			    fi
-			    outdir=$maindir/derivatives/tedana-${fmriprep}/sub-${sub}/ses-${ses}
+			    #outdir=$maindir/derivatives/tedana-${fmriprep}/sub-${sub}/ses-${ses}
+			    outdir=$maindir/derivatives/tedana/sub-${sub}/ses-${ses}
 			    mkdir -p $outdir
 			
 			    echotime1=""
@@ -66,5 +68,5 @@ for fmriprep in 24 25; do
 	    done
     done		
   done
-done
+#done
 
