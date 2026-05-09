@@ -122,8 +122,7 @@ run_fmriprep() {
     local out_dir="$outputroot/$dataset_id"
     local work_dir="$scratchroot/$dataset_id"
     local version_label="${dataset_version//./_}"
-    local run_label="run-${run_id}"
-    local log_file="$logroot/${dataset_id}_v${version_label}_${subject}_${run_label}_fmriprep-warpkit.log"
+    local log_file="$logroot/${dataset_id}_v${version_label}_${subject}_run-${run_id}_fmriprep-warpkit.log"
 
     mkdir -p "$out_dir" "$work_dir"
 
@@ -137,7 +136,7 @@ run_fmriprep() {
         -B "${scriptdir}:${base_container}/code" \
         -B "${licenses_host}:${licenses_container}" \
         "${fmriprep_img}" \
-        "${base_container}/bids/${dataset_id}" "${base_container}/outputs/${dataset_id}/${run_label}" \
+        "${base_container}/bids/${dataset_id}" "${base_container}/outputs/${dataset_id}" \
         participant --participant_label "$participant_label" \
         --stop-on-first-crash \
         --me-output-echos \
@@ -147,7 +146,7 @@ run_fmriprep() {
         --fs-no-reconall \
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
-        -w "${base_container}/work/${dataset_id}/${run_label}" \
+        -w "${base_container}/work/${dataset_id}" \
         2>&1 | tee "$log_file"
 }
 
