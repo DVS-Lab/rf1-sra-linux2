@@ -10,10 +10,13 @@ set -euo pipefail
 scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 maindir="$(dirname "$scriptdir")"
 
-# Host-system paths.
-bidsroot="$maindir/bids"
-derivroot="$maindir/derivatives/fmriprep-warpkit-testing"
-scratchroot=/ZPOOL/data/scratch/$(whoami)/fmriprep-warpkit-testing
+# Dedicated validation sandbox. All downloaded inputs, outputs, logs, and work
+# files stay under this folder so the existing project tree remains uncluttered.
+testrunroot="$maindir/derivatives/fmriprep-warpkit-validation"
+bidsroot="$testrunroot/bids"
+outputroot="$testrunroot/outputs"
+logroot="$testrunroot/logs"
+scratchroot="$testrunroot/work"
 templateflow_host=/ZPOOL/data/tools/templateflow
 mplconfig_host=/ZPOOL/data/tools/mplconfigdir
 licenses_host=/ZPOOL/data/tools/licenses
@@ -24,7 +27,6 @@ base_container=/base
 templateflow_container=/opt/templateflow
 mplconfig_container=/opt/mplconfigdir
 licenses_container=/opts
-scratch_container=/scratch
 
 # OpenNeuro datasets with complex-valued multi-echo data suggested for testing.
 # Your datasets are intentionally omitted here: ds005123, ds006707, ds007486.
@@ -38,7 +40,7 @@ datasets=(
     "ds002278 2.0.0 1"
 )
 
-mkdir -p "$bidsroot" "$derivroot/logs" "$scratchroot"
+mkdir -p "$bidsroot" "$outputroot" "$logroot" "$scratchroot"
 
 export APPTAINERENV_TEMPLATEFLOW_HOME=$templateflow_container
 export APPTAINERENV_MPLCONFIGDIR=$mplconfig_container
@@ -102,10 +104,10 @@ run_fmriprep() {
     local dataset_version=$2
     local subject=$3
     local participant_label="${subject#sub-}"
-    local out_dir="$derivroot/$dataset_id"
+    local out_dir="$outputroot/$dataset_id"
     local work_dir="$scratchroot/$dataset_id"
     local version_label="${dataset_version//./_}"
-    local log_file="$derivroot/logs/${dataset_id}_v${version_label}_${subject}_fmriprep-warpkit.log"
+    local log_file="$logroot/${dataset_id}_v${version_label}_${subject}_fmriprep-warpkit.log"
 
     mkdir -p "$out_dir" "$work_dir"
 
@@ -115,11 +117,11 @@ run_fmriprep() {
     apptainer run --cleanenv \
         -B "${templateflow_host}:${templateflow_container}" \
         -B "${mplconfig_host}:${mplconfig_container}" \
-        -B "${maindir}:${base_container}" \
+        -B "${testrunroot}:${base_container}" \
+        -B "${scriptdir}:${base_container}/code" \
         -B "${licenses_host}:${licenses_container}" \
-        -B "${scratchroot}:${scratch_container}" \
         "${fmriprep_img}" \
-        "${base_container}/bids/${dataset_id}" "${base_container}/derivatives/fmriprep-warpkit-testing/${dataset_id}" \
+        "${base_container}/bids/${dataset_id}" "${base_container}/outputs/${dataset_id}" \
         participant --participant_label "$participant_label" \
         --stop-on-first-crash \
         --me-output-echos \
@@ -129,7 +131,7 @@ run_fmriprep() {
         --fs-no-reconall \
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
-        -w "${scratch_container}/${dataset_id}" \
+        -w "${base_container}/work/${dataset_id}" \
         2>&1 | tee "$log_file"
 }
 
