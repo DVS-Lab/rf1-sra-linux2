@@ -33,13 +33,18 @@ licenses_container=/opts
 # Format: dataset_id version_tag subject_selector
 # The selector may be a full subject label or a 1-based index into sorted sub-* directories.
 # ds006072/sub-P1 fails appropriately because it has no matching part-phase BOLD files.
+
+#datasets=(
+#    "ds007637 1.0.0 sub-01"
+#    "ds006926 1.0.0 sub-a01"
+#    "ds006131 2.0.1 sub-20188"
+#    "ds006072 1.0.8 sub-P1R"
+#    "ds005085 1.0.0 sub-10015"
+#    "ds002278 2.0.0 sub-Blossom"
+#)
+
 datasets=(
-    "ds007637 1.0.0 sub-01"
-    "ds006926 1.0.0 sub-a01"
-    "ds006131 2.0.1 sub-20188"
     "ds006072 1.0.8 sub-P1R"
-    "ds005085 1.0.0 sub-10015"
-    "ds002278 2.0.0 sub-Blossom"
 )
 
 run_id="$(date +%Y%m%d-%H%M%S)"
