@@ -30,15 +30,19 @@ licenses_container=/opts
 
 # OpenNeuro datasets with complex-valued multi-echo data suggested for testing.
 # Your datasets are intentionally omitted here: ds005123, ds006707, ds007486.
-# Format: dataset_id version_tag sorted_subject_number
+# Format: dataset_id version_tag subject_selector
+# The selector may be a full subject label or a 1-based index into sorted sub-* directories.
+# ds006072/sub-P1 fails appropriately because it has no matching part-phase BOLD files.
 datasets=(
-    "ds007637 1.0.0 1"
-    "ds006926 1.0.0 1"
-    "ds006131 2.0.1 1"
-    "ds006072 1.0.8 1"
-    "ds005085 1.0.0 2"
-    "ds002278 2.0.0 1"
+    "ds007637 1.0.0 sub-01"
+    "ds006926 1.0.0 sub-a01"
+    "ds006131 2.0.1 sub-20188"
+    "ds006072 1.0.8 sub-P1R"
+    "ds005085 1.0.0 sub-10015"
+    "ds002278 2.0.0 sub-Blossom"
 )
+
+run_id="$(date +%Y%m%d-%H%M%S)"
 
 mkdir -p "$bidsroot" "$outputroot" "$logroot" "$scratchroot"
 
@@ -74,14 +78,25 @@ install_dataset() {
 
 select_subject() {
     local dataset_id=$1
-    local subject_number=$2
+    local subject_selector=$2
     local dataset_dir="$bidsroot/$dataset_id"
-    local subject_index=$((subject_number - 1))
+    local subject_index
     local subjects=()
 
+    if [[ "$subject_selector" == sub-* ]]; then
+        if [[ -d "$dataset_dir/$subject_selector" ]]; then
+            printf '%s\n' "$subject_selector"
+            return 0
+        fi
+
+        echo "[$dataset_id] Could not find requested subject $subject_selector" >&2
+        return 1
+    fi
+
+    subject_index=$((subject_selector - 1))
     mapfile -t subjects < <(find "$dataset_dir" -maxdepth 1 -type d -name 'sub-*' -exec basename {} \; | sort)
     if (( ${#subjects[@]} <= subject_index )); then
-        echo "[$dataset_id] Could not find sorted subject number $subject_number" >&2
+        echo "[$dataset_id] Could not find sorted subject number $subject_selector" >&2
         return 1
     fi
 
@@ -107,7 +122,8 @@ run_fmriprep() {
     local out_dir="$outputroot/$dataset_id"
     local work_dir="$scratchroot/$dataset_id"
     local version_label="${dataset_version//./_}"
-    local log_file="$logroot/${dataset_id}_v${version_label}_${subject}_fmriprep-warpkit.log"
+    local run_label="run-${run_id}"
+    local log_file="$logroot/${dataset_id}_v${version_label}_${subject}_${run_label}_fmriprep-warpkit.log"
 
     mkdir -p "$out_dir" "$work_dir"
 
@@ -121,7 +137,7 @@ run_fmriprep() {
         -B "${scriptdir}:${base_container}/code" \
         -B "${licenses_host}:${licenses_container}" \
         "${fmriprep_img}" \
-        "${base_container}/bids/${dataset_id}" "${base_container}/outputs/${dataset_id}" \
+        "${base_container}/bids/${dataset_id}" "${base_container}/outputs/${dataset_id}/${run_label}" \
         participant --participant_label "$participant_label" \
         --stop-on-first-crash \
         --me-output-echos \
@@ -131,14 +147,14 @@ run_fmriprep() {
         --fs-no-reconall \
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
-        -w "${base_container}/work/${dataset_id}" \
+        -w "${base_container}/work/${dataset_id}/${run_label}" \
         2>&1 | tee "$log_file"
 }
 
 failures=()
 
 for dataset_spec in "${datasets[@]}"; do
-    read -r dataset_id dataset_version subject_number <<< "$dataset_spec"
+    read -r dataset_id dataset_version subject_selector <<< "$dataset_spec"
 
     echo
     echo "========== $dataset_id $dataset_version =========="
@@ -149,7 +165,7 @@ for dataset_spec in "${datasets[@]}"; do
         continue
     fi
 
-    if ! subject="$(select_subject "$dataset_id" "$subject_number")"; then
+    if ! subject="$(select_subject "$dataset_id" "$subject_selector")"; then
         failures+=("$dataset_id: subject selection")
         continue
     fi
