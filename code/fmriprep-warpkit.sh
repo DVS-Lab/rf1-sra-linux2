@@ -151,6 +151,11 @@ run_fmriprep() {
         --fs-no-reconall \
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
+        --nprocs 24 \
+        --omp-nthreads 8 \
+        --mem-mb 190000 \
+        --low-mem \
+        --resource-monitor \
         -w "${base_container}/work/${dataset_id}" \
         2>&1 | tee "$log_file"
 }
