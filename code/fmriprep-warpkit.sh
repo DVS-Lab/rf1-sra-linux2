@@ -143,6 +143,7 @@ run_fmriprep() {
         "${fmriprep_img}" \
         "${base_container}/bids/${dataset_id}" "${base_container}/outputs/${dataset_id}" \
         participant --participant_label "$participant_label" \
+        --session-label 1 \
         --stop-on-first-crash \
         --me-output-echos \
         --output-spaces MNI152NLin6Asym \
@@ -152,9 +153,9 @@ run_fmriprep() {
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
         --me-warpkit-noise-frames 3 \
-        --nprocs 12 \
-        --omp-nthreads 6 \
-        --mem-mb 130000 \
+        --nprocs 6 \
+        --omp-nthreads 4 \
+        --mem-mb 40000 \
         --low-mem \
         --resource-monitor \
         -w "${base_container}/work/${dataset_id}" \
