@@ -151,6 +151,7 @@ run_fmriprep() {
         --fs-no-reconall \
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
+        --me-warpkit-noise-frames 3 \
         --nprocs 12 \
         --omp-nthreads 6 \
         --mem-mb 130000 \
