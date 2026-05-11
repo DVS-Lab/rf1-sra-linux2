@@ -153,9 +153,9 @@ run_fmriprep() {
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
         --me-warpkit-noise-frames 3 \
-        --nprocs 6 \
-        --omp-nthreads 4 \
-        --mem-mb 40000 \
+        --nprocs 16 \
+        --omp-nthreads 6 \
+        --mem-mb 140000 \
         --low-mem \
         --resource-monitor \
         -w "${base_container}/work/${dataset_id}" \
