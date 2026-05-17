@@ -150,7 +150,6 @@ run_fmriprep() {
         --fs-no-reconall \
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
-        --me-warpkit-noise-frames 3 \
         -w "${base_container}/work/${dataset_id}" \
         2>&1 | tee "$log_file"
 }
