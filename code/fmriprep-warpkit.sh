@@ -34,18 +34,17 @@ licenses_container=/opts
 # The selector may be a full subject label or a 1-based index into sorted sub-* directories.
 # ds006072/sub-P1 fails appropriately because it has no matching part-phase BOLD files.
 
-#datasets=(
-#    "ds007637 1.0.0 sub-01"
-#    "ds006926 1.0.0 sub-a01"
-#    "ds006131 2.0.1 sub-20188"
-#    "ds006072 1.0.8 sub-P1R"
-#    "ds005085 1.0.0 sub-10015"
-#    "ds002278 2.0.0 sub-Blossom"
-#)
-
 datasets=(
-    "ds006072 1.0.8 sub-P1R"
+    "ds007637 1.0.0 sub-01"
+    "ds006926 1.0.0 sub-a01"
+    "ds006131 2.0.1 sub-20188"
+    "ds005085 1.0.0 sub-10015"
+    "ds002278 2.0.0 sub-Blossom"
 )
+
+#datasets=(
+#    "ds006072 1.0.8 sub-P1R"
+#)
 
 run_id="$(date +%Y%m%d-%H%M%S)"
 
@@ -143,7 +142,6 @@ run_fmriprep() {
         "${fmriprep_img}" \
         "${base_container}/bids/${dataset_id}" "${base_container}/outputs/${dataset_id}" \
         participant --participant_label "$participant_label" \
-        --session-label 1 \
         --stop-on-first-crash \
         --me-output-echos \
         --output-spaces MNI152NLin6Asym \
@@ -153,11 +151,6 @@ run_fmriprep() {
         --fs-license-file "${licenses_container}/fs_license.txt" \
         --me-use-warpkit \
         --me-warpkit-noise-frames 3 \
-        --nprocs 16 \
-        --omp-nthreads 6 \
-        --mem-mb 140000 \
-        --low-mem \
-        --resource-monitor \
         -w "${base_container}/work/${dataset_id}" \
         2>&1 | tee "$log_file"
 }
