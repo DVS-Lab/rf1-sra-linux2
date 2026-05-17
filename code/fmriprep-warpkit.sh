@@ -20,7 +20,7 @@ scratchroot="$testrunroot/work"
 templateflow_host=/ZPOOL/data/tools/templateflow
 mplconfig_host=/ZPOOL/data/tools/mplconfigdir
 licenses_host=/ZPOOL/data/tools/licenses
-fmriprep_img=/ZPOOL/data/tools/fmriprep-warpkit.sif # made from https://github.com/DVSneuro/fmriprep/tree/warpkit-medic
+fmriprep_img=/ZPOOL/data/tools/fmriprep-warpkit-andrew.sif # made from https://github.com/DVSneuro/fmriprep/tree/warpkit-medic
 
 # Container paths.
 base_container=/base
