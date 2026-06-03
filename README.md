@@ -8,8 +8,8 @@ This repository contains the final code for managing and processing all MR task 
 - Install [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation)
 - Install [miniconda or anaconda](https://stackoverflow.com/questions/45421163/anaconda-vs-miniconda)
 - Install PyDeface: `pip install pydeface`
-- Make singularity containers for heudiconv (version: 1.3.2), mriqc (version: 24.0.2), and fmriprep (version: 24.1.1).
-- Ideally you have HPC and XNAT accounts; below instructions are written as though you have access to both XNAT and HPC, though Linux-version of scripts exist and should be substituted in for HPC-relevant steps.
+- Make singularity containers for heudiconv (version: 1.3.2), mriqc (version: 24.0.2), and fmriprep (version: 25.2.5 and/or 24.1.1).
+- Ideally you have Temple XNAT accounts; below instructions are written as though you have access to XNAT. (Note: Though the HPC is now being retired, HPC-compatible versions of the scripts are included for fmriprep, mriqc, and tedana, as these are especially computationally-intensive and were completed on the HPC when the resource existed. The HPC follows a PBS/Torque environment that uses `qsub` as the job submission command.)
 
 
 ## Notes on repository organization and files
@@ -21,120 +21,95 @@ This repository contains the final code for managing and processing all MR task 
   - `bids`: contains the standardized "raw" in BIDS format (output of heudiconv; only key text files)
 
 
-## Downloading Data and Running Preprocessing
+## Downloading Data and Running Preprocessing on your Machine (outside users)
 ```
 # Get data via datalad (TO DO)
-git clone https://github.com/DVS-Lab/rf1-sra-linux2 ? 
+git clone https://github.com/DVS-Lab/rf1-sra-linux2 
 cd rf1-sra-linux2
 datalad clone https://github.com/OpenNeuroDatasets/XXXXXX.git bids
+# This dataset is `ds005123`, "Social Reward and Nonsocial Reward Processing Across the Adult Lifespan: An Interim Multi-echo fMRI and Diffusion Dataset" 
 # the bids folder is a datalad dataset
 # you can get all of the data with the command below:
 datalad get sub-*
 ```
 
-### Step 1: Get data via XNAT (for ongoing collection; see Slab page on XNAT for more details)
+### Step: 1 Downloading Data and Running Preprocessing on your Machine (Smith lab users)
 ```
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 python downloadXNAT.py
 ```
-Input your XNAT credentials and any new subject data files should download to /ZPOOL/data/sourcedata/sourcedata/rf1-sra
+Input your XNAT credentials and any new subject data files should download to ```/ZPOOL/data/sourcedata/sourcedata/rf1-sra```
 
 ### Step 2: Update your subject lists
 You need to manually edit the ```sublist_all``` and ```sublist_new``` text files by adding on your newly downloaded subject IDs to the end of the list.
-Here is a helpful [Preprocessing log that you should edit as you preprocess data to note any issues.](https://tuprd.sharepoint.com/:x:/r/sites/TU-CLA-Psych-Smith-Lab/_layouts/15/doc.aspx?sourcedoc=%7B516fedac-572d-4246-8b29-0cb9aef0681d%7D&action=edit) Typically, sublist_new will be used for preprocessing incoming data.
+Smith lab users: Here is a helpful [Preprocessing log that you should edit as you preprocess data to note any issues.](https://tuprd.sharepoint.com/:x:/r/sites/TU-CLA-Psych-Smith-Lab/_layouts/15/doc.aspx?sourcedoc=%7B516fedac-572d-4246-8b29-0cb9aef0681d%7D&action=edit) Typically, sublist_new will be used for preprocessing incoming data.
 
-### Step 3: BIDS-ify your data, deface, and run warpkit; two ways to do this
-First way (the long way):
+### Step 3: BIDS-ify your data (heudiconv), deface (pydeface), and (optional to do at this stage or in the future) run quality check (MRIQC)
+On Linux2: 
 ```
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 bash run_prepdata.sh
-# This script launches prepdata-linux2.sh with whatever sublist you tell it to run; note that the script currently runs heudiconv and pydeface, and the portion on MRIQC is commented out as MRIQC is run on the HPC for computing resource considerations.
 ```
-Once this script has successfully run (i.e., bids data for the subjects) you next need to run warpkit. 
+This script launches prepdata-linux2.sh with whatever sublist you indicated for the run file to run on; ideally it is `sublist_new`. The script runs heudiconv, pydeface, and mriqc; if you are in a time pinch, you may comment out the MRIQC portion of the script (Part 3) and run it later, as it is the most computationally intensive of the three. 
+
+### Step 4: Run warpkit
+
+Once this script has successfully run (i.e., BIDS data for the subjects) you next need to run warpkit. 
 ```
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 bash run_warpkit.sh
-# This script launches warpkit.sh with whatever sublist you tell it to run (typically will be sublist_new.txt)
 ```
-Once this script has successfully run (i.e., .json files for each task in the bids fmap folders for your sublist), you will transfer the data to the HPC. 
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/bids
-rsync -avL sub-[insertSubID] hpc:/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/bids/
-# Manually type in the subject ID of your new subjects
-# Note that "hpc" is to be filled in with whatever your shortcut for hpc is
+This script launches warpkit.sh with whatever sublist you tell it to run (typically will be `sublist_new`).
 
-# OR
-rsync -avL sub-* hpc:/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/bids/
-# This will take longer as it will re-send over .json files that are later edited in HPC; not a big deal since the next step on HPC will write them over again, don't worry 
-```
-Second way (the short way):
-```
-# This script launches the prepdata-linux2.sh script; note that the subject list must be updated to be to 
-python rf1_preprocessing_forhpc.py
-# This will run for a while, but it will 1) run prepdata (heudiconv and pydeface), 2) run warpkit, and 3) rsync over new subjects' BIDS data into the HPC; output can be checked in the parent repo's rf1_preprocessing_forhpc.log
-```
-### Step 4: On HPC, amend subject list and run fMRIPrep 
-This is a good time to git commit your updated subject lists so then on the HPC, you can pull these subject lists.
+### Step 5: Amend IntendedFor .json files 
 Prior to running fMRIPrep, you will need to amend the IntendedFor .json files. 
 ```
-cd /gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/code/
-python addIntendedFor-hpc.py
-# This script will amend IntendedFor files for each task; this is why it's okay to write over the .json files in the rsync step before
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+python addIntendedFor.py
+# This script will amend IntendedFor files for each task
 ```
+
+### Step 6: Run fMRIPrep
 Once that completes, now run fMRIPrep. There are 2 versions of fMRIPrep scripts that can be run; fmriprep24-hpc and fmriprep25-hpc
 Note that the run script also needs to point to the proper updated subject list:
 ```
-cd /gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/code/
-bash run_fmriprep-hpc.sh
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+bash run_fmriprep.sh
 # Note that this script is HPC-specific; adjust to non-HPC specific script to run on Linux
 # The run script currently has fmriprep25-hpc.sh commented out and only runs fmriprep24-hpc.sh
 ```
-Output of this will go to ```rf1-sra-linux2/derivatives/fmriprep-24/```. You can check if the output exists by running the ```check_fmriprep.sh``` script.
-### Step 5: On HPC, run MRIQC
-As fMRIPrep is running, you can run MRIQC as it uses the same BIDS input data. Again, make sure it's pointing to updated subject list.
-```
-cd /gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/code/
-bash run_mriqc-hpc.sh
-# Note that this script is HPC-specific; adjust to non-HPC specific script to run on Linux
-```
-### Step 6: On HPC, run TEDANA
+Output of this will go to `rf1-sra-linux2/derivatives/fmriprep-24/`. You can check if the output exists by running the `check_fmriprep.sh` script.
+
+### Step 7: Run TEDANA
 Once fMRIPrep output for subjects exists (can check using ```check_fmriprep.sh```), you can now run TEDANA. Again, make sure it's pointing to updated subject list.
 ```
-cd /gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/code/
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
 bash run_tedana-hpc.sh
 # Note that this script is HPC-specific; adjust to non-HPC specific script to run on Linux
 ```
 Output of this will go to ```rf1-sra-linux2/derivatives/tedana-24/```. You can check if the output exists by running the ```check_tedana.sh``` script.
 
-### Step 7: On HPC, create TEDANA .tsv files for FSL processing
+### Step 8: Create TEDANA .tsv files for FSL processing
 Once TEDANA has successfully run for your subjects, you can create the .tsv files that FSL uses during L1. 
 ```
-cd /gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/code/
-python genTedanaConfounds-hpc.py
-# Note that this script is HPC-specific; adjust to non-HPC specific script to run on Linux
-# The run script currently has tedana-25 sections commented out and only runs tedana-24
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+python genTedanaConfounds.py
+# Make sure that fmriprep24 or 25 are selected
 ```
 Output of this will go to ```rf1-sra-linux2/derivatives/fsl/confounds_tedana-24``` (unless you uncomment tedana-25). 
 
-### Step 8: On HPC, transfer over fmriprep-24 and confounds_tedana-24 data for FSL L1 processing now!
-Rsync over these large data files/folders. 
+### Step 9: If you skipped it in step 1, run MRIQC now
+As fMRIPrep is running, you can run MRIQC as it uses the same BIDS input data. Again, make sure it's pointing to updated subject list.
 ```
-cd /gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/derivatives/
-rsync -avL fmriprep-24 linux2:/ZPOOL/data/projects/rf1-sra-linux2/derivatives/
-# This may take a while, since it is a lot of data; can also individually send over the subjects you need
-# Replace "linux2" with whatever your shortcut for linux2 is
-
-cd /gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/derivatives/fsl
-rsync -avL confounds_tedana-24 linux2:/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fsl/
-# Replace "linux2" with whatever your shortcut for linux2 is
-# This should be quicker than fmriprep data transfer; YOU CAN ALSO GIT COMMIT THIS DATA
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+bash run_mriqc.sh
 ```
 
-### Step 9: On HPC, concatenate MRIQC data for FSL L3 templates
+### Step 10: On HPC, concatenate MRIQC data for FSL L3 templates
 L3 templates use MRIQC data (i.e., fdmean and tsnr) as mean-centereed covariates. To create the output .csv file with these values, you will need to 1) check that MRIQC data exists for your subjects, 2) run ```extract-metrics.py``` after making necessary adjustments to the script, and 3) ```rsync``` or ```git commit``` the data over to linux2.
 ```
-cd /gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2/code/
-bash check_mriqc.sh 
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+python extract-metrics.py
 # You can amend this script for your specific subject list and/or task(s) of interest
 ```
 If data unexpectedly doesn't exist, re-run the subject through MRIQC. Please remember that if someone didn't complete a run of a task in the scanner, they won't have data <3
