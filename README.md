@@ -33,7 +33,7 @@ datalad clone https://github.com/OpenNeuroDatasets/XXXXXX.git bids
 datalad get sub-*
 ```
 
-### Step: 1 Downloading Data and Running Preprocessing on your Machine (Smith lab users)
+### Step 1: Downloading Data and Running Preprocessing on your Machine (Smith lab users)
 ```
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 python downloadXNAT.py
