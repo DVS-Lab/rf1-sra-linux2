@@ -1,0 +1,10 @@
+nohup: ignoring input
+Enter Your XNAT Username
+
+>> Traceback (most recent call last):
+  File "/ZPOOL/data/projects/rf1-sra-linux2/code/downloadXNAT_full.py", line 47, in <module>
+    download_sub(url, session, outputDir)
+  File "/ZPOOL/data/projects/rf1-sra-linux2/code/downloadXNAT_full.py", line 31, in download_sub
+    user = input("Enter Your XNAT Username\n\n>> ")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 9] Bad file descriptor

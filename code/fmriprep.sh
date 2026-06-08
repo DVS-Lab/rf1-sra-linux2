@@ -57,3 +57,4 @@ singularity run --cleanenv \
     --fs-no-reconall \
     --fs-license-file ${licenses_container}/fs_license.txt \
     -w ${scratch_container}
+
