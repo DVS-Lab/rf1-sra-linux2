@@ -1,8 +1,15 @@
 """
+
 XNAT download app, Caleb Haynes 2021; edited by Jeff Dennison 02 2022
 req v python > 3.5 & xnat: python3 -m pip install xnat
 usage: python3 downloadXNAT.py #Jeff hardcoded these for current purposes<url> <session> <outputDir>
 log into xnat server, download scans
+
+Edited by Melanie Kos, October 2025
+This version of "download_XNAT" is if the standard version does not work (i.e., recently got XNAT permissions)
+More information can be found on SLAB: https://smithlab.slab.com/posts/downloading-from-xnat-23r136hm
+under "Alternative method". This script requires you to have your XNAT alias and secret token loaded into the
+environment or into your bash profile to run the script.
 """
 import getpass
 import os

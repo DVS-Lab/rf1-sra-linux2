@@ -5,6 +5,9 @@ set -euo pipefail
 #
 # usage:  bash prepdata.sh sub ses
 # example: bash prepdata.sh 10418 01
+# 
+# This script was edited by Melanie Kos to account for the two sessions and to point to the proper heuristic file
+# depending on the date the participant was scanned. 
 #
 # Notes:
 # 1) Containers live under /ZPOOL/data/tools on this machine. YODA principles suggest sharing these paths if possible.
@@ -16,11 +19,15 @@ set -euo pipefail
 
 sub=$1
 ses=$2
+
+# Manually pointing to heuristics file for this sub as incorrect ID was input into MR console 
+# and amending it updated their scan date
 [ "$sub" = "11433" ] && heuristics_file="/out/code/heuristics_rf1.py"
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 dsroot="$(dirname "$scriptdir")"
 sourcedata=/ZPOOL/data/sourcedata/sourcedata/rf1-sra
 
+# Selecting proper heuristics file based on date scanned / when scanner software was updated
 cutoff_epoch=$(date -d '2025-03-04' +%s) # March 4, 2025
 
 if [ "$ses" = "02" ]; then

@@ -15,22 +15,24 @@ else
     exit 1
 fi
 
-sublist="$scriptdir/sublist_fix.txt"
+sublist="$scriptdir/sublist_new.txt"
 mapfile -t myArray < "$sublist"
 
-ntasks=4
+ntasks=1
 counter=0
 
 while [ $counter -lt ${#myArray[@]} ]; do
     subjects="${myArray[@]:$counter:$ntasks}"
     echo "$subjects"
 
-    if [ "$mode" = "hpc" ]; then
-        qsub -v subjects="$subjects" "$scriptdir/fmriprep24.qsub"
-    else
-        subjects="$subjects" bash "$scriptdir/fmriprep24.sh"
-    fi
+    # Deprecated: since hpc is done, this script will never point to the .qsub argument.
+    #if [ "$mode" = "hpc" ]; then
+    #    qsub -v subjects="$subjects" "$scriptdir/fmriprep25.qsub"
+    #else
+    #    subjects="$subjects" bash "$scriptdir/fmriprep.sh"
+    #fi
 
+    subjects=bash "$scriptdir/fmriprep.sh" "$subjects"
     counter=$((counter + ntasks))
 done
 
