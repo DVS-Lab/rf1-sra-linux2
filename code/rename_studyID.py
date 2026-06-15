@@ -8,8 +8,8 @@ import pydicom
 # Note that this is for RF1-SRA project; since there are 1000s of images, it will take a few min to run
 
 # Insert subject ID to be amended
-sub_id = "11891"
-
+#sub_id = "11891"
+sub_id = "11923"
 base_dir = f"/ZPOOL/data/sourcedata/sourcedata/rf1-sra/Smith-SRA-{sub_id}/Smith-SRA-{sub_id}/scans"
 
 # Recursively grab EVERY .dcm file under scans

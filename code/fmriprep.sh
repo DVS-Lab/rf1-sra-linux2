@@ -40,6 +40,22 @@ fi
 export APPTAINERENV_TEMPLATEFLOW_HOME=$templateflow_container
 export APPTAINERENV_MPLCONFIGDIR=$mplconfig_container
 
+# Check for fmriprep output and run if there is output expected (session-compatible)
+# If you want to re-run fmriprep even if output exists, comment the below block out
+html="$derivdir/fmriprep/sub-${sub}.html"
+all_sessions_done=1
+for bids_sesdir in "$bidsdir/sub-${sub}"/ses-*; do
+    [ -d "$bids_sesdir" ] || continue
+    ses=$(basename "$bids_sesdir")
+    if [ ! -d "$derivdir/fmriprep/sub-${sub}/${ses}" ]; then
+        all_sessions_done=0
+    fi
+done
+if [ -f "$html" ] && [ "$all_sessions_done" -eq 1 ]; then
+    echo "sub-${sub} already has fMRIPrep HTML report and output for all BIDS sessions; skipping"
+    exit 0
+fi
+
 singularity run --cleanenv \
     -B ${templateflow_host}:${templateflow_container} \
     -B ${mplconfig_host}:${mplconfig_container} \

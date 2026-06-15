@@ -6,7 +6,7 @@ script="${scriptdir}/mriqc.sh"
 NJOB=10
 
 for sub in $(cat "${scriptdir}/sublist_all.txt"); do
-  for ses in 01; do
+  for ses in 01 02; do
 
     while [ "$(pgrep -f "bash $script" -c)" -ge "$NJOB" ]; do
       sleep 2

@@ -18,7 +18,7 @@ maindir="$(dirname "$scriptdir")"
 #     exit 1
 # fi
 
-sublist="$scriptdir/sublist_all.txt"
+sublist="$scriptdir/sublist_new.txt"
 mapfile -t myArray < "$sublist"
 
 ntasks=10
