@@ -1,36 +1,46 @@
 #!/bin/bash
+# Similar to run_fmriprep script, can be amended to run a .qsub, HPC-compatible version of the script
+# by amending the "for" loop in a similar manner
 
 # Figure out script source (linux or hpc)
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 maindir="$(dirname "$scriptdir")"
 
 # Run .qsub (hpc) or .sh (linux) based on parent dir
-if [[ "$maindir" == /gpfs/* ]]; then
-    mode="hpc"
-elif [[ "$maindir" == /ZPOOL/* ]]; then
-    mode="linux"
-else
-    echo "ERROR: maindir is neither under /gpfs nor /ZPOOL"
-    echo "maindir = $maindir"
-    exit 1
-fi
+# NOTE: currently this script always runs the .sh version below.
+# if [[ "$maindir" == /gpfs/* ]]; then
+#     mode="hpc"
+# elif [[ "$maindir" == /ZPOOL/* ]]; then
+#     mode="linux"
+# else
+#     echo "ERROR: maindir is neither under /gpfs nor /ZPOOL"
+#     echo "maindir = $maindir"
+#     exit 1
+# fi
 
-sublist="$scriptdir/sublist_new.txt"
+sublist="$scriptdir/sublist_all.txt"
 mapfile -t myArray < "$sublist"
 
-ntasks=1
+ntasks=10
+max_jobs=8
 counter=0
 
 while [ $counter -lt ${#myArray[@]} ]; do
     subjects="${myArray[@]:$counter:$ntasks}"
     echo "$subjects"
+    # HPC version, if needed later:
+    # qsub -v subjects="$subjects" "$scriptdir/tedana.qsub"
 
-    if [ "$mode" = "hpc" ]; then
-        qsub -v subjects="$subjects" "$scriptdir/tedana.qsub"
-    else
-        subjects="$subjects" bash "$scriptdir/tedana.sh"
-    fi
+    # Linux/local version, hard-coded to run here:
+    subjects="$subjects" bash "$scriptdir/tedana.sh" &
+
+    # Parallel jobs
+    while [ "$(jobs -rp | wc -l)" -ge "$max_jobs" ]; do
+        sleep 10
+    done
 
     counter=$((counter + ntasks))
 done
+
+wait
 

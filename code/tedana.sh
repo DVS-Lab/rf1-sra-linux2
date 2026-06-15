@@ -17,6 +17,8 @@ touch $missinglog
 # wow... can't be right, but let's go for 9 subjects per job (84 procs per job). watch for memory issues.
 # EDIT: sending only one subject/job currently in the run script
 #for fmriprep in 24 25; do
+# Note that the above commented out "for" loop, and below "indata", "outdir", and "done" can be used to run tedana on "fmriprep-24" or "fmriprep-25" derivative outputs if that format is reapplied
+
   for sub in ${subjects[@]}; do
     for ses in 01 02; do 
 	    for task in "socialdoors" "doors" "trust" "sharedreward" "ugr"; do

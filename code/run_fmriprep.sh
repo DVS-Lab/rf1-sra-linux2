@@ -19,6 +19,7 @@ sublist="$scriptdir/sublist_new.txt"
 mapfile -t myArray < "$sublist"
 
 ntasks=1
+max_jobs=2
 counter=0
 
 while [ $counter -lt ${#myArray[@]} ]; do
@@ -31,8 +32,15 @@ while [ $counter -lt ${#myArray[@]} ]; do
     #else
     #    subjects="$subjects" bash "$scriptdir/fmriprep.sh"
     #fi
+    
+    bash "$scriptdir/fmriprep.sh" "$subjects" &
+# Parallel jobs 
+    while [ "$(jobs -rp | wc -l)" -ge "$max_jobs" ]; do
+        sleep 10
+    done
 
-    subjects=bash "$scriptdir/fmriprep.sh" "$subjects"
     counter=$((counter + ntasks))
 done
+
+wait
 

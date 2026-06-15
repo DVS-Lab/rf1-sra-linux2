@@ -3,8 +3,8 @@ set -euo pipefail
 
 # This code will convert DICOMS to BIDS (PART 1). Will also deface (PART 2) and run MRIQC (PART 3).
 #
-# usage:  bash prepdata.sh sub ses
-# example: bash prepdata.sh 10418 01
+# usage:  bash prepdata-linux2.sh sub ses
+# example: bash prepdata-linu2.sh 10418 01
 # 
 # This script was edited by Melanie Kos to account for the two sessions and to point to the proper heuristic file
 # depending on the date the participant was scanned. 
