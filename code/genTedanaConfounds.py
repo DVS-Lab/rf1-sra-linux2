@@ -7,16 +7,13 @@ from natsort import natsorted
 import re
 import numpy as np
 
-# Comment out fmriprep and tedana 24 or 25, depending on what to run
+# Adjust fmriprep_dir and tedana_dir to your use case
+# Note that this version of the script is sensitive to session and encodes it in the output file name
+# Basically, this script creates confounds files for FSL analyses using fmriprep and tedana output.
+# The output are .tsv files for each subject/session/task/run that write to derivatives/fsl/confounds_tedana
 
 fmriprep_dir = '../derivatives/fmriprep/'
 tedana_dir = '../derivatives/tedana/'
-
-#fmriprep_dir = '../derivatives/fmriprep-24/'
-#tedana_dir = '../derivatives/tedana-24/'
-
-#fmriprep_dir = '../derivatives/fmriprep-25/'
-#tedana_dir = '../derivatives/tedana-25/'
 
 metric_files = natsorted([
     os.path.join(root, f)

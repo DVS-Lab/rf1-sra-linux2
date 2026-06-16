@@ -1,17 +1,34 @@
 %% Convert SocialDoors raw behavioral to BIDS events
 %% Edited by Melanie Kos, 2026. 
-% This version of the script accounts for data coming from ses-01 or ses-02 for SRPAL subjects
-% AKA for wave 1 or 2. It further expands on the original version of the script by
-% validating trial responsiveness (i.e., 75%+ of trials responded to are valid). 
-% It also provides information on any potential missed socialdoors or doors behavioral or MR data.
-% This logic came from/is based on the UGR convert script, which has this same setup.
+% This version of the script converts raw behavioral event data
+% (from rf1-sra/stimuli) into BIDS-compatible .tsv files for 
+% rf1-sra-linux2. It handles both wave/session labels: 
+% ses-01 indicates Wave 1, ses-02 indicates Wave 2.
+% This script searches through each subject's behavioral data for available
+% SocialDoors and Doors event files and writes all files to the bids func 
+% directory, even if a run is behaviorally invalid. Behavioral validity 
+% is tracked separately through printed summaries and subject lists. 
+% A valid run is defined as one where the participant responded to at
+% least 75% of decision trials, (i.e., fewer than 10/40 trials missed).
+% Subject lists should be used as the reference point for determining 
+% which subjects/runs are valid for FSL analyses, especially L3 analyses. 
+% The script also outputs to the MATLAB console information on any missing 
+% SocialDoors or Doors behavioral data for MR subjects. For example, 
+% this can help identify cases where a subject was collected under the 
+% incorrect subject ID on the MR computer or stimulus PC. 
+
+% This logic for this script is based on the UGR convert script, 
+% which has this same basic setup.
+
+% Outputs are BIDS-compatible event files (output to bids/) and 
+% valid behavior subject lists (output to code/).
 
 % set relative directories
 filePath = matlab.desktop.editor.getActiveFilename;
 [codedir,name,ext] = fileparts(filePath);
 [projectdir,~,~] = fileparts(codedir);
 
-% Change paths as needed
+% Change paths as needed (i.e., all_subjects_file to your sublist of interest)
 basedir = '/ZPOOL/data/projects/rf1-sra-linux2';
 datadir = '/ZPOOL/data/projects/rf1-sra/stimuli/Scan-Social_Doors/data';
 all_subjects_file = '/ZPOOL/data/projects/rf1-sra-socdoors/code/sublist-datapush.txt';
@@ -29,7 +46,7 @@ sess_info = {
     'ses-02', {'_ses-02'};
 };
 
-% A/B indicates face set, not session
+% A/B indicates face set, not session-specific 
 task_letters = {'A', 'B'};
 
 % task types and their BIDS names
@@ -45,7 +62,7 @@ for s = 1:length(subjects)
     for sess_i = 1:size(sess_info, 1)
         sess      = sess_info{sess_i, 1};   % 'ses-01' or 'ses-02'
         sess_tags = sess_info{sess_i, 2};   % cell array of possible input tags
-
+        
         for tk = 1:size(task_types, 1)
             rawtask  = task_types{tk, 1};   % 'faces' or 'doors'
             bidstask = task_types{tk, 2};   % 'socialdoors' or 'doors'
@@ -57,16 +74,19 @@ for s = 1:length(subjects)
                     task_letter = task_letters{letter_i};
                     for img_set = 1:4
                         rawtask_full = sprintf('%s%s%d', rawtask, task_letter, img_set);
-                        cand = fullfile(inputdir, ...
+                        cand = fullfile(inputdir, ... 
                             sprintf('sub-%s%s_task-socialReward_%s_events.tsv', ...
                             subjects{s}, sess_tags{tag_i}, rawtask_full));
+
                         if exist(cand, 'file')
                             indata = cand;
                             break
                         end
                     end
+
                     if ~isempty(indata), break; end
                 end
+
                 if ~isempty(indata), break; end
             end
 
@@ -78,20 +98,19 @@ for s = 1:length(subjects)
             % Read data
             T = readtable(indata, 'FileType', 'delimitedtext', 'Delimiter', '\t');
 
-            % Validate: count decision rows (should be 40), flag if >=10 missed
+            % Check behavioral validity, but still write all found runs to BIDS.
+            % Validity is tracked later through the subject-list outputs.
             decision_rows  = strcmp(T.trial_type, 'decision');
             missed_rows    = strcmp(T.trial_type, 'decision-missed');
             n_decision     = sum(decision_rows) + sum(missed_rows);
             n_missed       = sum(missed_rows);
 
             if n_decision ~= 40
-                disp(['  WARNING: unexpected trial count (' num2str(n_decision) '/40 decision rows, DEBUG): ' indata])
-                continue
-            end
-
-            if n_missed >= 10
-                disp(['  WARNING: too many missed trials (' num2str(n_missed) '/40) - invalid run: ' indata])
-                continue
+                disp(['  WARNING: unexpected trial count (' num2str(n_decision) '/40 decision rows, still writing to BIDS): ' indata])
+            elseif n_missed >= 10
+                disp(['  WARNING: too many missed trials (' num2str(n_missed) '/40) - invalid run, still writing to BIDS: ' indata])
+            else
+                disp(['  Valid behavioral run (' num2str(n_missed) '/40 missed): ' indata])
             end
 
             % Build BIDS output path
@@ -119,7 +138,9 @@ subjects_with_valid_data = {};
 ses1_bad_runs = {};
 ses2_bad_runs = {};
 
-% New lists requested
+% 5 output subject lists: ses1 valid socialdoors and doors (both tasks)
+% ses2 both tasks valid, ses1 and 2 (both sessions) valid socialdoors, 
+% both sessions valid doors, and both sessions both tasks valid
 ses1_both_tasks_valid_subjects = {};
 ses2_both_tasks_valid_subjects = {};
 socialdoors_both_sessions_valid_subjects = {};
@@ -155,13 +176,16 @@ for s = 1:length(subjects)
                         cand = fullfile(inputdir, ...
                             sprintf('sub-%s%s_task-socialReward_%s_events.tsv', ...
                             subject_id, sess_tags{tag_i}, rawtask_full));
+
                         if exist(cand, 'file')
                             indata = cand;
                             break
                         end
                     end
+
                     if ~isempty(indata), break; end
                 end
+
                 if ~isempty(indata), break; end
             end
 
@@ -190,6 +214,7 @@ for s = 1:length(subjects)
                 else
                     ses2_bad_runs{end+1} = sprintf('Subject %s - %s', subject_id, msg);
                 end
+
                 continue
             end
 
@@ -260,7 +285,7 @@ for s = 1:length(subjects)
     end
 end
 
-%% Print summaries
+%% Print summaries to console
 
 disp('Subjects with ALL invalid runs (exclude subject):');
 for i = 1:length(subjects_all_invalid)
@@ -361,7 +386,9 @@ disp(['Saved BOTH-sessions BOTH-task valid subject list to: ' valid_output_file_
 
 %% Check for MR subjects missing all runs
 missing_subjects = {};
-all_subjects = textread(all_subjects_file, '%s');
+% Read subject list (replaces deprecated textread)
+all_subjects = cellstr(strtrim(readlines(all_subjects_file)));
+all_subjects = all_subjects(~cellfun(@isempty, all_subjects));
 
 for i = 1:length(all_subjects)
     subject  = all_subjects{i};
@@ -382,17 +409,22 @@ for i = 1:length(all_subjects)
                         cand = fullfile(inputdir, ...
                             sprintf('sub-%s%s_task-socialReward_%s_events.tsv', ...
                             subject, sess_tags{tag_i}, rawtask_full));
+
                         if exist(cand, 'file')
                             found = true;
                             break
                         end
                     end
+
                     if found, break; end
                 end
+
                 if found, break; end
             end
+
             if found, break; end
         end
+
         if found, break; end
     end
 

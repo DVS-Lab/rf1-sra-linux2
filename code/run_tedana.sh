@@ -1,23 +1,10 @@
 #!/bin/bash
-# Similar to run_fmriprep script, can be amended to run a .qsub, HPC-compatible version of the script
-# by amending the "for" loop in a similar manner
 
-# Figure out script source (linux or hpc)
+# Path definitions
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 maindir="$(dirname "$scriptdir")"
 
-# Run .qsub (hpc) or .sh (linux) based on parent dir
-# NOTE: currently this script always runs the .sh version below.
-# if [[ "$maindir" == /gpfs/* ]]; then
-#     mode="hpc"
-# elif [[ "$maindir" == /ZPOOL/* ]]; then
-#     mode="linux"
-# else
-#     echo "ERROR: maindir is neither under /gpfs nor /ZPOOL"
-#     echo "maindir = $maindir"
-#     exit 1
-# fi
-
+# Amend sublist to point to your subject list of interest
 sublist="$scriptdir/sublist_all.txt"
 mapfile -t myArray < "$sublist"
 
@@ -27,11 +14,7 @@ counter=0
 
 while [ $counter -lt ${#myArray[@]} ]; do
     subjects="${myArray[@]:$counter:$ntasks}"
-    echo "$subjects"
-    # HPC version, if needed later:
-    # qsub -v subjects="$subjects" "$scriptdir/tedana.qsub"
-
-    # Linux/local version, hard-coded to run here:
+    echo "$subjects"  
     subjects="$subjects" bash "$scriptdir/tedana.sh" &
 
     # Parallel jobs
@@ -43,4 +26,3 @@ while [ $counter -lt ${#myArray[@]} ]; do
 done
 
 wait
-

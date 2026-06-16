@@ -4,8 +4,11 @@ import pydicom
 
 # Melanie Kos (with help from neurostars and chatgpt)
 # Script to address "Assertion Error  Conflicting study identifiers found" from heudiconv (prepdata) output
-# This script is for subjects that probably had to be pulled out mid-scan and then were named something else
-# Note that this is for RF1-SRA project; since there are 1000s of images, it will take a few min to run
+# This script is for subjects that probably had to be pulled out mid-scan, etc. and then data were
+# collected under a different subject ID name, or otherwise something happened during data collection
+# where the subject now has multuple study identifiers.
+# Note that this is for RF1-SRA project (can be altered to different projects);
+# Since there are 1000s of images, it will take a few min to run
 
 # Insert subject ID to be amended
 #sub_id = "11891"

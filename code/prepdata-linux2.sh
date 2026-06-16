@@ -110,28 +110,28 @@ scans_tsv="$bidsroot/sub-${sub}/ses-${ses}/sub-${sub}_ses-${ses}_scans.tsv"
 
 # PART 3: MRIQC 
 # Create derivatives/mriqc and scratch, then run MRIQC for this subject/session.
-#if [ ! -d "$dsroot/derivatives/mriqc" ]; then
-#  mkdir -p "$dsroot/derivatives/mriqc"
-#fi
-#
-#scratch=/ZPOOL/data/scratch/$(whoami)
-#if [ ! -d "$scratch" ]; then
-#  mkdir -p "$scratch"
-#fi
-#
+if [ ! -d "$dsroot/derivatives/mriqc" ]; then
+  mkdir -p "$dsroot/derivatives/mriqc"
+fi
+
+scratch=/ZPOOL/data/scratch/$(whoami)
+if [ ! -d "$scratch" ]; then
+  mkdir -p "$scratch"
+fi
+
 # TemplateFlow for MRIQC inside the container
-#TEMPLATEFLOW_DIR=/ZPOOL/data/tools/templateflow
-#export SINGULARITYENV_TEMPLATEFLOW_HOME=/opt/templateflow
-#
-#echo "Running MRIQC for sub-${sub} ses-${ses}"
-#singularity run --cleanenv \
-#  -B "${TEMPLATEFLOW_DIR}:/opt/templateflow" \
-#  -B "$dsroot/bids:/data" \
-#  -B "$dsroot/derivatives/mriqc:/out" \
-#  -B "$scratch:/scratch" \
-#  /ZPOOL/data/tools/mriqc-24.0.2.simg \
-#  /data /out participant \
-#  --participant_label "$sub" \
-#  --session-id "$ses" \
-#  -w /scratch
+TEMPLATEFLOW_DIR=/ZPOOL/data/tools/templateflow
+export SINGULARITYENV_TEMPLATEFLOW_HOME=/opt/templateflow
+
+echo "Running MRIQC for sub-${sub} ses-${ses}"
+singularity run --cleanenv \
+  -B "${TEMPLATEFLOW_DIR}:/opt/templateflow" \
+  -B "$dsroot/bids:/data" \
+  -B "$dsroot/derivatives/mriqc:/out" \
+  -B "$scratch:/scratch" \
+  /ZPOOL/data/tools/mriqc-24.0.2.simg \
+  /data /out participant \
+  --participant_label "$sub" \
+  --session-id "$ses" \
+  -w /scratch
 
