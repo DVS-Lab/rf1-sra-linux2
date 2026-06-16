@@ -1,21 +1,17 @@
 #!/bin/bash
 # By Melanie Kos, originally created for hpc in August 2025
 # Amended to be linux compatible
-# Note that a loop can be created to accomodate outputs in 'fmriprep-24' or 'fmriprep-25' folders in derivatives:
-# for v in 24 25; do
-#   funcdir="${derivativesdir}/fmriprep-${v}/sub-${sub}/ses-01/func"
-#    # 1) func dir missing
-#    if [[ ! -d "${funcdir}" ]]; then
-#      echo "${sub} missing fmriprep-${v} func dir RERUN"
-#      continue
-#    fi
 
 # This script checks if your subject list, sessions, and tasks of interest have fmriprep output for FSL analyses. 
-# Customize "sublist" and "tasks" accordingly.
+# Customize "sublist", "sessions", and "tasks" accordingly for your sublist, session(s), and task(s) of interest
+
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 projectdir="$( dirname "${scriptdir}" )"
 derivativesdir="${projectdir}/derivatives"
 
+# Edit sublist, sessions, and tasks; session 01 = wave 1, 02 = wave 2
+# Note that "doors" and "socialdoors" will ALWAYS return no run 02 data (as there is only 1 run for each task)
+# Further, for ses02 (wave2), there will only be UGR and socialdoors/doors data (sharedreward and trust are not completed in wave 2).
 sublist="${scriptdir}/sublist_all.txt"
 sessions=("01" "02")
 tasks=("ugr")
@@ -35,4 +31,3 @@ while read -r sub; do
 	  done 
   done
 done < "${sublist}"
-
