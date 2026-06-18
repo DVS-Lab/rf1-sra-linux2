@@ -23,10 +23,11 @@ This repository contains the final code for managing and processing all MR task 
 
 ## For Smith Lab users (short version of scripts to run in order. Please reference once you're familiar with the preprocessing pipeline as outlined below in detail!)
 Make sure `sublist_new.txt` is populated ONLY with new subjects to run, append `sublist_all.txt` with any new subjects missing. 
-Make sure the below run scripts are pointing to `sublist_new`, and to check both the
+Make sure the below run scripts are pointing to `sublist_new`, and to check that the proper source and/or output repos are pointed to at the top of scripts.
+Cross-referencing subjects and noting any issues using the Preprocessing sheet on OneDrive is highly recommended!
 1. run_prepdata-linux2.sh (toggle MRIQC on prepdata-linux2.sh on or off, or run mriqc at end)
-2. addIntendedFor.py
-3. run_warpkit.sh
+2. run_warpkit.sh
+3. addIntendedFor.py
 4. run_fmriprep.sh
 5. run_tedana.sh
 6. genTedanaConfounds.py
