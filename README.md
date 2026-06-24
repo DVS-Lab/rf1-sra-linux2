@@ -25,7 +25,7 @@ This repository contains the final code for managing and processing all MR task 
 Make sure `sublist_new.txt` is populated ONLY with new subjects to run, append `sublist_all.txt` with any new subjects missing. 
 Make sure the below run scripts are pointing to `sublist_new`, and to check that the proper source and/or output repos are pointed to at the top of scripts.
 Cross-referencing subjects and noting any issues using the Preprocessing sheet on OneDrive is highly recommended!
-1. run_prepdata-linux2.sh (toggle MRIQC on prepdata-linux2.sh on or off, or run mriqc at end)
+1. run_prepdata.sh (toggle MRIQC on prepdata-linux2.sh on or off, or run mriqc at end)
 2. run_warpkit.sh
 3. addIntendedFor.py
 4. run_fmriprep.sh
