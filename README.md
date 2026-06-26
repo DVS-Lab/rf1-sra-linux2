@@ -1,132 +1,166 @@
-# SRPAL data: Data Management and Preprocessing
-This repository contains the final code for managing and processing all MR task in our SRPAL project (i.e., MR data for UGR, SocialDoors, Trust, and SharedReward). Note that behavioral data for the tasks are processed in separate repos and that this repo serves fMRI data only. The full dataset will eventually be placed on [OpenNeuro][openneuro]. More information about the project can be found in [Smith et al., 2024, Data in Brief.](https://doi.org/10.1016/j.dib.2024.110810)
+# RF1-SRA Linux2 fMRI Preprocessing
 
+This repository contains the Smith Lab Linux2 preprocessing workflow for RF1-SRA
+multi-echo fMRI data from the UGR, Social Doors, Trust, and Shared Reward tasks.
+Behavioral task processing lives in separate repositories. This repository is
+for MRI data management, BIDS conversion, fieldmap preparation, fMRIPrep,
+TEDANA, MRIQC, and downstream confound/metric extraction helpers.
 
+## Scope And Privacy
 
-## A few prerequisites and recommendations
-- Understand BIDS and be comfortable navigating Linux
-- Install [FSL](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FslInstallation)
-- Install [miniconda or anaconda](https://stackoverflow.com/questions/45421163/anaconda-vs-miniconda)
-- Install PyDeface: `pip install pydeface`
-- Make singularity containers for heudiconv (version: 1.3.2), mriqc (version: 24.0.2), and fmriprep (version: 25.2.5 and/or 24.1.1).
-- Ideally you have Temple XNAT accounts; below instructions are written as though you have access to XNAT. (Note: Though the HPC is now being retired, HPC-compatible versions of the scripts once existed for fmriprep, mriqc, and tedana, as these are especially computationally-intensive and were completed on the HPC when the resource existed. The HPC follows a PBS/Torque environment that uses `qsub` as the job submission command. Noting for the chance that a similar resource exists again or you have access to one.)
+Raw DICOMs are not stored in GitHub. On Linux2 they live under the lab-controlled
+source-data area, normally `/ZPOOL/data/sourcedata/sourcedata/rf1-sra`. BIDS
+NIfTI images, fMRIPrep derivatives, TEDANA outputs, MRIQC reports, scheduler
+logs, temporary files, and generated metrics are intentionally excluded from
+version control. Tracked BIDS text files are limited to small metadata/event
+files that are useful for review.
 
+Production processing should occur on Smith Lab Linux2, where the normal
+checkout is:
 
-## Notes on repository organization and files
-- Raw DICOMS (an input to heudiconv) are only accessible locally (Smith Lab Linux2: /ZPOOL/data/sourcedata)
-- Some of the contents of this repository are not tracked (.gitignore) because the files are large and we do not yet have a nice workflow for datalad. Note that we only track key text files in `bids` and `derivatives`.
-- GitHub tracked folders and their contents:
-  - `code`: analysis code
-  - `derivatives`: stores derivates from our scripts (only key text files)
-  - `bids`: contains the standardized "raw" in BIDS format (output of heudiconv; only key text files)
-
-
-## For Smith Lab users (short version of scripts to run in order. Please reference once you're familiar with the preprocessing pipeline as outlined below in detail!)
-Make sure `sublist_new.txt` is populated ONLY with new subjects to run, append `sublist_all.txt` with any new subjects missing. 
-Make sure the below run scripts are pointing to `sublist_new`, and to check that the proper source and/or output repos are pointed to at the top of scripts.
-Cross-referencing subjects and noting any issues using the Preprocessing sheet on OneDrive is highly recommended!
-1. run_prepdata.sh (toggle MRIQC on prepdata-linux2.sh on or off, or run mriqc at end)
-2. run_warpkit.sh
-3. addIntendedFor.py
-4. run_fmriprep.sh
-5. run_tedana.sh
-6. genTedanaConfounds.py
-7. run_mriqc.sh (if did not before)
-8. extract-metrics.py 
-
-
-## Downloading Data and Running Preprocessing on your Machine (outside users)
-```
-# Get data via datalad (TO DO)
-git clone https://github.com/DVS-Lab/rf1-sra-linux2 
-cd rf1-sra-linux2
-datalad clone https://github.com/OpenNeuroDatasets/XXXXXX.git bids
-# This dataset is `ds005123`, "Social Reward and Nonsocial Reward Processing Across the Adult Lifespan: An Interim Multi-echo fMRI and Diffusion Dataset" 
-# the bids folder is a datalad dataset
-# you can get all of the data with the command below:
-datalad get sub-*
+```bash
+/ZPOOL/data/projects/rf1-sra-linux2
 ```
 
-### Step: 1 Downloading Data and Running Preprocessing on your Machine (Smith lab users)
+Do not run destructive production processing from an unreviewed branch. This
+cleanup branch is repository-tested only and still requires Jacob's Linux2
+integration validation before merge.
+
+## Repository Layout
+
+| Path | Purpose |
+| --- | --- |
+| `code/` | Production entry points, worker scripts, helpers, subject lists, and config examples. |
+| `bids/` | Small tracked BIDS text/event metadata only; converted imaging data are ignored. |
+| `derivatives/` | Generated outputs are ignored. Two legacy FLIRT helper scripts are currently preserved for human review. |
+| `scripts/` | Repository validation scripts that do not require production imaging data. |
+| `tests/` | Synthetic pytest coverage for parsing, path generation, safety checks, and completion checks. |
+
+See `code/README.md` for the detailed implementation manual.
+
+## Software
+
+The current Linux2 defaults are documented in `code/config.example.env`:
+
+| Tool | Default image/location |
+| --- | --- |
+| HeuDiConv | `/ZPOOL/data/tools/heudiconv_1.3.3.sif` |
+| MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
+| fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
+| Warpkit | `/ZPOOL/data/tools/warpkit.sif` |
+| TemplateFlow | `/ZPOOL/data/tools/templateflow` |
+| FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
+
+The script comments historically said the scanner-upgrade heuristic cutoff was
+March 18, 2025, while the code has used March 4, 2025 since the first Linux2
+commit. This cleanup preserves the March 4 behavior and flags the discrepancy
+for Jacob to confirm during Linux2 validation.
+
+## Configuration
+
+Linux2 defaults are built into `code/pipeline_common.sh`. To override paths in a
+local checkout:
+
+```bash
+cp code/config.example.env code/config.env
 ```
+
+Edit `code/config.env` as needed. It is ignored by Git. Common overrides include
+`PROJECT_ROOT`, `SOURCEDATA_ROOT`, `SCRATCH_ROOT`, `TOOLS_ROOT`,
+`FMRIPREP_IMAGE`, `MRIQC_IMAGE`, `HEUDICONV_IMAGE`, `WARPKIT_IMAGE`,
+`TEMPLATEFLOW_HOME`, and `LICENSES_DIR`.
+
+## Workflow
+
+```mermaid
+flowchart TD
+  A["Download DICOMs from XNAT"] --> B["Convert to BIDS, deface, shift dates"]
+  B --> C["Generate Warpkit fieldmaps"]
+  C --> D["Repair IntendedFor metadata"]
+  D --> E["Run fMRIPrep"]
+  E --> F["Run TEDANA"]
+  F --> G["Generate TEDANA/FSL confounds"]
+  B --> H["Run or summarize MRIQC"]
+  H --> I["Extract QC metrics"]
+```
+
+Quick start on Linux2:
+
+```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
-python downloadXNAT.py
-```
-Input your XNAT credentials and any new subject data files should download to `/ZPOOL/data/sourcedata/sourcedata/rf1-sra`
-
-### Step 2: Update your subject lists
-You need to manually edit the `sublist_all` and `sublist_new` text files by adding on your newly downloaded subject IDs to the end of the list.
-Smith lab users: Here is a helpful [Preprocessing log that you should edit as you preprocess data to note any issues.](https://tuprd.sharepoint.com/:x:/r/sites/TU-CLA-Psych-Smith-Lab/_layouts/15/doc.aspx?sourcedoc=%7B516fedac-572d-4246-8b29-0cb9aef0681d%7D&action=edit) Typically, sublist_new will be used for preprocessing incoming data.
-
-### Step 3: BIDS-ify your data (heudiconv), deface (pydeface), and (optional to do at this stage or in the future) run quality check (MRIQC)
-On Linux2: 
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/code
+python3 downloadXNAT.py
+bash run_prepdata.sh --dry-run
 bash run_prepdata.sh
-```
-This script launches prepdata-linux2.sh with whatever sublist you indicated for the run file to run on; ideally it is `sublist_new`. The script runs heudiconv, pydeface, and mriqc; if you are in a time pinch, you may comment out the MRIQC portion of the script (Part 3) and run it later, as it is the most computationally intensive of the three. 
-
-### Step 4: Run warpkit
-
-Once this script has successfully run (i.e., BIDS data for the subjects) you next need to run warpkit. 
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/code
+bash run_warpkit.sh --dry-run
 bash run_warpkit.sh
-```
-This script launches warpkit.sh with whatever sublist you tell it to run (typically will be `sublist_new`).
-
-### Step 5: Amend IntendedFor .json files 
-Prior to running fMRIPrep, you will need to amend the IntendedFor .json files. 
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/code
-python addIntendedFor.py
-# This script will amend IntendedFor files for each task
-```
-
-### Step 6: Run fMRIPrep
-Once that completes, now run fMRIPrep. There are 2 versions of fMRIPrep scripts that can be run; fmriprep24-hpc and fmriprep25-hpc
-Note that the run script also needs to point to the proper updated subject list:
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/code
+python3 addIntendedFor.py --dry-run
+python3 addIntendedFor.py
+bash run_fmriprep.sh --dry-run
 bash run_fmriprep.sh
-# Note that this script is Linux-specific; adjust to non-Linux specific script if you want to run on HPC/.qsub (see scripts for details)
-```
-Output of this will go to `rf1-sra-linux2/derivatives/fmriprep/`. You can check if the output exists by running the `check_fmriprep.sh` script.
-
-### Step 7: Run TEDANA
-Once fMRIPrep output for subjects exists (can check using `check_fmriprep.sh`), you can now run TEDANA. Again, make sure it's pointing to updated subject list.
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/code
+bash run_tedana.sh --dry-run
 bash run_tedana.sh
-# Note that this script is Linux-specific; adjust to non-Linux specific script if you want to run on HPC/.qsub (see scripts for details)
-```
-Output of this will go to `rf1-sra-linux2/derivatives/tedana/`. You can check if the output exists by running the `check_tedana.sh` script.
-
-### Step 8: Create TEDANA .tsv files for FSL processing
-Once TEDANA has successfully run for your subjects, you can create the .tsv files that FSL uses during L1. 
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/code
-python genTedanaConfounds.py
-```
-Output of this will go to `rf1-sra-linux2/derivatives/fsl/confounds_tedana`. 
-
-### Step 9: If you skipped it in step 1, run MRIQC now
-As fMRIPrep is running, you can run MRIQC as it uses the same BIDS input data. Again, make sure it's pointing to updated subject list.
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/code
+python3 genTedanaConfounds.py --dry-run
+python3 genTedanaConfounds.py
+bash run_mriqc.sh --dry-run
 bash run_mriqc.sh
+python3 extract-metrics.py --dry-run
 ```
 
-### Step 10: Concatenate MRIQC data for FSL L3 templates
-L3 templates use MRIQC data (i.e., fdmean and tsnr) as mean-centereed covariates. To create the output .csv file with these values, you will need to amend `extract-metrics.py` for your use case. You can change the `sublist_file` variable to be your custom sublist, the `tasks` variable to be only the task(s) you want data for, and the `output_file` variable to be whatever name you'd like to give the output .csv file. Once edited, run `python extract-metrics.py`. Output will write to the `code` repo if that is where you launch the script from. 
-```
-cd /ZPOOL/data/projects/rf1-sra-linux2/code
-python extract-metrics.py
-# You can amend this script for your specific subject list and/or task(s) of interest, change file output name to be more descriptive, etc.
-```
-If data in the output .csv unexpectedly doesn't exist, re-run the subject through MRIQC. Please remember that if someone didn't complete a run of a task in the scanner, they won't have data <3
+Subject lists are plain text files with one subject per line. Blank lines and
+comments beginning with `#` are ignored, and either `10001` or `sub-10001` forms
+are accepted by the wrappers.
 
-## Acknowledgments
-This work was supported, in part, by grants from the National Institutes of Health.
+## Safety And Reruns
 
-[openneuro]: https://openneuro.org/
+Use `--dry-run` first for pipeline stages that support it. Existing BIDS
+conversion output is no longer removed before HeuDiConv runs. `prepdata-linux2.sh`
+stages conversion output in scratch and only installs it after the new session
+exists. Replacing an existing BIDS session requires `--overwrite`, and the old
+session is moved aside to a timestamped backup instead of being deleted.
+
+Raw DICOM source directories are treated as immutable by preprocessing scripts.
+Localizer directories are reported but no longer moved out of source data.
+
+fMRIPrep skipping now checks for a practical set of expected outputs rather than
+only an HTML report and session directory. This is a completion check, not a
+scientific-validity guarantee. MRIQC, fMRIPrep, TEDANA, fieldmap metadata, and
+confound outputs still require visual and scientific review on Linux2.
+
+## Testing
+
+Repository-level checks do not require real imaging data or neuroimaging
+containers:
+
+```bash
+make test
+```
+
+The test command runs shell syntax checks, optional ShellCheck for active
+scripts, Python compilation, synthetic pytest tests, JSON parsing, README path
+validation, and a small temporary-file hygiene check.
+
+## Development Workflow
+
+Do not modify `main` directly. Create a branch from `origin/main`, commit small
+coherent changes, push the branch, and open a draft pull request. The PR must
+remain a draft until Jacob validates the revised workflow on Linux2 and David
+approves it.
+
+Historical repository size may still reflect previously tracked derivatives and
+logs. This cleanup removes current tracked generated files only. Any history
+rewrite would need a separate, coordinated `git filter-repo` plan.
+
+## Outside Users And OpenNeuro
+
+The README previously contained placeholder DataLad/OpenNeuro reproduction
+commands. Outside-user reproduction is not currently documented end-to-end here.
+Do not rely on those removed placeholders for public reproduction until the
+OpenNeuro dataset identifier and instructions are confirmed.
+
+## Citation And Acknowledgments
+
+More project context appears in Smith et al., 2024, Data in Brief:
+https://doi.org/10.1016/j.dib.2024.110810
+
+This work was supported, in part, by grants from the National Institutes of
+Health.
