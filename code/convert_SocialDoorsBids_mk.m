@@ -337,10 +337,14 @@ for i = 1:length(both_tasks_both_sessions_valid_subjects)
     fprintf('%s\n', both_tasks_both_sessions_valid_subjects{i});
 end
 
-%% Write requested valid subject lists to file
+%% Write behavioral-validity summaries to ignored logs/
+valid_output_dir = fullfile(basedir, 'logs', 'behavior-validity');
+if ~exist(valid_output_dir, 'dir')
+    mkdir(valid_output_dir);
+end
 
 % ses-01 both tasks valid
-valid_output_file_ses1_both = fullfile(basedir, 'code', 'sublist_ses1_validbehSocialDoorsAndDoors.txt');
+valid_output_file_ses1_both = fullfile(valid_output_dir, 'ses-01_valid-socialdoors-and-doors.txt');
 fid = fopen(valid_output_file_ses1_both, 'w');
 for i = 1:length(ses1_both_tasks_valid_subjects)
     fprintf(fid, '%s\n', ses1_both_tasks_valid_subjects{i});
@@ -349,7 +353,7 @@ fclose(fid);
 disp(['Saved ses-01 BOTH-task valid subject list to: ' valid_output_file_ses1_both]);
 
 % ses-02 both tasks valid
-valid_output_file_ses2_both = fullfile(basedir, 'code', 'sublist_ses2_validbehSocialDoorsAndDoors.txt');
+valid_output_file_ses2_both = fullfile(valid_output_dir, 'ses-02_valid-socialdoors-and-doors.txt');
 fid = fopen(valid_output_file_ses2_both, 'w');
 for i = 1:length(ses2_both_tasks_valid_subjects)
     fprintf(fid, '%s\n', ses2_both_tasks_valid_subjects{i});
@@ -358,7 +362,7 @@ fclose(fid);
 disp(['Saved ses-02 BOTH-task valid subject list to: ' valid_output_file_ses2_both]);
 
 % SocialDoors valid in both sessions
-valid_output_file_socialdoors_both_sessions = fullfile(basedir, 'code', 'sublist_bothSessions_validbehSocialDoors.txt');
+valid_output_file_socialdoors_both_sessions = fullfile(valid_output_dir, 'both-sessions_valid-socialdoors.txt');
 fid = fopen(valid_output_file_socialdoors_both_sessions, 'w');
 for i = 1:length(socialdoors_both_sessions_valid_subjects)
     fprintf(fid, '%s\n', socialdoors_both_sessions_valid_subjects{i});
@@ -367,7 +371,7 @@ fclose(fid);
 disp(['Saved BOTH-sessions SocialDoors valid subject list to: ' valid_output_file_socialdoors_both_sessions]);
 
 % Doors valid in both sessions
-valid_output_file_doors_both_sessions = fullfile(basedir, 'code', 'sublist_bothSessions_validbehDoors.txt');
+valid_output_file_doors_both_sessions = fullfile(valid_output_dir, 'both-sessions_valid-doors.txt');
 fid = fopen(valid_output_file_doors_both_sessions, 'w');
 for i = 1:length(doors_both_sessions_valid_subjects)
     fprintf(fid, '%s\n', doors_both_sessions_valid_subjects{i});
@@ -376,7 +380,7 @@ fclose(fid);
 disp(['Saved BOTH-sessions Doors valid subject list to: ' valid_output_file_doors_both_sessions]);
 
 % Optional: both tasks valid in both sessions
-valid_output_file_all_valid = fullfile(basedir, 'code', 'sublist_bothSessions_validbehSocialDoorsAndDoors.txt');
+valid_output_file_all_valid = fullfile(valid_output_dir, 'both-sessions_valid-socialdoors-and-doors.txt');
 fid = fopen(valid_output_file_all_valid, 'w');
 for i = 1:length(both_tasks_both_sessions_valid_subjects)
     fprintf(fid, '%s\n', both_tasks_both_sessions_valid_subjects{i});

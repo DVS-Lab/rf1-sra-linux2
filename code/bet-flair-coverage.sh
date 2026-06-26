@@ -8,7 +8,7 @@ output_csv="${basedir}/bet_overlap_results.csv"
 
 echo "subject,voxels_in_brain,voxels_in_mask,percent_covered" > "$output_csv"
 
-for sub in $(cat ${basedir}/code/sublist_all.txt); do
+for sub in $(cat "${basedir}/code/sublist-new.txt"); do
 
     brain="${basedir}/derivatives/flirt/sub-${sub}/ses-01/anat/sub-${sub}_ses-01_space-MNI152_FLAIR_brain.nii.gz"
 

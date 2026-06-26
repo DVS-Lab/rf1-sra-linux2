@@ -12,7 +12,7 @@ if command -v shellcheck >/dev/null 2>&1; then
   shellcheck \
     code/pipeline_common.sh \
     code/run_prepdata.sh \
-    code/prepdata-linux2.sh \
+    code/prepdata.sh \
     code/run_warpkit.sh \
     code/warpkit.sh \
     code/run_fmriprep.sh \

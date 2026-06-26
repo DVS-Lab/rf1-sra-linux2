@@ -12,7 +12,7 @@ scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source "${scriptdir}/pipeline_common.sh"
 rf1_load_config
 
-sublist="${SCRIPT_DIR}/sublist_all.txt"
+sublist="$BATCH_SUBLIST"
 while (($#)); do
   case "$1" in
     --sublist)

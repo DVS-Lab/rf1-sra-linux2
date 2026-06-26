@@ -5,30 +5,39 @@ rf1_script_dir() {
 }
 
 rf1_project_root() {
-  local scriptdir
-  scriptdir="$(rf1_script_dir)"
-  printf '%s\n' "$(dirname "$scriptdir")"
+  printf '%s\n' "/ZPOOL/data/projects/rf1-sra-linux2"
 }
 
 rf1_load_config() {
   SCRIPT_DIR="$(rf1_script_dir)"
-  PROJECT_ROOT="${PROJECT_ROOT:-$(dirname "$SCRIPT_DIR")}"
-  if [[ -f "${SCRIPT_DIR}/config.env" ]]; then
-    # shellcheck source=/dev/null
-    source "${SCRIPT_DIR}/config.env"
+  PROJECT_ROOT="/ZPOOL/data/projects/rf1-sra-linux2"
+  SOURCEDATA_ROOT="/ZPOOL/data/sourcedata/sourcedata/rf1-sra"
+  TOOLS_ROOT="/ZPOOL/data/tools"
+  SCRATCH_ROOT="/ZPOOL/data/scratch"
+  TEMPLATEFLOW_HOME="${TOOLS_ROOT}/templateflow"
+  MPLCONFIGDIR_HOST="${TOOLS_ROOT}/mplconfigdir"
+  LICENSES_DIR="${TOOLS_ROOT}/licenses"
+
+  HEUDICONV_IMAGE="${TOOLS_ROOT}/heudiconv_1.3.3.sif"
+  MRIQC_IMAGE="${TOOLS_ROOT}/mriqc-24.0.2.simg"
+  FMRIPREP_IMAGE="${TOOLS_ROOT}/fmriprep-25.2.5.simg"
+  WARPKIT_IMAGE="${TOOLS_ROOT}/warpkit.sif"
+  BATCH_SUBLIST="${SCRIPT_DIR}/sublist-new.txt"
+}
+
+rf1_remove_tree_under() {
+  local root="$1"
+  local target="$2"
+  local root_real target_real
+  root_real="$(realpath -m "$root")"
+  target_real="$(realpath -m "$target")"
+
+  if [[ "$target_real" == "$root_real" || "$target_real" != "$root_real"/* || ${#target_real} -lt 20 ]]; then
+    printf 'Refusing unsafe removal outside %s: %s\n' "$root_real" "$target_real" >&2
+    return 1
   fi
 
-  SOURCEDATA_ROOT="${SOURCEDATA_ROOT:-/ZPOOL/data/sourcedata/sourcedata/rf1-sra}"
-  TOOLS_ROOT="${TOOLS_ROOT:-/ZPOOL/data/tools}"
-  SCRATCH_ROOT="${SCRATCH_ROOT:-/ZPOOL/data/scratch}"
-  TEMPLATEFLOW_HOME="${TEMPLATEFLOW_HOME:-${TOOLS_ROOT}/templateflow}"
-  MPLCONFIGDIR_HOST="${MPLCONFIGDIR_HOST:-${TOOLS_ROOT}/mplconfigdir}"
-  LICENSES_DIR="${LICENSES_DIR:-${TOOLS_ROOT}/licenses}"
-
-  HEUDICONV_IMAGE="${HEUDICONV_IMAGE:-${TOOLS_ROOT}/heudiconv_1.3.3.sif}"
-  MRIQC_IMAGE="${MRIQC_IMAGE:-${TOOLS_ROOT}/mriqc-24.0.2.simg}"
-  FMRIPREP_IMAGE="${FMRIPREP_IMAGE:-${TOOLS_ROOT}/fmriprep-25.2.5.simg}"
-  WARPKIT_IMAGE="${WARPKIT_IMAGE:-${TOOLS_ROOT}/warpkit.sif}"
+  rm -rf -- "$target_real"
 }
 
 rf1_usage() {

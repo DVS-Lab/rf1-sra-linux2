@@ -5,7 +5,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage: bash run_prepdata.sh [--sublist FILE] [--jobs N] [--dry-run] [--overwrite]
 
-Runs prepdata-linux2.sh for every subject in the subject list and sessions 01/02.
+Runs prepdata.sh for every subject in the subject list and sessions 01/02.
 USAGE
 }
 
@@ -14,7 +14,7 @@ scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 source "${scriptdir}/pipeline_common.sh"
 rf1_load_config
 
-sublist="${SCRIPT_DIR}/sublist_new.txt"
+sublist="$BATCH_SUBLIST"
 max_jobs=6
 dry_run=0
 overwrite=0
@@ -50,7 +50,7 @@ while (($#)); do
 done
 
 rf1_require_file "$sublist"
-rf1_require_file "${SCRIPT_DIR}/prepdata-linux2.sh"
+rf1_require_file "${SCRIPT_DIR}/prepdata.sh"
 
 args=()
 ((dry_run)) && args+=(--dry-run)
@@ -65,7 +65,7 @@ while IFS= read -r sub; do
     APPTAINERENV_OPENBLAS_NUM_THREADS=1 \
     APPTAINERENV_NUMEXPR_NUM_THREADS=1 \
     APPTAINERENV_MKL_NUM_THREADS=1 \
-      bash "${SCRIPT_DIR}/prepdata-linux2.sh" "${args[@]}" "$sub" "$ses" &
+      bash "${SCRIPT_DIR}/prepdata.sh" "${args[@]}" "$sub" "$ses" &
     pids+=("$!")
   done
 done < <(rf1_read_subjects "$sublist")
