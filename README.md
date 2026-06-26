@@ -39,7 +39,9 @@ See `code/README.md` for the detailed implementation manual.
 
 ## Software
 
-The current Linux2 paths are fixed in `code/pipeline_common.sh`:
+The shared Linux2 source-data and tool paths are fixed in `code/pipeline_common.sh`.
+The project root is derived from the checkout location so a separate validation
+clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 
 | Tool | Default image/location |
 | --- | --- |

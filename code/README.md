@@ -44,13 +44,13 @@ stage commands below.
 | `check_shell_syntax.sh` | Validation | Shell syntax and optional ShellCheck lint. | `make test` | Bash, ShellCheck optional |
 | `validate_repo.py` | Validation | JSON, README path, and repository hygiene checks. | `make test` | Python |
 | `pipeline_utils.py` | Validation | Testable parsing, path, IntendedFor, and completion helpers. | Python scripts/tests | Python |
-| `pipeline_common.sh` | Shared constants | Fixed Linux2 paths and wrapper helpers. | Shell scripts | Bash |
+| `pipeline_common.sh` | Shared constants | Fixed Linux2 source/tool paths plus checkout-relative project outputs. | Shell scripts | Bash |
 | `print_subjects.py` | Helper | Normalize subject-list parsing for shell scripts. | `pipeline_common.sh` | Python |
 | `downloadXNAT.py` | Production | Incremental XNAT download using prompted credentials. | Operator | Python, `xnat` |
 | `heuristics_rf1.py` | Configuration | Pre-upgrade HeuDiConv heuristic. | `prepdata.sh` | HeuDiConv |
 | `heuristics_XA30.py` | Configuration | XA30-era HeuDiConv heuristic. | `prepdata.sh` | HeuDiConv |
-| `fmriprep_config.json`, `ses-01.json`, `ses-02.json` | Configuration | BIDS filter configuration. | fMRIPrep scripts | fMRIPrep |
-| `convert_SocialDoorsBids.m`, `convert_SocialDoorsBids_mk.m` | Helper | MATLAB event conversion helpers. | Operator only | MATLAB |
+| `fmriprep_config.json` | Configuration | fMRIPrep BIDS filter configuration for multi-session runs; keeps functional inputs to magnitude images. | `fmriprep.sh` | fMRIPrep |
+| `convert_SocialDoorsBids.m` | Helper | MATLAB event converter for Social Doors/Doors that reads `sublist-new.txt` and handles both sessions. | Operator only | MATLAB |
 | FLAIR/anatomical QC helpers | Helper | Optional anatomical QC checks kept in `code/`: `bet-flair.sh`, `bet-flair-coverage.sh`, `check-wm-mask.sh`, `create-T2.sh`, `extract_icv_fmriprep.py`, `flair-metrics.sh`, `flair-outliers.sh`, `flair_to_mni_flirt.py`, `voxel-count-L1.sh`. | Operator only | FSL/Python as noted in scripts |
 
 ## Batch Operation
@@ -81,14 +81,19 @@ python3 extract-metrics.py --dry-run
 Remove `--dry-run` after reviewing the planned commands. Use `--sublist FILE`
 only for an exceptional review or recovery run.
 
-## Fixed Linux2 Paths
+## Linux2 Paths
 
-The pipeline assumes the standard Smith Lab Linux2 layout. Operators should not
-edit paths for routine runs.
+The pipeline assumes the standard Smith Lab Linux2 source-data and tool layout.
+Operators should not edit paths for routine runs. The project root is derived
+from the checkout location, which allows a separate validation clone such as
+`/ZPOOL/data/projects/rf1-sra-linux2-jacob` to write to its own `bids/`,
+`derivatives/`, and `logs/` directories while reading the same source DICOMs
+and containers.
 
 | Item | Path |
 | --- | --- |
-| Project checkout | `/ZPOOL/data/projects/rf1-sra-linux2` |
+| Production checkout | `/ZPOOL/data/projects/rf1-sra-linux2` |
+| Example validation checkout | `/ZPOOL/data/projects/rf1-sra-linux2-jacob` |
 | Source DICOMs | `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` |
 | Scratch | `/ZPOOL/data/scratch` |
 | Tool/container directory | `/ZPOOL/data/tools` |
