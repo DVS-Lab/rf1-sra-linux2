@@ -30,17 +30,16 @@ integration validation before merge.
 
 | Path | Purpose |
 | --- | --- |
-| `code/` | Production entry points, worker scripts, helpers, subject lists, and config examples. |
+| `code/` | All production entry points, worker scripts, helpers, validation scripts, and the current batch subject list. |
 | `bids/` | Small tracked BIDS text/event metadata only; converted imaging data are ignored. |
-| `derivatives/` | Generated outputs are ignored. Two legacy FLIRT helper scripts are currently preserved for human review. |
-| `scripts/` | Repository validation scripts that do not require production imaging data. |
+| `derivatives/` | Generated outputs are ignored and should not contain repository code. |
 | `tests/` | Synthetic pytest coverage for parsing, path generation, safety checks, and completion checks. |
 
 See `code/README.md` for the detailed implementation manual.
 
 ## Software
 
-The current Linux2 defaults are documented in `code/config.example.env`:
+The current Linux2 paths are fixed in `code/pipeline_common.sh`:
 
 | Tool | Default image/location |
 | --- | --- |
@@ -55,20 +54,6 @@ The script comments historically said the scanner-upgrade heuristic cutoff was
 March 18, 2025, while the code has used March 4, 2025 since the first Linux2
 commit. This cleanup preserves the March 4 behavior and flags the discrepancy
 for Jacob to confirm during Linux2 validation.
-
-## Configuration
-
-Linux2 defaults are built into `code/pipeline_common.sh`. To override paths in a
-local checkout:
-
-```bash
-cp code/config.example.env code/config.env
-```
-
-Edit `code/config.env` as needed. It is ignored by Git. Common overrides include
-`PROJECT_ROOT`, `SOURCEDATA_ROOT`, `SCRATCH_ROOT`, `TOOLS_ROOT`,
-`FMRIPREP_IMAGE`, `MRIQC_IMAGE`, `HEUDICONV_IMAGE`, `WARPKIT_IMAGE`,
-`TEMPLATEFLOW_HOME`, and `LICENSES_DIR`.
 
 ## Workflow
 
@@ -88,6 +73,8 @@ Quick start on Linux2:
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
+# Update this file for each new batch, then run the standard commands.
+vim sublist-new.txt
 python3 downloadXNAT.py
 bash run_prepdata.sh --dry-run
 bash run_prepdata.sh
@@ -106,17 +93,20 @@ bash run_mriqc.sh
 python3 extract-metrics.py --dry-run
 ```
 
-Subject lists are plain text files with one subject per line. Blank lines and
-comments beginning with `#` are ignored, and either `10001` or `sub-10001` forms
-are accepted by the wrappers.
+`code/sublist-new.txt` is the only file operators should normally edit for a
+new batch. It is a plain text file with one subject per line. Blank lines and
+comments beginning with `#` are ignored, and either `10001` or `sub-10001`
+forms are accepted by the wrappers. Scripts should not need edits for routine
+new-batch processing.
 
 ## Safety And Reruns
 
-Use `--dry-run` first for pipeline stages that support it. Existing BIDS
-conversion output is no longer removed before HeuDiConv runs. `prepdata-linux2.sh`
-stages conversion output in scratch and only installs it after the new session
-exists. Replacing an existing BIDS session requires `--overwrite`, and the old
-session is moved aside to a timestamped backup instead of being deleted.
+Use `--dry-run` first for pipeline stages that support it. `prepdata.sh` runs
+HeuDiConv into scratch first, validates that a new BIDS session exists there,
+and only then touches the live `bids/` tree. Replacing an existing BIDS session
+requires `--overwrite`; the old session is removed immediately before the
+validated staged session is moved into place, so `bids/` does not accumulate
+non-BIDS backup folders.
 
 Raw DICOM source directories are treated as immutable by preprocessing scripts.
 Localizer directories are reported but no longer moved out of source data.

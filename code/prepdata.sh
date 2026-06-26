@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash prepdata-linux2.sh [--dry-run] [--overwrite] [--skip-mriqc] SUBJECT SESSION
+Usage: bash prepdata.sh [--dry-run] [--overwrite] [--skip-mriqc] SUBJECT SESSION
 
 Converts DICOMs to BIDS with HeuDiConv, defaces T1w data, shifts scans.tsv
 dates, and optionally runs MRIQC for one subject/session.
@@ -163,18 +163,16 @@ staged_heudiconv="${stage_root}/bids/.heudiconv/${sub}/ses-${ses}"
 rf1_require_dir "$staged_session"
 
 if [[ -e "$target_session" ]]; then
-  backup="${target_session}.backup-$(date +%Y%m%d-%H%M%S)"
-  echo "Moving existing BIDS session to backup before installing validated output: $backup"
-  mv "$target_session" "$backup"
+  echo "Removing existing BIDS session immediately before installing staged output: $target_session"
+  rf1_remove_tree_under "$bidsroot" "$target_session"
 fi
 mkdir -p "$(dirname "$target_session")"
 mv "$staged_session" "$target_session"
 
 if [[ -d "$staged_heudiconv" ]]; then
   if [[ -e "$target_heudiconv" ]]; then
-    backup="${target_heudiconv}.backup-$(date +%Y%m%d-%H%M%S)"
-    echo "Moving existing HeuDiConv metadata to backup: $backup"
-    mv "$target_heudiconv" "$backup"
+    echo "Removing existing HeuDiConv metadata immediately before installing staged metadata: $target_heudiconv"
+    rf1_remove_tree_under "${bidsroot}/.heudiconv" "$target_heudiconv"
   fi
   mkdir -p "$(dirname "$target_heudiconv")"
   mv "$staged_heudiconv" "$target_heudiconv"

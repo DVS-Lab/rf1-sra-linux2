@@ -38,7 +38,7 @@ fi
 # Main loop
 echo "subject,status" > "$output_csv"
 
-for sub in $(cat ${basedir}/code/sublist_all.txt); do
+for sub in $(cat "${basedir}/code/sublist-new.txt"); do
     while [ $(ps -ef | grep -v grep | grep $SCRIPTNAME | wc -l) -ge $NCORES ]; do
         sleep 5s
     done

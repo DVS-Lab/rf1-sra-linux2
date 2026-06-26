@@ -13,10 +13,8 @@ from pathlib import Path
 from typing import Iterable
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SCANNER_CUTOFF = date.fromisoformat(
-    os.environ.get("SCANNER_UPGRADE_CUTOFF", "2025-03-04")
-)
+PROJECT_ROOT = Path("/ZPOOL/data/projects/rf1-sra-linux2")
+DEFAULT_SCANNER_CUTOFF = date.fromisoformat("2025-03-04")
 TASKS_BY_SESSION = {
     "01": ("ugr", "trust", "sharedreward", "doors", "socialdoors"),
     "02": ("ugr", "doors", "socialdoors"),

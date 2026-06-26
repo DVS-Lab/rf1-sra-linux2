@@ -9,6 +9,8 @@ from pathlib import Path
 
 from pipeline_utils import atomic_write_json, collect_intended_for_updates
 
+DEFAULT_BIDS_ROOT = Path("/ZPOOL/data/projects/rf1-sra-linux2/bids")
+
 
 def apply_update(json_path: Path, intended_for: list[str]) -> None:
     data = json.loads(json_path.read_text())
@@ -24,8 +26,8 @@ def main() -> int:
     parser.add_argument(
         "--bids-root",
         type=Path,
-        default=Path(__file__).resolve().parents[1] / "bids",
-        help="BIDS root to update. Defaults to ../bids from this script.",
+        default=DEFAULT_BIDS_ROOT,
+        help="BIDS root to update. Defaults to the production Linux2 BIDS path.",
     )
     parser.add_argument(
         "--dry-run",

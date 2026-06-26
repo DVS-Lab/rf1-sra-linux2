@@ -14,7 +14,7 @@ disp(['Current directory (pwd): ', pwd]);
 disp(['usedir: ', usedir]);
 disp(['input_file_path: ', input_file_path]);
 
-subs = load('sublist_all.txt');
+subs = load('sublist-new.txt');
 
 tasks = {'facesA1', 'facesA2','facesA3','facesA4',...
     'facesB1','facesB2','facesB3','facesB4',...

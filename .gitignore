@@ -15,12 +15,11 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Local environments and machine-specific config
+# Local environments
 .env
 .venv/
 venv/
 env/
-code/config.env
 
 # Local work areas and scheduler/container logs
 logs/
@@ -52,12 +51,9 @@ bids/**/*.nii.gz
 !bids/sub-*/ses-*/func/*_events.tsv
 !bids/sub-*/ses-*/sub-*_scans.tsv
 
-# Generated derivatives and reports. Scripts should live in code/ unless there
-# is a documented reason to keep them elsewhere.
+# Generated derivatives and reports. Scripts live in code/.
 derivatives/**
 !derivatives/
-!derivatives/flirt/
-!derivatives/flirt/*.sh
 mriqc-metrics*.csv
 
 # Generated metrics/manifests that previously appeared under code/
@@ -72,3 +68,4 @@ code/missing-tedanaInput.log
 code/XNAT.log
 code/mriqc-*.txt
 code/tedana_output*.log
+code/sublist_*validbeh*.txt
