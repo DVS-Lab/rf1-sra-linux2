@@ -60,7 +60,7 @@ def write_csv(rows: list[dict[str, str]], output_file: Path) -> None:
 
 
 def main() -> int:
-    repo_root = Path("/ZPOOL/data/projects/rf1-sra-linux2")
+    repo_root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mriqc-dir", type=Path, default=repo_root / "derivatives" / "mriqc")
     parser.add_argument("--sublist", type=Path, default=repo_root / "code" / "sublist-new.txt")

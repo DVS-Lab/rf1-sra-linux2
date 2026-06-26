@@ -75,7 +75,7 @@ def atomic_write_tsv(df: pd.DataFrame, path: Path) -> None:
 
 
 def main() -> int:
-    repo_root = Path("/ZPOOL/data/projects/rf1-sra-linux2")
+    repo_root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fmriprep-dir", type=Path, default=repo_root / "derivatives" / "fmriprep")
     parser.add_argument("--tedana-dir", type=Path, default=repo_root / "derivatives" / "tedana")

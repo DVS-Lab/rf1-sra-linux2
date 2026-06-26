@@ -5,12 +5,14 @@ rf1_script_dir() {
 }
 
 rf1_project_root() {
-  printf '%s\n' "/ZPOOL/data/projects/rf1-sra-linux2"
+  local scriptdir
+  scriptdir="$(rf1_script_dir)"
+  printf '%s\n' "$(dirname "$scriptdir")"
 }
 
 rf1_load_config() {
   SCRIPT_DIR="$(rf1_script_dir)"
-  PROJECT_ROOT="/ZPOOL/data/projects/rf1-sra-linux2"
+  PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
   SOURCEDATA_ROOT="/ZPOOL/data/sourcedata/sourcedata/rf1-sra"
   TOOLS_ROOT="/ZPOOL/data/tools"
   SCRATCH_ROOT="/ZPOOL/data/scratch"
