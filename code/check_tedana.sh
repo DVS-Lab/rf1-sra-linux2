@@ -1,24 +1,56 @@
-#!/bin/bash
-scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-projectdir="$( dirname "${scriptdir}" )"
-derivativesdir="${projectdir}/derivatives"
-sublist="${scriptdir}/sublist_all.txt"
+#!/usr/bin/env bash
+set -euo pipefail
 
-declare -A printed
+usage() {
+  cat >&2 <<'USAGE'
+Usage: bash check_tedana.sh [--sublist FILE]
+USAGE
+}
 
-while read -r sub; do
-  [[ -z "${sub}" ]] && continue
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=code/pipeline_common.sh
+source "${scriptdir}/pipeline_common.sh"
+rf1_load_config
 
-  for v in 24 25; do
-    tedanadir="${derivativesdir}/tedana-${v}/sub-${sub}/ses-01"
+sublist="${SCRIPT_DIR}/sublist_all.txt"
+while (($#)); do
+  case "$1" in
+    --sublist)
+      sublist="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
+done
 
-    if [[ ! -d "${tedanadir}" ]]; then
-      [[ -z "${printed[$v]}" ]] && {
-        echo "missing tedana-${v} input:"
-        printed[$v]=1
-      }
-      echo "${sub}"
+rf1_require_file "$sublist"
+failed=0
+while IFS= read -r sub; do
+  for ses in 01 02; do
+    [[ -d "${PROJECT_ROOT}/bids/sub-${sub}/ses-${ses}" ]] || continue
+    if [[ "$ses" == "01" ]]; then
+      tasks=(socialdoors doors trust sharedreward ugr)
+    else
+      tasks=(socialdoors doors ugr)
     fi
+    for task in "${tasks[@]}"; do
+      runs=(1 2)
+      [[ "$task" == "doors" || "$task" == "socialdoors" ]] && runs=(1)
+      for run in "${runs[@]}"; do
+        if ! python3 "${SCRIPT_DIR}/check_pipeline_state.py" tedana-complete "${PROJECT_ROOT}/derivatives" "$sub" "$ses" "$task" "$run"; then
+          echo "sub-${sub} ses-${ses} task-${task} run-${run}: incomplete TEDANA outputs"
+          failed=1
+        fi
+      done
+    done
   done
-done < "${sublist}"
+done < <(rf1_read_subjects "$sublist")
 
+exit "$failed"

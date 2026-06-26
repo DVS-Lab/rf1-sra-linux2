@@ -1,76 +1,94 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# example code for FMRIPREP
-# runs FMRIPREP on input subject
-# usage: bash run_fmriprep.sh sub
-# example: bash run_fmriprep.sh 102
+usage() {
+  cat >&2 <<'USAGE'
+Usage: bash fmriprep.sh [--dry-run] [--overwrite] SUBJECT
+USAGE
+}
 
-sub=$1
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=code/pipeline_common.sh
+source "${scriptdir}/pipeline_common.sh"
+rf1_load_config
 
-# ensure paths are correct irrespective of where the user runs the script
-scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-maindir="$(dirname "$scriptdir")"
-
-# host-system paths
-bidsdir="$maindir/bids"
-derivdir="$maindir/derivatives"
-scratchdir=/ZPOOL/data/scratch/$(whoami)
-templateflow_host=/ZPOOL/data/tools/templateflow
-mplconfig_host=/ZPOOL/data/tools/mplconfigdir
-licenses_host=/ZPOOL/data/tools/licenses
-fmriprep_img=/ZPOOL/data/tools/fmriprep-25.2.5.simg
-
-# container paths
-base_container=/base
-templateflow_container=/opt/templateflow
-mplconfig_container=/opt/mplconfigdir
-licenses_container=/opts
-scratch_container=/scratch
-
-# make derivatives folder if it doesn't exist
-if [ ! -d "$derivdir" ]; then
-    mkdir -p "$derivdir"
-fi
-
-# make scratch folder if it doesn't exist
-if [ ! -d "$scratchdir" ]; then
-    mkdir -p "$scratchdir"
-fi
-
-export APPTAINERENV_TEMPLATEFLOW_HOME=$templateflow_container
-export APPTAINERENV_MPLCONFIGDIR=$mplconfig_container
-
-# Check for fmriprep output and run if there is output expected (session-compatible)
-# If you want to re-run fmriprep even if output exists, comment the below block out
-html="$derivdir/fmriprep/sub-${sub}.html"
-all_sessions_done=1
-for bids_sesdir in "$bidsdir/sub-${sub}"/ses-*; do
-    [ -d "$bids_sesdir" ] || continue
-    ses=$(basename "$bids_sesdir")
-    if [ ! -d "$derivdir/fmriprep/sub-${sub}/${ses}" ]; then
-        all_sessions_done=0
-    fi
+dry_run=0
+overwrite=0
+while (($#)); do
+  case "$1" in
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    --overwrite)
+      overwrite=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      usage
+      exit 2
+      ;;
+    *)
+      break
+      ;;
+  esac
 done
-if [ -f "$html" ] && [ "$all_sessions_done" -eq 1 ]; then
-    echo "sub-${sub} already has fMRIPrep HTML report and output for all BIDS sessions; skipping"
-    exit 0
+
+if (($# != 1)); then
+  usage
+  exit 2
 fi
 
-singularity run --cleanenv \
-    -B ${templateflow_host}:${templateflow_container} \
-    -B ${mplconfig_host}:${mplconfig_container} \
-    -B ${maindir}:${base_container} \
-    -B ${licenses_host}:${licenses_container} \
-    -B ${scratchdir}:${scratch_container} \
-    ${fmriprep_img} \
-    ${base_container}/bids ${base_container}/derivatives/fmriprep \
-    participant --participant_label $sub \
-    --stop-on-first-crash \
-    --me-output-echos \
-    --output-spaces MNI152NLin6Asym \
-    --bids-filter-file ${base_container}/code/fmriprep_config.json \
-    --skip-bids-validation \
-    --fs-no-reconall \
-    --fs-license-file ${licenses_container}/fs_license.txt \
-    -w ${scratch_container}
+sub="$1"
+bidsdir="${PROJECT_ROOT}/bids"
+derivdir="${PROJECT_ROOT}/derivatives"
+scratchdir="${SCRATCH_ROOT}/$(whoami)"
 
+rf1_require_dir "${bidsdir}/sub-${sub}"
+mkdir -p "$derivdir" "$scratchdir"
+
+if [[ "$overwrite" -ne 1 ]] && python3 "${scriptdir}/check_pipeline_state.py" fmriprep-complete "$bidsdir" "$derivdir" "$sub" >/dev/null; then
+  echo "sub-${sub} already has practical fMRIPrep completion outputs; skipping"
+  exit 0
+fi
+
+export APPTAINERENV_TEMPLATEFLOW_HOME=/opt/templateflow
+export APPTAINERENV_MPLCONFIGDIR=/opt/mplconfigdir
+
+cmd=(
+  singularity run --cleanenv
+  -B "${TEMPLATEFLOW_HOME}:/opt/templateflow"
+  -B "${MPLCONFIGDIR_HOST}:/opt/mplconfigdir"
+  -B "${PROJECT_ROOT}:/base"
+  -B "${LICENSES_DIR}:/opts"
+  -B "${scratchdir}:/scratch"
+  "$FMRIPREP_IMAGE"
+  /base/bids /base/derivatives/fmriprep
+  participant --participant_label "$sub"
+  --stop-on-first-crash
+  --me-output-echos
+  --output-spaces MNI152NLin6Asym
+  --bids-filter-file /base/code/fmriprep_config.json
+  --skip-bids-validation
+  --fs-no-reconall
+  --fs-license-file /opts/fs_license.txt
+  -w /scratch
+)
+
+printf 'fMRIPrep command:'
+printf ' %q' "${cmd[@]}"
+printf '\n'
+if ((dry_run)); then
+  echo "Dry run: not launching fMRIPrep."
+  python3 "${scriptdir}/check_pipeline_state.py" fmriprep-complete "$bidsdir" "$derivdir" "$sub" --list || true
+  exit 0
+fi
+
+rf1_require_file "$FMRIPREP_IMAGE"
+rf1_require_file "${LICENSES_DIR}/fs_license.txt"
+"${cmd[@]}"
+python3 "${scriptdir}/check_pipeline_state.py" fmriprep-complete "$bidsdir" "$derivdir" "$sub"
