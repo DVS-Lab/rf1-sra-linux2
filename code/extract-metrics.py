@@ -1,68 +1,86 @@
-# Originally by Cooper Sharp, edited by Melanie Kos
-# This script extracts MRIQC data (i.e., fd_mean, tsnr) for L3 analyses
-# Customize to get output .csv file based on your sublist, session(s) of interest, and tasks
+#!/usr/bin/env python3
+"""Extract MRIQC fd_mean and tsnr values into a CSV table."""
 
-import os
-import json
-import glob
+from __future__ import annotations
+
+import argparse
 import csv
+import json
+from pathlib import Path
 
-# Define paths (customize these paths as needed, all else should remain untouched)
-base_dir = '/gpfs/scratch/tug87422/smithlab-shared/rf1-sra-linux2'
-sublist_file = f'{base_dir}/code/sublist_all.txt'
-output_file = f'{base_dir}/code/mriqc-metrics_allTasks_ses-01-02.csv'
-sessions = ['01', '02']
-tasks = ['ugr', 'doors', 'socialdoors', 'trust', 'sharedreward']
+from pipeline_utils import read_subject_list
 
-# Read subjects from sublist_file
-with open(sublist_file, 'r') as f:
-    subjects = f.read().splitlines()
 
-# List to store results
-results = []
+DEFAULT_TASKS = ("ugr", "doors", "socialdoors", "trust", "sharedreward")
+DEFAULT_SESSIONS = ("01", "02")
 
-# Iterate through subjects, sessions, and tasks
-for sub in subjects:
-    for ses in sessions:
-        for task in tasks:
-            # Using echo 2 (can be hardcoded to use any of the other echoes)
-            json_pattern = f'{base_dir}/derivatives/mriqc/sub-{sub}/ses-{ses}/func/sub-{sub}_ses-{ses}_task-{task}_run-*_echo-2_part-mag_bold.json'
 
-            # Find json files
-            json_files = sorted(glob.glob(json_pattern))
-            
-            # Iterate through the runs for each subjects
-            for json_file in json_files:
-                run = json_file.split('_run-')[-1].split('_')[0]
-                tsnr = 'missing'
-                fd_mean = 'missing'
+def extract_metrics(mriqc_dir: Path, subjects: list[str], sessions: list[str], tasks: list[str]) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for sub in subjects:
+        for ses in sessions:
+            for task in tasks:
+                pattern = (
+                    f"sub-{sub}/ses-{ses}/func/"
+                    f"sub-{sub}_ses-{ses}_task-{task}_run-*_echo-2_part-mag_bold.json"
+                )
+                for json_file in sorted(mriqc_dir.glob(pattern)):
+                    run = json_file.name.split("_run-")[-1].split("_")[0]
+                    try:
+                        data = json.loads(json_file.read_text())
+                        tsnr = data.get("tsnr", "missing")
+                        fd_mean = data.get("fd_mean", "missing")
+                    except Exception as exc:  # noqa: BLE001 - batch extractor should report all bad files.
+                        print(f"Error reading {json_file}: {exc}")
+                        tsnr = "missing"
+                        fd_mean = "missing"
+                    rows.append(
+                        {
+                            "subject": sub,
+                            "session": f"ses-{ses}",
+                            "task": task,
+                            "run": run,
+                            "tsnr": str(tsnr),
+                            "fd_mean": str(fd_mean),
+                            "json_file": str(json_file),
+                        }
+                    )
+    return rows
 
-                try:
-                    # Read json file
-                    with open(json_file, 'r') as f:
-                        data = json.load(f)
-                        
-                    # Extract tsnr and fd_mean, ensuring they're strings
-                    tsnr = data.get('tsnr', 'missing')
-                    fd_mean = data.get('fd_mean', 'missing')
 
-                except Exception as e:
-                    print(f"Error reading {json_file}: {e}")
+def write_csv(rows: list[dict[str, str]], output_file: Path) -> None:
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    tmp = output_file.with_name(f".{output_file.name}.tmp")
+    fieldnames = ["subject", "session", "task", "run", "tsnr", "fd_mean", "json_file"]
+    with tmp.open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    tmp.replace(output_file)
 
-                # Append to results list
-                results.append({'subject': sub,
-                                'session': f'ses-{ses}',
-                                'task': task,
-                                'run': run,
-                                'tsnr': tsnr,
-                                'fd_mean': fd_mean,
-                                'json_file': json_file})
 
-# Write output CSV
-with open(output_file, 'w', newline='') as f:
-    writer = csv.DictWriter(f, fieldnames=['subject', 'session', 'task', 'run', 'tsnr', 'fd_mean', 'json_file'])
-    writer.writeheader()
-    writer.writerows(results)
+def main() -> int:
+    repo_root = Path(__file__).resolve().parents[1]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--mriqc-dir", type=Path, default=repo_root / "derivatives" / "mriqc")
+    parser.add_argument("--sublist", type=Path, default=repo_root / "code" / "sublist_all.txt")
+    parser.add_argument("--output-file", type=Path, default=repo_root / "derivatives" / "mriqc-metrics.csv")
+    parser.add_argument("--sessions", nargs="+", default=list(DEFAULT_SESSIONS))
+    parser.add_argument("--tasks", nargs="+", default=list(DEFAULT_TASKS))
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
 
-print(f"Saved MRIQC metrics to: {output_file}")
+    subjects = read_subject_list(args.sublist)
+    rows = extract_metrics(args.mriqc_dir, subjects, args.sessions, args.tasks)
+    print(f"Found {len(rows)} MRIQC metric rows.")
+    if args.dry_run:
+        for row in rows[:10]:
+            print(row)
+        return 0
+    write_csv(rows, args.output_file)
+    print(f"Saved MRIQC metrics to: {args.output_file}")
+    return 0
 
+
+if __name__ == "__main__":
+    raise SystemExit(main())

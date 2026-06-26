@@ -1,74 +1,138 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# ensure paths are correct
-# NOTE: MAKE SURE YOU HAVE TEDANA UP TO DATE AND INSTALLED IN YOUR HOME REPO.
-projectname=rf1-sra-linux2 #this should be the only line that has to change if the rest of the script is set up correctly
-maindir=/ZPOOL/data/projects/$projectname
-scriptdir=$maindir/code
-bidsdir=$maindir/bids
-logdir=$maindir/logs
-mkdir -p $logdir
-logfile=$logdir/tedana_output.log
-missinglog=$scriptdir/missing-tedanaInput.log
-touch $logfile
-touch $missinglog
+usage() {
+  cat >&2 <<'USAGE'
+Usage: bash tedana.sh [--dry-run] [--overwrite] SUBJECT
+USAGE
+}
 
-# estimated procs per subject: 4 tasks * 2 runs * 4 echoes = 32?
-# wow... can't be right, but let's go for 9 subjects per job (84 procs per job). watch for memory issues.
-# EDIT: sending only one subject/job currently in the run script
-#for fmriprep in 24 25; do
-# Note that the above commented out "for" loop, and below "indata", "outdir", and "done" can be used to run tedana on "fmriprep-24" or "fmriprep-25" derivative outputs if that format is reapplied
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=code/pipeline_common.sh
+source "${scriptdir}/pipeline_common.sh"
+rf1_load_config
 
-  for sub in ${subjects[@]}; do
-    for ses in 01 02; do 
-	    for task in "socialdoors" "doors" "trust" "sharedreward" "ugr"; do
-		    for run in 1 2; do
+dry_run=0
+overwrite=0
+while (($#)); do
+  case "$1" in
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    --overwrite)
+      overwrite=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      usage
+      exit 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
-			    #indata=$maindir/derivatives/fmriprep-${fmriprep}/sub-${sub}/ses-${ses}/func
-			    indata=$maindir/derivatives/fmriprep/sub-${sub}/ses-${ses}/func
-			    echo1=${indata}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-mag_desc-preproc_bold.nii.gz
-			    echo2=${indata}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-2_part-mag_desc-preproc_bold.nii.gz
-			    echo3=${indata}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-3_part-mag_desc-preproc_bold.nii.gz
-			    echo4=${indata}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-4_part-mag_desc-preproc_bold.nii.gz
-			    if [ ! -e "$echo1" ] || [ ! -e "$echo2" ] || [ ! -e "$echo3" ] || [ ! -e "$echo4" ]; then
-				    echo "Missing one or more files for sub-${sub}, ses-${ses}, task-${task}, run-${run}" >> ${missinglog}
-				    echo "Skipping sub-${sub}, ses-${ses}, task-${task}, run-${run}" >> ${logfile}
-				    continue
-			    fi
-			    #outdir=$maindir/derivatives/tedana-${fmriprep}/sub-${sub}/ses-${ses}
-			    outdir=$maindir/derivatives/tedana/sub-${sub}/ses-${ses}
-			    mkdir -p $outdir
-			
-			    echotime1=""
-			    echotime2=""
-			    echotime3=""
-			    echotime4=""
+if (($# != 1)); then
+  usage
+  exit 2
+fi
 
-			    # Extract echos
-			    for echo in 1 2 3 4; do
-				    bidsfuncdir=$bidsdir/sub-${sub}/ses-${ses}/func
-				    json_file=$(find "$bidsfuncdir" -name "sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-${echo}_part-mag_bold.json")
-				    if [ -n "$json_file" ]; then
-					    echo_time=$(grep -o '"EchoTime": [0-9.]*' "$json_file" | cut -d' ' -f2 | tr -d '\r')
-					    eval "echotime${echo}=${echo_time}"
-				    else
-					    echo "Missing JSON for sub-${sub}, ses-${ses},  task-${task}, run-${run}, echo-${echo}"
-					    echo "Missing JSON for sub-${sub}, ses-${ses}, task-${task}, run-${run}, echo-${echo}" >> $scriptdir/missing-tedanaInput.log
-				    fi
-			    done
+sub="$1"
+bidsdir="${PROJECT_ROOT}/bids"
+derivativesdir="${PROJECT_ROOT}/derivatives"
+logdir="${PROJECT_ROOT}/logs"
+missinglog="${logdir}/missing-tedanaInput.log"
+logfile="${logdir}/tedana_output.log"
+mkdir -p "$logdir"
 
+get_echo_time() {
+  python3 - "$1" <<'PY'
+import json
+import sys
+from pathlib import Path
 
-			    tedana -d $echo1 $echo2 $echo3 $echo4 \
-			    -e $echotime1 $echotime2 $echotime3 $echotime4 \
-			    --out-dir $outdir \
-			    --prefix sub-${sub}_ses-${ses}_task-${task}_run-${run} \
-			    --convention bids \
-			    --fittype curvefit \
-			    --overwrite \
-                >> ${logfile} 2>&1
-		    done
-	    done
-    done		
+path = Path(sys.argv[1])
+data = json.loads(path.read_text())
+echo_time = data.get("EchoTime")
+if echo_time is None:
+    raise SystemExit(f"EchoTime missing from {path}")
+print(echo_time)
+PY
+}
+
+failures=0
+for ses in 01 02; do
+  [[ -d "${bidsdir}/sub-${sub}/ses-${ses}" ]] || continue
+  if [[ "$ses" == "01" ]]; then
+    tasks=(socialdoors doors trust sharedreward ugr)
+  else
+    tasks=(socialdoors doors ugr)
+  fi
+
+  for task in "${tasks[@]}"; do
+    runs=(1 2)
+    [[ "$task" == "doors" || "$task" == "socialdoors" ]] && runs=(1)
+    for run in "${runs[@]}"; do
+      if [[ "$overwrite" -ne 1 ]] && python3 "${scriptdir}/check_pipeline_state.py" tedana-complete "$derivativesdir" "$sub" "$ses" "$task" "$run" >/dev/null; then
+        echo "EXISTS (skipping): TEDANA sub-${sub} ses-${ses} task-${task} run-${run}"
+        continue
+      fi
+
+      indata="${derivativesdir}/fmriprep/sub-${sub}/ses-${ses}/func"
+      bidsfuncdir="${bidsdir}/sub-${sub}/ses-${ses}/func"
+      outdir="${derivativesdir}/tedana/sub-${sub}/ses-${ses}"
+      mkdir -p "$outdir"
+
+      echoes=()
+      echo_times=()
+      missing=0
+      for echo in 1 2 3 4; do
+        echo_file="${indata}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-${echo}_part-mag_desc-preproc_bold.nii.gz"
+        json_file="${bidsfuncdir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-${echo}_part-mag_bold.json"
+        if [[ ! -f "$echo_file" || ! -f "$json_file" ]]; then
+          echo "Missing TEDANA input for sub-${sub} ses-${ses} task-${task} run-${run} echo-${echo}" >> "$missinglog"
+          missing=1
+          break
+        fi
+        echoes+=("$echo_file")
+        echo_times+=("$(get_echo_time "$json_file")")
+      done
+      ((missing)) && continue
+
+      cmd=(
+        tedana
+        -d "${echoes[@]}"
+        -e "${echo_times[@]}"
+        --out-dir "$outdir"
+        --prefix "sub-${sub}_ses-${ses}_task-${task}_run-${run}"
+        --convention bids
+        --fittype curvefit
+      )
+      ((overwrite)) && cmd+=(--overwrite)
+
+      printf 'TEDANA command:'
+      printf ' %q' "${cmd[@]}"
+      printf '\n'
+      if ((dry_run)); then
+        continue
+      fi
+
+      if ! "${cmd[@]}" >> "$logfile" 2>&1; then
+        echo "TEDANA failed for sub-${sub} ses-${ses} task-${task} run-${run}" >&2
+        failures=1
+        continue
+      fi
+      if ! python3 "${scriptdir}/check_pipeline_state.py" tedana-complete "$derivativesdir" "$sub" "$ses" "$task" "$run"; then
+        failures=1
+      fi
+    done
   done
-#done
+done
 
+exit "$failures"

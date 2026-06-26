@@ -1,43 +1,42 @@
-#!/bin/bash
-scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-projectdir="$( dirname "${scriptdir}" )"
-derivativesdir="${projectdir}/derivatives"
-sublist="${scriptdir}/sublist_all.txt"
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "no mriqc output folder - rerun definitely"
-while read -r sub; do
-  [[ -z "${sub}" ]] && continue
-  mriqcdir="${derivativesdir}/mriqc/sub-${sub}"
+usage() {
+  cat >&2 <<'USAGE'
+Usage: bash check_mriqc.sh [--sublist FILE]
+USAGE
+}
 
-  if [[ ! -d "${mriqcdir}" ]]; then
-    echo "${sub}"
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=code/pipeline_common.sh
+source "${scriptdir}/pipeline_common.sh"
+rf1_load_config
+
+sublist="${SCRIPT_DIR}/sublist_all.txt"
+while (($#)); do
+  case "$1" in
+    --sublist)
+      sublist="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
+done
+
+rf1_require_file "$sublist"
+failed=0
+while IFS= read -r sub; do
+  if [[ ! -d "${PROJECT_ROOT}/derivatives/mriqc/sub-${sub}" ]]; then
+    echo "sub-${sub}: no MRIQC output folder"
+    failed=1
   fi
-done < "${sublist}"
+done < <(rf1_read_subjects "$sublist")
 
-echo
-echo "missing some mriqc runs (subs could have just never done tasks in scanner anyway), check/rerun"
-while read -r sub; do
-  [[ -z "${sub}" ]] && continue
-  mriqcdir="${derivativesdir}/mriqc/sub-${sub}"
-  [[ ! -d "${mriqcdir}" ]] && continue
-  missing=0
-  for f in \
-    "sub-${sub}_ses-01_task-doors_run-1_bold.html" \
-    "sub-${sub}_ses-01_task-sharedreward_run-1_bold.html" \
-    "sub-${sub}_ses-01_task-sharedreward_run-2_bold.html" \
-    "sub-${sub}_ses-01_task-socialdoors_run-1_bold.html" \
-    "sub-${sub}_ses-01_task-trust_run-1_bold.html" \
-    "sub-${sub}_ses-01_task-trust_run-2_bold.html" \
-    "sub-${sub}_ses-01_task-ugr_run-1_bold.html" \
-    "sub-${sub}_ses-01_task-ugr_run-2_bold.html"
-  do
-    if [[ ! -f "${mriqcdir}/${f}" ]]; then
-      missing=1
-      break
-    fi
-  done
-
-  [[ ${missing} -eq 1 ]] && echo "${sub}"
-
-done < "${sublist}"
-
+exit "$failed"

@@ -1,137 +1,211 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This code will convert DICOMS to BIDS (PART 1). Will also deface (PART 2) and run MRIQC (PART 3).
-#
-# usage:  bash prepdata-linux2.sh sub ses
-# example: bash prepdata-linu2.sh 10418 01
-# 
-# This script was edited by Melanie Kos to account for the two sessions and to point to the proper heuristic file
-# depending on the date the participant was scanned. 
-#
-# Notes:
-# 1) Containers live under /ZPOOL/data/tools on this machine. YODA principles suggest sharing these paths if possible.
-# 2) Other projects should use Jeff's Python for fixing IntendedFor (this pipeline uses a separate step elsewhere).
-# 3) Aside from containers, the only absolute path here is to raw sourcedata.
-# 4) Heuristic selection:
-#       - ses-02: ALWAYS heuristics_XA30.py (all ses-02 scans are XA30-era)
-#       - ses-01: If newest DICOM mtime is <= March 18, 2025, then heuristics_rf1.py, otherwise XA30
+usage() {
+  cat >&2 <<'USAGE'
+Usage: bash prepdata-linux2.sh [--dry-run] [--overwrite] [--skip-mriqc] SUBJECT SESSION
 
-sub=$1
-ses=$2
+Converts DICOMs to BIDS with HeuDiConv, defaces T1w data, shifts scans.tsv
+dates, and optionally runs MRIQC for one subject/session.
+USAGE
+}
 
-# Manually pointing to heuristics file for this sub as incorrect ID was input into MR console 
-# and amending it updated their scan date
-[ "$sub" = "11433" ] && heuristics_file="/out/code/heuristics_rf1.py"
-scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-dsroot="$(dirname "$scriptdir")"
-sourcedata=/ZPOOL/data/sourcedata/sourcedata/rf1-sra
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=code/pipeline_common.sh
+source "${scriptdir}/pipeline_common.sh"
+rf1_load_config
 
-# Selecting proper heuristics file based on date scanned / when scanner software was updated
-cutoff_epoch=$(date -d '2025-03-04' +%s) # March 4, 2025
+dry_run=0
+overwrite=0
+skip_mriqc=0
+while (($#)); do
+  case "$1" in
+    --dry-run)
+      dry_run=1
+      shift
+      ;;
+    --overwrite)
+      overwrite=1
+      shift
+      ;;
+    --skip-mriqc)
+      skip_mriqc=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      usage
+      exit 2
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
-if [ "$ses" = "02" ]; then
+if (($# != 2)); then
+  usage
+  exit 2
+fi
+
+sub="$1"
+ses="$2"
+if [[ ! "$ses" =~ ^0[12]$ ]]; then
+  echo "Session must be 01 or 02, got: $ses" >&2
+  exit 2
+fi
+
+bidsroot="${PROJECT_ROOT}/bids"
+scratch_user="${SCRATCH_ROOT}/$(whoami)"
+mkdir -p "$bidsroot" "$scratch_user"
+
+cutoff="${SCANNER_UPGRADE_CUTOFF:-2025-03-04}"
+cutoff_epoch="$(date -d "$cutoff" +%s)"
+
+if [[ "$ses" == "02" ]]; then
   folder_sub="${sub}-2"
-  subdir="$sourcedata/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}"
-  scandir="$subdir/scans"
+  dicom_template="/sourcedata/Smith-SRA-{subject}-2/Smith-SRA-{subject}-2/scans/*/*/DICOM/files/*.dcm"
+  heuristic_name="heuristics_XA30.py"
+  seen="XA30 heuristic, session 2"
+else
+  folder_sub="$sub"
+  dicom_template="/sourcedata/Smith-SRA-{subject}/Smith-SRA-{subject}/scans/*/*/DICOM/files/*.dcm"
+fi
 
-  if [ ! -d "$subdir" ]; then
-	  exit 0
-  fi
-
-  if ! find "$scandir" -type f -name '*.dcm' -print -quit 2>/dev/null | grep -q .; then
-    echo "No ses-02 for sub-${sub}. Skipping ses-${ses}."
+subdir="${SOURCEDATA_ROOT}/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}"
+scandir="${subdir}/scans"
+if [[ ! -d "$subdir" ]]; then
+  if [[ "$ses" == "02" ]]; then
+    echo "No source directory for optional sub-${sub} ses-${ses}; skipping."
     exit 0
   fi
-  
-  heuristics_file="/out/code/heuristics_XA30.py"
-  dicom_template="/sourcedata/Smith-SRA-{subject}-2/Smith-SRA-{subject}-2/scans/*/*/DICOM/files/*.dcm"
-  seen="XA30 heuristic, session 2"
+  echo "Required source directory not found: $subdir" >&2
+  exit 1
+fi
 
-else
-  folder_sub="${sub}"
-  dicom_template="/sourcedata/Smith-SRA-{subject}/Smith-SRA-{subject}/scans/*/*/DICOM/files/*.dcm"
-  subdir="$sourcedata/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}"
-  scandir="$subdir/scans"
-  epoch=$(find "$scandir" -type f -name '*.dcm' -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | awk '{print int($1)}' || true)
-  [ -z "${epoch:-}" ] && epoch=$(stat -c %Y "$subdir" 2>/dev/null || echo 0)
-  if [ "${heuristics_file:-}" = "/out/code/heuristics_rf1.py" ] || [ "$epoch" -le "$cutoff_epoch" ]; then
-    heuristics_file="/out/code/heuristics_rf1.py"
+if ! find "$scandir" -type f -name '*.dcm' -print -quit 2>/dev/null | grep -q .; then
+  if [[ "$ses" == "02" ]]; then
+    echo "No DICOMs for optional sub-${sub} ses-${ses}; skipping."
+    exit 0
+  fi
+  echo "No DICOMs found under required scan directory: $scandir" >&2
+  exit 1
+fi
+
+if [[ "$ses" == "01" ]]; then
+  epoch="$(find "$scandir" -type f -name '*.dcm' -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | awk '{print int($1)}' || true)"
+  [[ -z "${epoch:-}" ]] && epoch="$(stat -c %Y "$subdir" 2>/dev/null || echo 0)"
+  if [[ "$sub" == "11433" || "$epoch" -le "$cutoff_epoch" ]]; then
+    heuristic_name="heuristics_rf1.py"
   else
-    heuristics_file="/out/code/heuristics_XA30.py"
+    heuristic_name="heuristics_XA30.py"
   fi
   seen="$(date -d "@$epoch" '+%Y-%m-%d %H:%M:%S')"
 fi
 
-echo "Heuristic chosen for sub-${sub} ses-${ses}: $(basename "$heuristics_file") [seen=${seen}]"
+heuristic_host="${scriptdir}/${heuristic_name}"
+rf1_require_file "$heuristic_host"
+echo "Heuristic chosen for sub-${sub} ses-${ses}: ${heuristic_name} [seen=${seen}; cutoff=${cutoff}]"
 
-subdir=$sourcedata/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}
-scandir=$subdir/scans
-locdir=$sourcedata/localizers/Smith-SRA-$folder_sub
-
-if [ ! -d "$locdir" ]; then
-  mkdir -p "$locdir"
-fi
-
-for localizers in "$scandir"/*-localizer; do
-  [ -d "$localizers" ] || continue
-  echo "Moving $localizers to $locdir"
-  mv "$localizers" "$locdir/"
+for localizer in "$scandir"/*-localizer; do
+  [[ -d "$localizer" ]] || continue
+  echo "Leaving raw localizer in place: $localizer"
 done
 
-mkdir -p "$dsroot/bids"
-rm -rf "$dsroot/bids/sub-${sub}/ses-${ses}"
-rm -rf "$dsroot/bids/.heudiconv/${sub}/ses-${ses}"
+target_session="${bidsroot}/sub-${sub}/ses-${ses}"
+target_heudiconv="${bidsroot}/.heudiconv/${sub}/ses-${ses}"
+if [[ -e "$target_session" && "$overwrite" -ne 1 ]]; then
+  echo "Refusing to overwrite existing BIDS session without --overwrite: $target_session" >&2
+  exit 1
+fi
 
-apptainer run --cleanenv \
-  -B "$dsroot:/out" \
-  -B "$sourcedata:/sourcedata" \
-  /ZPOOL/data/tools/heudiconv_1.3.3.sif \
-  -d "$dicom_template" \
-  -o /out/bids/ \
-  -f "$heuristics_file" \
-  -s "$sub" \
-  -ss "$ses" \
-  -c dcm2niix \
+stage_root="$(mktemp -d "${scratch_user}/prepdata-sub-${sub}-ses-${ses}.XXXXXX")"
+cleanup() {
+  rm -rf "$stage_root"
+}
+trap cleanup EXIT
+
+cmd=(
+  apptainer run --cleanenv
+  -B "${PROJECT_ROOT}:/project"
+  -B "${stage_root}:/out"
+  -B "${SOURCEDATA_ROOT}:/sourcedata"
+  "$HEUDICONV_IMAGE"
+  -d "$dicom_template"
+  -o /out/bids/
+  -f "/project/code/${heuristic_name}"
+  -s "$sub"
+  -ss "$ses"
+  -c dcm2niix
   -b --minmeta --overwrite
+)
 
-bidsroot="$dsroot/bids"
-echo "Defacing subject $sub session $ses"
+printf 'HeuDiConv command:'
+printf ' %q' "${cmd[@]}"
+printf '\n'
+if ((dry_run)); then
+  echo "Dry run: not converting, defacing, shifting dates, or running MRIQC."
+  exit 0
+fi
 
-t1="$bidsroot/sub-${sub}/ses-${ses}/anat/sub-${sub}_ses-${ses}_T1w.nii.gz"
-if [ -f "$t1" ]; then
+rf1_require_file "$HEUDICONV_IMAGE"
+"${cmd[@]}"
+
+staged_session="${stage_root}/bids/sub-${sub}/ses-${ses}"
+staged_heudiconv="${stage_root}/bids/.heudiconv/${sub}/ses-${ses}"
+rf1_require_dir "$staged_session"
+
+if [[ -e "$target_session" ]]; then
+  backup="${target_session}.backup-$(date +%Y%m%d-%H%M%S)"
+  echo "Moving existing BIDS session to backup before installing validated output: $backup"
+  mv "$target_session" "$backup"
+fi
+mkdir -p "$(dirname "$target_session")"
+mv "$staged_session" "$target_session"
+
+if [[ -d "$staged_heudiconv" ]]; then
+  if [[ -e "$target_heudiconv" ]]; then
+    backup="${target_heudiconv}.backup-$(date +%Y%m%d-%H%M%S)"
+    echo "Moving existing HeuDiConv metadata to backup: $backup"
+    mv "$target_heudiconv" "$backup"
+  fi
+  mkdir -p "$(dirname "$target_heudiconv")"
+  mv "$staged_heudiconv" "$target_heudiconv"
+fi
+
+t1="${target_session}/anat/sub-${sub}_ses-${ses}_T1w.nii.gz"
+if [[ -f "$t1" ]]; then
+  echo "Defacing $t1"
   pydeface "$t1"
-  def="$bidsroot/sub-${sub}/ses-${ses}/anat/sub-${sub}_ses-${ses}_T1w_defaced.nii.gz"
-  [ -f "$def" ] && mv -f "$def" "$t1"
+  def="${target_session}/anat/sub-${sub}_ses-${ses}_T1w_defaced.nii.gz"
+  [[ -f "$def" ]] && mv -f "$def" "$t1"
 fi
 
-scans_tsv="$bidsroot/sub-${sub}/ses-${ses}/sub-${sub}_ses-${ses}_scans.tsv"
-[ -f "$scans_tsv" ] && python "$scriptdir/shiftdates.py" "$scans_tsv" || true
+scans_tsv="${target_session}/sub-${sub}_ses-${ses}_scans.tsv"
+[[ -f "$scans_tsv" ]] && python3 "${scriptdir}/shiftdates.py" "$scans_tsv"
 
-# PART 3: MRIQC 
-# Create derivatives/mriqc and scratch, then run MRIQC for this subject/session.
-if [ ! -d "$dsroot/derivatives/mriqc" ]; then
-  mkdir -p "$dsroot/derivatives/mriqc"
+if ((skip_mriqc)); then
+  echo "Skipping MRIQC because --skip-mriqc was supplied."
+  exit 0
 fi
 
-scratch=/ZPOOL/data/scratch/$(whoami)
-if [ ! -d "$scratch" ]; then
-  mkdir -p "$scratch"
-fi
-
-# TemplateFlow for MRIQC inside the container
-TEMPLATEFLOW_DIR=/ZPOOL/data/tools/templateflow
+mkdir -p "${PROJECT_ROOT}/derivatives/mriqc" "$scratch_user"
 export SINGULARITYENV_TEMPLATEFLOW_HOME=/opt/templateflow
-
 echo "Running MRIQC for sub-${sub} ses-${ses}"
 singularity run --cleanenv \
-  -B "${TEMPLATEFLOW_DIR}:/opt/templateflow" \
-  -B "$dsroot/bids:/data" \
-  -B "$dsroot/derivatives/mriqc:/out" \
-  -B "$scratch:/scratch" \
-  /ZPOOL/data/tools/mriqc-24.0.2.simg \
+  -B "${TEMPLATEFLOW_HOME}:/opt/templateflow" \
+  -B "${bidsroot}:/data" \
+  -B "${PROJECT_ROOT}/derivatives/mriqc:/out" \
+  -B "${scratch_user}:/scratch" \
+  "$MRIQC_IMAGE" \
   /data /out participant \
   --participant_label "$sub" \
   --session-id "$ses" \
   -w /scratch
-

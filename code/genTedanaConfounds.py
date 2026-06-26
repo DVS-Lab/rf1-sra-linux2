@@ -1,85 +1,132 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+"""Generate FSL confound TSVs from fMRIPrep and TEDANA outputs."""
 
-import matplotlib.pyplot as plt
-import os
-import pandas as pd
-from natsort import natsorted
+from __future__ import annotations
+
+import argparse
 import re
-import numpy as np
+from pathlib import Path
 
-# Adjust fmriprep_dir and tedana_dir to your use case
-# Note that this version of the script is sensitive to session and encodes it in the output file name
-# Basically, this script creates confounds files for FSL analyses using fmriprep and tedana output.
-# The output are .tsv files for each subject/session/task/run that write to derivatives/fsl/confounds_tedana
+import pandas as pd
 
-fmriprep_dir = '../derivatives/fmriprep/'
-tedana_dir = '../derivatives/tedana/'
 
-metric_files = natsorted([
-    os.path.join(root, f)
-    for root, dirs, files in os.walk(tedana_dir)
-    for f in files
-    if f.endswith("tedana_metrics.tsv")
-])
+DESIRED_FMRIPREP_COLUMNS = [
+    "a_comp_cor_00",
+    "a_comp_cor_01",
+    "a_comp_cor_02",
+    "a_comp_cor_03",
+    "a_comp_cor_04",
+    "a_comp_cor_05",
+    "trans_x",
+    "trans_y",
+    "trans_z",
+    "rot_x",
+    "rot_y",
+    "rot_z",
+    "framewise_displacement",
+]
 
-for file in metric_files:
-    base = re.search("(.*)tedana_metrics", file).group(1)
-    run = re.search("run-(.*)_desc-tedana", file).group(1)
-    sub = re.search(r"/(sub-\d{5})/ses-\d{2}/", file).group(1)
-    task = re.search(r"_task-(.*?)_", file).group(1)
-    ses = re.search(r"_ses-(\d{2})_", file).group(1)
 
-    fmriprep_fname = (
-        f"{fmriprep_dir}{sub}/ses-{ses}/func/"
-        f"{sub}_ses-{ses}_task-{task}_run-{run}_part-mag_desc-confounds_timeseries.tsv"
+def parse_metric_file(path: Path) -> dict[str, str]:
+    match = re.search(
+        r"/(?P<sub>sub-\d+)/ses-(?P<ses>\d+)/.*?_task-(?P<task>.*?)_run-(?P<run>.*?)_desc-tedana_metrics.tsv$",
+        path.as_posix(),
     )
+    if not match:
+        raise ValueError(f"Could not parse TEDANA metric path: {path}")
+    return match.groupdict()
 
-    if os.path.exists(fmriprep_fname):
-        print(f"Making Confounds: {sub} ses-{ses} run-{run} task-{task}")
-        fmriprep_confounds = pd.read_csv(fmriprep_fname, sep='\t')
-        ICA_mixing = pd.read_csv(f'{base}ICA_mixing.tsv', sep='\t')
-        metrics = pd.read_csv(f'{base}tedana_metrics.tsv', sep='\t')
 
+def rejected_component_columns(metrics: pd.DataFrame) -> list[int]:
+    rejected = metrics.loc[metrics["classification"] == "rejected", "Component"]
+    indices: list[int] = []
+    for component in rejected:
+        value = str(component).replace("ICA_", "")
+        indices.append(int(value))
+    return indices
+
+
+def build_confounds(fmriprep_confounds: Path, mixing_file: Path, metrics_file: Path) -> pd.DataFrame:
+    fmriprep = pd.read_csv(fmriprep_confounds, sep="\t")
+    mixing = pd.read_csv(mixing_file, sep="\t")
+    metrics = pd.read_csv(metrics_file, sep="\t")
+
+    cols = [c for c in DESIRED_FMRIPREP_COLUMNS if c in fmriprep.columns]
+    cols.extend(c for c in fmriprep.columns if c.startswith("cosine"))
+    cols.extend(c for c in fmriprep.columns if c.startswith("non_steady_state"))
+
+    base = fmriprep[cols].fillna(0)
+    rejected_indices = rejected_component_columns(metrics)
+    rejected = mixing.iloc[:, rejected_indices] if rejected_indices else pd.DataFrame(index=mixing.index)
+
+    if len(base) != len(rejected):
+        raise ValueError(
+            f"Row count mismatch: {fmriprep_confounds} has {len(base)} rows, "
+            f"{mixing_file} has {len(rejected)} rows"
+        )
+    return pd.concat([base, rejected], axis=1)
+
+
+def atomic_write_tsv(df: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.tmp")
+    df.to_csv(tmp, index=False, header=False, sep="\t")
+    tmp.replace(path)
+
+
+def main() -> int:
+    repo_root = Path(__file__).resolve().parents[1]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fmriprep-dir", type=Path, default=repo_root / "derivatives" / "fmriprep")
+    parser.add_argument("--tedana-dir", type=Path, default=repo_root / "derivatives" / "tedana")
+    parser.add_argument("--output-dir", type=Path, default=repo_root / "derivatives" / "fsl" / "confounds_tedana")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    metric_files = sorted(args.tedana_dir.rglob("*_desc-tedana_metrics.tsv"))
+    failures = 0
+    for metric_file in metric_files:
+        parsed = parse_metric_file(metric_file)
+        sub = parsed["sub"]
+        ses = parsed["ses"]
+        task = parsed["task"]
+        run = parsed["run"]
+        prefix = metric_file.name.replace("_desc-tedana_metrics.tsv", "")
+        base = metric_file.parent / prefix
+        mixing_file = base.with_name(f"{prefix}_desc-ICA_mixing.tsv")
+        fmriprep_file = (
+            args.fmriprep_dir
+            / sub
+            / f"ses-{ses}"
+            / "func"
+            / f"{sub}_ses-{ses}_task-{task}_run-{run}_part-mag_desc-confounds_timeseries.tsv"
+        )
+        out_file = (
+            args.output_dir
+            / sub
+            / f"{sub}_ses-{ses}_task-{task}_run-{run}_desc-TedanaPlusConfounds.tsv"
+        )
+
+        missing = [p for p in [mixing_file, fmriprep_file] if not p.exists()]
+        if missing:
+            failures += 1
+            print(f"Missing confound input for {sub} ses-{ses} task-{task} run-{run}:")
+            for path in missing:
+                print(f"  {path}")
+            continue
+
+        print(f"Making confounds: {sub} ses-{ses} task-{task} run-{run} -> {out_file}")
+        if args.dry_run:
+            continue
         try:
-            rejected_components = metrics.loc[metrics['classification'] == 'rejected', 'Component']
-            rejected_indices = rejected_components.str.replace('ICA_', '', regex=False).astype(int)
-            bad_components = ICA_mixing.iloc[:, rejected_indices]
-        except Exception as e:
-            print(f"Warning: could not extract rejected components for {sub} ses-{ses} run-{run} — {e}")
-            bad_components = pd.DataFrame()
+            confounds = build_confounds(fmriprep_file, mixing_file, metric_file)
+            atomic_write_tsv(confounds, out_file)
+        except Exception as exc:  # noqa: BLE001 - keep batch processing and report all failures.
+            failures += 1
+            print(f"Failed {sub} ses-{ses} task-{task} run-{run}: {exc}")
 
-        aCompCor = [
-            'a_comp_cor_00',
-            'a_comp_cor_01',
-            'a_comp_cor_02',
-            'a_comp_cor_03',
-            'a_comp_cor_04',
-            'a_comp_cor_05'
-        ]
-        cosine = [col for col in fmriprep_confounds if col.startswith('cosine')]
-        NSS = [col for col in fmriprep_confounds if col.startswith('non_steady_state')]
-        motion = ['trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z']
-        fd = ['framewise_displacement']
+    return 1 if failures else 0
 
-        desired_cols = np.concatenate([aCompCor, cosine, NSS, motion, fd])
-        filter_col = [c for c in desired_cols if c in fmriprep_confounds.columns]
-        fmriprep_confounds = fmriprep_confounds[filter_col]
 
-        fmriprep_confounds.fillna(0, inplace=True)
-
-        tedana_confounds = pd.concat([bad_components], axis=1)
-        confounds_df = pd.concat([fmriprep_confounds, tedana_confounds], axis=1)
-
-        outdir = (
-            f"{tedana_dir}../fsl/"
-            f"confounds_{os.path.basename(os.path.normpath(tedana_dir))}/{sub}"
-        )
-        os.makedirs(outdir, exist_ok=True)
-        outfname = (
-            f"{outdir}/"
-            f"{sub}_ses-{ses}_task-{task}_run-{run}_desc-TedanaPlusConfounds.tsv"
-        )
-        confounds_df.to_csv(outfname, index=False, header=False, sep='\t')
-    else:
-        print(f"fmriprep failed for {sub} ses-{ses} run-{run} task-{task}")
-
+if __name__ == "__main__":
+    raise SystemExit(main())
