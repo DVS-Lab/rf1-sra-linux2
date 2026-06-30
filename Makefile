@@ -1,5 +1,6 @@
 PYTHON ?= python3
-PYTHONPYCACHEPREFIX ?= /private/tmp/rf1-sra-linux2-pycache
+TMPDIR ?= /tmp
+PYTHONPYCACHEPREFIX ?= $(TMPDIR)/rf1-sra-linux2-pycache
 
 .PHONY: test
 
