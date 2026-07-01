@@ -160,7 +160,23 @@ rf1_require_file "$HEUDICONV_IMAGE"
 
 staged_session="${stage_root}/bids/sub-${sub}/ses-${ses}"
 staged_heudiconv="${stage_root}/bids/.heudiconv/${sub}/ses-${ses}"
+staged_dataset_description="${stage_root}/bids/dataset_description.json"
+target_dataset_description="${bidsroot}/dataset_description.json"
 rf1_require_dir "$staged_session"
+
+if [[ ! -f "$target_dataset_description" ]]; then
+  if [[ -f "$staged_dataset_description" ]]; then
+    cp "$staged_dataset_description" "$target_dataset_description"
+  else
+    cat > "$target_dataset_description" <<'JSON'
+{
+  "Name": "RF1-SRA Linux2 fMRI",
+  "BIDSVersion": "1.8.0",
+  "DatasetType": "raw"
+}
+JSON
+  fi
+fi
 
 if [[ -e "$target_session" ]]; then
   echo "Removing existing BIDS session immediately before installing staged output: $target_session"

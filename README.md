@@ -12,9 +12,8 @@ confound/metric extraction helpers.
 Raw DICOMs are not stored in GitHub. On Linux2 they live under the lab-controlled
 source-data area, normally `/ZPOOL/data/sourcedata/sourcedata/rf1-sra`. BIDS
 NIfTI images, fMRIPrep derivatives, TEDANA outputs, MRIQC reports, scheduler
-logs, temporary files, and generated metrics are intentionally excluded from
-version control. Tracked BIDS text files are limited to small metadata/event
-files that are useful for review.
+logs, temporary files, generated metrics, and the generated `bids/` tree are
+intentionally excluded from version control.
 
 Production processing should occur on Smith Lab Linux2, where the normal
 checkout is:
@@ -32,7 +31,7 @@ integration validation before merge.
 | Path | Purpose |
 | --- | --- |
 | `code/` | All production entry points, worker scripts, helpers, validation scripts, and the current batch subject list. |
-| `bids/` | Small tracked BIDS text/event metadata only; converted imaging data are ignored. |
+| `bids/` | Generated BIDS dataset on Linux2; ignored by Git. |
 | `derivatives/` | Generated outputs are ignored and should not contain repository code. |
 | `tests/` | Synthetic pytest coverage for parsing, path generation, safety checks, and completion checks. |
 
