@@ -9,6 +9,7 @@ from pathlib import Path
 from pipeline_utils import (
     ensure_safe_child_path,
     fmriprep_expected_outputs,
+    fmriprep_missing_outputs,
     is_fmriprep_complete,
     is_tedana_complete,
     missing_paths,
@@ -74,7 +75,7 @@ def main() -> int:
                 print(path)
         if is_fmriprep_complete(args.bids_root, args.derivatives_root, args.subject):
             return 0
-        print_missing(missing_paths(expected))
+        print_missing(fmriprep_missing_outputs(args.bids_root, args.derivatives_root, args.subject))
         return 1
 
     if args.command == "tedana-complete":

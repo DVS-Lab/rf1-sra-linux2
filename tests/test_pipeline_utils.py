@@ -113,6 +113,16 @@ def test_fmriprep_completion_checks_expected_outputs(tmp_path: Path) -> None:
     for path in expected:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("x")
+    assert not is_fmriprep_complete(bids, deriv, "10001")
+    cifti = (
+        deriv
+        / "fmriprep"
+        / "sub-10001"
+        / "ses-01"
+        / "func"
+        / "sub-10001_ses-01_task-ugr_run-1_space-fsLR_den-91k_bold.dtseries.nii"
+    )
+    cifti.write_text("x")
     assert is_fmriprep_complete(bids, deriv, "10001")
 
 

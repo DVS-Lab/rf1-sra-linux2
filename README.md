@@ -4,7 +4,8 @@ This repository contains the Smith Lab Linux2 preprocessing workflow for RF1-SRA
 multi-echo fMRI data from the UGR, Social Doors, Trust, and Shared Reward tasks.
 Behavioral task processing lives in separate repositories. This repository is
 for MRI data management, BIDS conversion, fieldmap preparation, fMRIPrep,
-TEDANA, MRIQC, and downstream confound/metric extraction helpers.
+FreeSurfer/CIFTI derivative generation, TEDANA, MRIQC, and downstream
+confound/metric extraction helpers.
 
 ## Scope And Privacy
 
@@ -114,7 +115,10 @@ Raw DICOM source directories are treated as immutable by preprocessing scripts.
 Localizer directories are reported but no longer moved out of source data.
 
 fMRIPrep skipping now checks for a practical set of expected outputs rather than
-only an HTML report and session directory. This is a completion check, not a
+only an HTML report and session directory. Current fMRIPrep runs also generate
+FreeSurfer subjects under `derivatives/freesurfer` and fsLR CIFTI outputs under
+`derivatives/fmriprep` so those derivatives can be reused by a separate DWI
+workflow such as QSIPrep/QSIRecon. This is a completion check, not a
 scientific-validity guarantee. MRIQC, fMRIPrep, TEDANA, fieldmap metadata, and
 confound outputs still require visual and scientific review on Linux2.
 
