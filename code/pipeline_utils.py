@@ -168,10 +168,7 @@ def missing_paths(paths: Iterable[Path]) -> list[Path]:
 
 
 def fmriprep_expected_outputs(bids_root: Path, deriv_root: Path, subject: str) -> list[Path]:
-    outputs = [
-        deriv_root / "fmriprep" / f"sub-{subject}.html",
-        deriv_root / "freesurfer" / f"sub-{subject}" / "scripts" / "recon-all.done",
-    ]
+    outputs = [deriv_root / "fmriprep" / f"sub-{subject}.html"]
     for bold in sorted((bids_root / f"sub-{subject}").glob("ses-*/func/*_echo-1_part-mag_bold.nii.gz")):
         name = bold.name.replace("_bold.nii.gz", "_desc-preproc_bold.nii.gz")
         outputs.append(deriv_root / "fmriprep" / f"sub-{subject}" / bold.parents[1].name / "func" / name)
@@ -189,8 +186,25 @@ def fmriprep_cifti_outputs(deriv_root: Path, subject: str) -> list[Path]:
     return sorted(subject_dir.glob("ses-*/func/*_space-fsLR_den-91k_bold.dtseries.nii"))
 
 
+def fmriprep_freesurfer_outputs(deriv_root: Path, subject: str) -> list[Path]:
+    freesurfer_dir = deriv_root / "freesurfer"
+    candidates = [
+        freesurfer_dir / f"sub-{subject}" / "scripts" / "recon-all.done",
+        *sorted(freesurfer_dir.glob(f"sub-{subject}_ses-*/scripts/recon-all.done")),
+    ]
+    return [path for path in candidates if path.exists()]
+
+
 def fmriprep_missing_outputs(bids_root: Path, deriv_root: Path, subject: str) -> list[Path]:
     missing = missing_paths(fmriprep_expected_outputs(bids_root, deriv_root, subject))
+    if not fmriprep_freesurfer_outputs(deriv_root, subject):
+        missing.append(
+            deriv_root
+            / "freesurfer"
+            / f"sub-{subject}[_ses-*]"
+            / "scripts"
+            / "recon-all.done"
+        )
     if subject_has_bold_inputs(bids_root, subject) and not fmriprep_cifti_outputs(deriv_root, subject):
         missing.append(
             deriv_root

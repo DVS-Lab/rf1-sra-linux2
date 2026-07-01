@@ -114,6 +114,10 @@ def test_fmriprep_completion_checks_expected_outputs(tmp_path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("x")
     assert not is_fmriprep_complete(bids, deriv, "10001")
+    fs_done = deriv / "freesurfer" / "sub-10001_ses-01" / "scripts" / "recon-all.done"
+    fs_done.parent.mkdir(parents=True, exist_ok=True)
+    fs_done.write_text("x")
+    assert not is_fmriprep_complete(bids, deriv, "10001")
     cifti = (
         deriv
         / "fmriprep"
