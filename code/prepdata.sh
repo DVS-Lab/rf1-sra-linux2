@@ -64,7 +64,6 @@ fi
 
 bidsroot="${PROJECT_ROOT}/bids"
 scratch_user="${SCRATCH_ROOT}/$(whoami)"
-mkdir -p "$bidsroot" "$scratch_user"
 
 cutoff="${SCANNER_UPGRADE_CUTOFF:-2025-03-04}"
 cutoff_epoch="$(date -d "$cutoff" +%s)"
@@ -126,11 +125,16 @@ if [[ -e "$target_session" && "$overwrite" -ne 1 ]]; then
   exit 1
 fi
 
-stage_root="$(mktemp -d "${scratch_user}/prepdata-sub-${sub}-ses-${ses}.XXXXXX")"
-cleanup() {
-  rm -rf "$stage_root"
-}
-trap cleanup EXIT
+if ((dry_run)); then
+  stage_root="${scratch_user}/prepdata-sub-${sub}-ses-${ses}.DRYRUN"
+else
+  mkdir -p "$bidsroot" "$scratch_user"
+  stage_root="$(mktemp -d "${scratch_user}/prepdata-sub-${sub}-ses-${ses}.XXXXXX")"
+  cleanup() {
+    rm -rf "$stage_root"
+  }
+  trap cleanup EXIT
+fi
 
 cmd=(
   apptainer run --cleanenv

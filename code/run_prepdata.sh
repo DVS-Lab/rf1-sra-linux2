@@ -51,6 +51,7 @@ done
 
 rf1_require_file "$sublist"
 rf1_require_file "${SCRIPT_DIR}/prepdata.sh"
+echo "Using subject list: $sublist"
 
 args=()
 ((dry_run)) && args+=(--dry-run)
