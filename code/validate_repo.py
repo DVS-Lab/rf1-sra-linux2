@@ -32,6 +32,15 @@ def validate_json(repo: Path) -> list[str]:
     return errors
 
 
+def validate_no_tracked_bids(repo: Path) -> list[str]:
+    tracked = git_ls_files(repo, "bids")
+    if not tracked:
+        return []
+    preview = ", ".join(tracked[:5])
+    suffix = "" if len(tracked) <= 5 else f", ... ({len(tracked)} total)"
+    return [f"bids/ should not be tracked; found {preview}{suffix}"]
+
+
 def validate_readme_paths(repo: Path) -> list[str]:
     errors: list[str] = []
     for readme in [repo / "README.md", repo / "code" / "README.md"]:
@@ -67,6 +76,7 @@ def main() -> int:
     repo = args.repo_root.resolve()
 
     errors = validate_json(repo)
+    errors.extend(validate_no_tracked_bids(repo))
     errors.extend(validate_readme_paths(repo))
     errors.extend(validate_clean_status(repo))
     if errors:
