@@ -46,10 +46,11 @@ fi
 sub="$1"
 bidsdir="${PROJECT_ROOT}/bids"
 derivdir="${PROJECT_ROOT}/derivatives"
+freesurferdir="${derivdir}/freesurfer"
 scratchdir="${SCRATCH_ROOT}/$(whoami)"
+IFS=' ' read -r -a output_spaces <<< "$FMRIPREP_OUTPUT_SPACES"
 
 rf1_require_dir "${bidsdir}/sub-${sub}"
-mkdir -p "$derivdir" "$scratchdir"
 
 if [[ "$overwrite" -ne 1 ]] && python3 "${scriptdir}/check_pipeline_state.py" fmriprep-complete "$bidsdir" "$derivdir" "$sub" >/dev/null; then
   echo "sub-${sub} already has practical fMRIPrep completion outputs; skipping"
@@ -71,11 +72,12 @@ cmd=(
   participant --participant_label "$sub"
   --stop-on-first-crash
   --me-output-echos
-  --output-spaces MNI152NLin6Asym
+  --output-spaces "${output_spaces[@]}"
+  --cifti-output "$FMRIPREP_CIFTI_DENSITY"
   --bids-filter-file /base/code/fmriprep_config.json
   --skip-bids-validation
-  --fs-no-reconall
   --fs-license-file /opts/fs_license.txt
+  --fs-subjects-dir /base/derivatives/freesurfer
   -w /scratch
 )
 
@@ -88,6 +90,7 @@ if ((dry_run)); then
   exit 0
 fi
 
+mkdir -p "$derivdir" "$freesurferdir" "$scratchdir"
 rf1_require_file "$FMRIPREP_IMAGE"
 rf1_require_file "${LICENSES_DIR}/fs_license.txt"
 "${cmd[@]}"

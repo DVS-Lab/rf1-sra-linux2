@@ -12,7 +12,7 @@ stage commands below.
 | 2 | `run_prepdata.sh` | `prepdata.sh`, `heuristics_rf1.py`, `heuristics_XA30.py`, `shiftdates.py` | `sublist-new.txt`, DICOMs | BIDS session, defaced T1w, shifted `scans.tsv`, optional MRIQC | Stages conversion in scratch; raw DICOMs remain untouched. |
 | 3 | `run_warpkit.sh` | `warpkit.sh` | BIDS multi-echo mag/phase files and JSON | BIDS `fmap/` fieldmap and magnitude files | Removes only explicit generated fmap files when `--overwrite` is used. |
 | 4 | `addIntendedFor.py` | `pipeline_utils.py` | BIDS `fmap/*.json`, existing BOLD files | Updated fieldmap JSON | Atomic writes; `--dry-run` available. |
-| 5 | `run_fmriprep.sh` | `fmriprep.sh`, `fmriprep_config.json` | BIDS data | `derivatives/fmriprep` | Skips only when practical completion outputs exist. |
+| 5 | `run_fmriprep.sh` | `fmriprep.sh`, `fmriprep_config.json` | BIDS data | `derivatives/fmriprep`, `derivatives/freesurfer` | Generates volumetric, fsLR CIFTI, and FreeSurfer outputs; skips only when practical completion outputs exist. |
 | 6 | `run_tedana.sh` | `tedana.sh` | fMRIPrep echo outputs, BIDS echo metadata | `derivatives/tedana` | Logs missing optional runs under `logs/`. |
 | 7 | `genTedanaConfounds.py` | pandas | fMRIPrep confounds, TEDANA mixing/metrics | `derivatives/fsl/confounds_tedana` | Atomic TSV writes; row-count validation. |
 | 8 | `run_mriqc.sh` | `mriqc.sh` | BIDS data | `derivatives/mriqc` | Container run only; no raw-source edits. |
@@ -130,10 +130,14 @@ session `fmap/` directory and a completion marker under `derivatives/warpkit`.
 the same subject/session, includes only existing magnitude BOLD files, writes
 atomically, and is idempotent.
 
-fMRIPrep completion checks look for the subject HTML report plus expected
-per-run preprocessed echo and confounds files. TEDANA completion checks look for
-denoised BOLD, mixing matrix, and metrics files. These checks are operational
-completion checks, not scientific validation.
+fMRIPrep completion checks look for the subject HTML report, expected per-run
+preprocessed echo and confounds files, a completed FreeSurfer subject under
+`derivatives/freesurfer`, and at least one fsLR CIFTI dtseries when the subject
+has BOLD inputs. FreeSurfer/CIFTI generation makes fMRIPrep slower than the
+previous volume-only run, but creates derivatives that a separate DWI workflow
+can reuse later. TEDANA completion checks look for denoised BOLD, mixing matrix,
+and metrics files. These checks are operational completion checks, not
+scientific validation.
 
 ## Tests
 
@@ -167,7 +171,7 @@ Before this branch can merge, Jacob should:
 13. Verify expected subject/session/task/run coverage.
 14. Confirm all `IntendedFor` paths resolve to existing BOLD files.
 15. Confirm fieldmap units and metadata.
-16. Confirm fMRIPrep reports and expected session-level outputs.
+16. Confirm fMRIPrep reports, expected session-level outputs, fsLR CIFTI outputs, and `derivatives/freesurfer/sub-*/scripts/recon-all.done`.
 17. Confirm TEDANA denoised outputs, mixing matrices, and metrics files.
 18. Confirm confound row counts match the corresponding BOLD time series.
 19. Confirm MRIQC outputs and metric extraction.

@@ -168,7 +168,10 @@ def missing_paths(paths: Iterable[Path]) -> list[Path]:
 
 
 def fmriprep_expected_outputs(bids_root: Path, deriv_root: Path, subject: str) -> list[Path]:
-    outputs = [deriv_root / "fmriprep" / f"sub-{subject}.html"]
+    outputs = [
+        deriv_root / "fmriprep" / f"sub-{subject}.html",
+        deriv_root / "freesurfer" / f"sub-{subject}" / "scripts" / "recon-all.done",
+    ]
     for bold in sorted((bids_root / f"sub-{subject}").glob("ses-*/func/*_echo-1_part-mag_bold.nii.gz")):
         name = bold.name.replace("_bold.nii.gz", "_desc-preproc_bold.nii.gz")
         outputs.append(deriv_root / "fmriprep" / f"sub-{subject}" / bold.parents[1].name / "func" / name)
@@ -177,9 +180,31 @@ def fmriprep_expected_outputs(bids_root: Path, deriv_root: Path, subject: str) -
     return outputs
 
 
+def subject_has_bold_inputs(bids_root: Path, subject: str) -> bool:
+    return any((bids_root / f"sub-{subject}").glob("ses-*/func/*_echo-1_part-mag_bold.nii.gz"))
+
+
+def fmriprep_cifti_outputs(deriv_root: Path, subject: str) -> list[Path]:
+    subject_dir = deriv_root / "fmriprep" / f"sub-{subject}"
+    return sorted(subject_dir.glob("ses-*/func/*_space-fsLR_den-91k_bold.dtseries.nii"))
+
+
+def fmriprep_missing_outputs(bids_root: Path, deriv_root: Path, subject: str) -> list[Path]:
+    missing = missing_paths(fmriprep_expected_outputs(bids_root, deriv_root, subject))
+    if subject_has_bold_inputs(bids_root, subject) and not fmriprep_cifti_outputs(deriv_root, subject):
+        missing.append(
+            deriv_root
+            / "fmriprep"
+            / f"sub-{subject}"
+            / "ses-*"
+            / "func"
+            / "*_space-fsLR_den-91k_bold.dtseries.nii"
+        )
+    return missing
+
+
 def is_fmriprep_complete(bids_root: Path, deriv_root: Path, subject: str) -> bool:
-    expected = fmriprep_expected_outputs(bids_root, deriv_root, subject)
-    return bool(expected) and all(path.exists() for path in expected)
+    return not fmriprep_missing_outputs(bids_root, deriv_root, subject)
 
 
 def tedana_expected_outputs(deriv_root: Path, subject: str, session: str, task: str, run: str) -> list[Path]:
