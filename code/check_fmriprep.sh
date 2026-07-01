@@ -31,14 +31,19 @@ while (($#)); do
 done
 
 rf1_require_file "$sublist"
+mapfile -t subjects < <(rf1_read_subjects "$sublist")
 printf 'Checking fMRIPrep outputs under: %s\n' "${PROJECT_ROOT}/derivatives/fmriprep" >&2
 printf 'Using subject list: %s\n' "$sublist" >&2
+printf 'Checking %d subject(s).\n' "${#subjects[@]}" >&2
 failed=0
-while IFS= read -r sub; do
+for sub in "${subjects[@]}"; do
+  if [[ ! -e "${PROJECT_ROOT}/derivatives/fmriprep/sub-${sub}" && ! -e "${PROJECT_ROOT}/derivatives/fmriprep/sub-${sub}.html" ]]; then
+    printf 'sub-%s: no fMRIPrep subject outputs found in this checkout; confirm this subject was run here.\n' "$sub" >&2
+  fi
   if ! python3 "${SCRIPT_DIR}/check_pipeline_state.py" fmriprep-complete "${PROJECT_ROOT}/bids" "${PROJECT_ROOT}/derivatives" "$sub"; then
     echo "sub-${sub}: incomplete fMRIPrep outputs"
     failed=1
   fi
-done < <(rf1_read_subjects "$sublist")
+done
 
 exit "$failed"
