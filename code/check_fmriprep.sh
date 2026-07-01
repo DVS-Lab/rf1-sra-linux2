@@ -31,6 +31,8 @@ while (($#)); do
 done
 
 rf1_require_file "$sublist"
+printf 'Checking fMRIPrep outputs under: %s\n' "${PROJECT_ROOT}/derivatives/fmriprep" >&2
+printf 'Using subject list: %s\n' "$sublist" >&2
 failed=0
 while IFS= read -r sub; do
   if ! python3 "${SCRIPT_DIR}/check_pipeline_state.py" fmriprep-complete "${PROJECT_ROOT}/bids" "${PROJECT_ROOT}/derivatives" "$sub"; then
