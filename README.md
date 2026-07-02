@@ -121,6 +121,10 @@ Run the matching `check_*.sh` script after each major stage. These scripts end
 with `CHECK PASSED` or `CHECK FAILED`, so a terminal transcript or ignored log
 file has a clear final answer about operational completion.
 
+For runs that should leave a compact GitHub-visible audit trail, use
+`code/run_logged.sh`. It writes the full raw terminal output to ignored
+`logs/runs/` and writes a small Markdown record to tracked `logs/records/`.
+
 Raw DICOM source directories are treated as immutable by preprocessing scripts.
 Localizer directories are reported but no longer moved out of source data.
 
