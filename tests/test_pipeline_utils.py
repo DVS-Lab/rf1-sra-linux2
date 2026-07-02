@@ -93,6 +93,25 @@ def test_atomic_write_json_replaces_metadata(tmp_path: Path) -> None:
     assert not list(tmp_path.glob("*.tmp"))
 
 
+def test_shift_scans_tsv_accepts_mixed_iso_acq_times(tmp_path: Path) -> None:
+    pytest.importorskip("pandas")
+    from shiftdates import shift_scans_tsv  # noqa: PLC0415
+
+    scans_tsv = tmp_path / "sub-11982_ses-01_scans.tsv"
+    scans_tsv.write_text(
+        "filename\tacq_time\n"
+        "anat/sub-11982_ses-01_T1w.nii.gz\t2026-06-12T17:51:05.123000\n"
+        "func/sub-11982_ses-01_task-ugr_run-1_bold.nii.gz\t2026-06-12T17:51:05\n"
+    )
+
+    shifted = shift_scans_tsv(scans_tsv, months=1200)
+
+    assert shifted["acq_time"].tolist() == [
+        "1926-06-12T17:51:05.123000",
+        "1926-06-12T17:51:05.000000",
+    ]
+
+
 def test_safe_child_path_refuses_root_and_outside(tmp_path: Path) -> None:
     root = tmp_path / "bids"
     root.mkdir()
