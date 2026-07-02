@@ -38,6 +38,10 @@ def main() -> int:
 
     bids_root = args.bids_root.resolve()
     if not bids_root.is_dir():
+        if args.dry_run:
+            print(f"SKIP BIDS root not found: {bids_root}")
+            print("Run prepdata before repairing IntendedFor metadata.")
+            return 0
         raise FileNotFoundError(f"BIDS root not found: {bids_root}")
 
     updates = collect_intended_for_updates(bids_root)

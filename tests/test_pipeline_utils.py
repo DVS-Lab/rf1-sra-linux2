@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import sys
 from datetime import date
 from pathlib import Path
@@ -8,6 +9,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
+CODE_DIR = Path(__file__).resolve().parents[1] / "code"
 
 from pipeline_utils import (  # noqa: E402
     atomic_write_json,
@@ -24,6 +26,14 @@ from pipeline_utils import (  # noqa: E402
     tedana_expected_outputs,
     warpkit_required_inputs,
 )
+
+
+def load_add_intended_for():
+    spec = importlib.util.spec_from_file_location("add_intended_for", CODE_DIR / "addIntendedFor.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_read_subject_list_ignores_blank_lines_comments_and_prefixes(tmp_path: Path) -> None:
@@ -138,3 +148,17 @@ def test_tedana_completion_checks_outputs(tmp_path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("x")
     assert is_tedana_complete(deriv, "10001", "01", "ugr", "1")
+
+
+def test_add_intended_for_dry_run_skips_missing_bids_root(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    module = load_add_intended_for()
+    missing_bids = tmp_path / "missing-bids"
+    original_argv = sys.argv[:]
+    sys.argv = ["addIntendedFor.py", "--bids-root", str(missing_bids), "--dry-run"]
+    try:
+        assert module.main() == 0
+    finally:
+        sys.argv = original_argv
+
+    captured = capsys.readouterr()
+    assert "SKIP BIDS root not found" in captured.out

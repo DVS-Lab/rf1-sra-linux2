@@ -50,7 +50,15 @@ freesurferdir="${derivdir}/freesurfer"
 scratchdir="${SCRATCH_ROOT}/$(whoami)"
 IFS=' ' read -r -a output_spaces <<< "$FMRIPREP_OUTPUT_SPACES"
 
-rf1_require_dir "${bidsdir}/sub-${sub}"
+bids_subject_dir="${bidsdir}/sub-${sub}"
+if [[ ! -d "$bids_subject_dir" ]]; then
+  if ((dry_run)); then
+    echo "SKIP BIDS subject not found: $bids_subject_dir"
+    echo "Run prepdata before fMRIPrep."
+    exit 0
+  fi
+  rf1_require_dir "$bids_subject_dir"
+fi
 
 if [[ "$overwrite" -ne 1 ]] && python3 "${scriptdir}/check_pipeline_state.py" fmriprep-complete "$bidsdir" "$derivdir" "$sub" >/dev/null; then
   echo "sub-${sub} already has practical fMRIPrep completion outputs; skipping"
