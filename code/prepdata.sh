@@ -3,10 +3,10 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash prepdata.sh [--dry-run] [--overwrite] [--skip-mriqc] SUBJECT SESSION
+Usage: bash prepdata.sh [--dry-run] [--overwrite] SUBJECT SESSION
 
 Converts DICOMs to BIDS with HeuDiConv, defaces T1w data, shifts scans.tsv
-dates, and optionally runs MRIQC for one subject/session.
+dates, and stops. Run MRIQC separately with run_mriqc.sh.
 USAGE
 }
 
@@ -17,7 +17,6 @@ rf1_load_config
 
 dry_run=0
 overwrite=0
-skip_mriqc=0
 while (($#)); do
   case "$1" in
     --dry-run)
@@ -26,10 +25,6 @@ while (($#)); do
       ;;
     --overwrite)
       overwrite=1
-      shift
-      ;;
-    --skip-mriqc)
-      skip_mriqc=1
       shift
       ;;
     -h|--help)
@@ -155,7 +150,7 @@ printf 'HeuDiConv command:'
 printf ' %q' "${cmd[@]}"
 printf '\n'
 if ((dry_run)); then
-  echo "Dry run: not converting, defacing, shifting dates, or running MRIQC."
+  echo "Dry run: not converting, defacing, or shifting dates."
   exit 0
 fi
 
@@ -208,22 +203,3 @@ fi
 
 scans_tsv="${target_session}/sub-${sub}_ses-${ses}_scans.tsv"
 [[ -f "$scans_tsv" ]] && python3 "${scriptdir}/shiftdates.py" "$scans_tsv"
-
-if ((skip_mriqc)); then
-  echo "Skipping MRIQC because --skip-mriqc was supplied."
-  exit 0
-fi
-
-mkdir -p "${PROJECT_ROOT}/derivatives/mriqc" "$scratch_user"
-export SINGULARITYENV_TEMPLATEFLOW_HOME=/opt/templateflow
-echo "Running MRIQC for sub-${sub} ses-${ses}"
-singularity run --cleanenv \
-  -B "${TEMPLATEFLOW_HOME}:/opt/templateflow" \
-  -B "${bidsroot}:/data" \
-  -B "${PROJECT_ROOT}/derivatives/mriqc:/out" \
-  -B "${scratch_user}:/scratch" \
-  "$MRIQC_IMAGE" \
-  /data /out participant \
-  --participant_label "$sub" \
-  --session-id "$ses" \
-  -w /scratch

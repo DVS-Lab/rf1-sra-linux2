@@ -20,7 +20,7 @@ rf1_load_config() {
   MPLCONFIGDIR_HOST="${TOOLS_ROOT}/mplconfigdir"
   LICENSES_DIR="${TOOLS_ROOT}/licenses"
 
-  HEUDICONV_IMAGE="${TOOLS_ROOT}/heudiconv_1.3.3.sif"
+  HEUDICONV_IMAGE="${TOOLS_ROOT}/heudiconv-1.4.0.sif"
   MRIQC_IMAGE="${TOOLS_ROOT}/mriqc-24.0.2.simg"
   FMRIPREP_IMAGE="${TOOLS_ROOT}/fmriprep-25.2.5.simg"
   WARPKIT_IMAGE="${TOOLS_ROOT}/warpkit.sif"

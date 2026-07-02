@@ -45,7 +45,7 @@ clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 
 | Tool | Default image/location |
 | --- | --- |
-| HeuDiConv | `/ZPOOL/data/tools/heudiconv_1.3.3.sif` |
+| HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
 | Warpkit | `/ZPOOL/data/tools/warpkit.sif` |
@@ -67,7 +67,7 @@ flowchart TD
   D --> E["Run fMRIPrep"]
   E --> F["Run TEDANA"]
   F --> G["Generate TEDANA/FSL confounds"]
-  B --> H["Run or summarize MRIQC"]
+  B --> H["Run MRIQC"]
   H --> I["Extract QC metrics"]
 ```
 
@@ -80,6 +80,8 @@ vim sublist-new.txt
 python3 downloadXNAT.py
 bash run_prepdata.sh --dry-run
 bash run_prepdata.sh
+bash run_mriqc.sh --dry-run
+bash run_mriqc.sh
 bash run_warpkit.sh --dry-run
 bash run_warpkit.sh
 python3 addIntendedFor.py --dry-run
@@ -90,8 +92,6 @@ bash run_tedana.sh --dry-run
 bash run_tedana.sh
 python3 genTedanaConfounds.py --dry-run
 python3 genTedanaConfounds.py
-bash run_mriqc.sh --dry-run
-bash run_mriqc.sh
 python3 extract-metrics.py --dry-run
 ```
 
@@ -105,7 +105,9 @@ new-batch processing.
 
 Use `--dry-run` first for pipeline stages that support it. `prepdata.sh` runs
 HeuDiConv into scratch first, validates that a new BIDS session exists there,
-and only then touches the live `bids/` tree. Replacing an existing BIDS session
+and only then touches the live `bids/` tree. MRIQC is a separate restartable
+stage run by `run_mriqc.sh`; reconverting BIDS data is not required to rerun
+MRIQC. Replacing an existing BIDS session
 requires `--overwrite`; the old session is removed immediately before the
 validated staged session is moved into place, so `bids/` does not accumulate
 non-BIDS backup folders.
