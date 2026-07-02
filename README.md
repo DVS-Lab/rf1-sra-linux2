@@ -80,16 +80,21 @@ vim sublist-new.txt
 python3 downloadXNAT.py
 bash run_prepdata.sh --dry-run
 bash run_prepdata.sh
+bash check_bids.sh
 bash run_mriqc.sh --dry-run
 bash run_mriqc.sh
+bash check_mriqc.sh
 bash run_warpkit.sh --dry-run
 bash run_warpkit.sh
+bash check_warpkit.sh
 python3 addIntendedFor.py --dry-run
 python3 addIntendedFor.py
 bash run_fmriprep.sh --dry-run
 bash run_fmriprep.sh
+bash check_fmriprep.sh
 bash run_tedana.sh --dry-run
 bash run_tedana.sh
+bash check_tedana.sh
 python3 genTedanaConfounds.py --dry-run
 python3 genTedanaConfounds.py
 python3 extract-metrics.py --dry-run
@@ -111,6 +116,10 @@ MRIQC. Replacing an existing BIDS session
 requires `--overwrite`; the old session is removed immediately before the
 validated staged session is moved into place, so `bids/` does not accumulate
 non-BIDS backup folders.
+
+Run the matching `check_*.sh` script after each major stage. These scripts end
+with `CHECK PASSED` or `CHECK FAILED`, so a terminal transcript or ignored log
+file has a clear final answer about operational completion.
 
 Raw DICOM source directories are treated as immutable by preprocessing scripts.
 Localizer directories are reported but no longer moved out of source data.

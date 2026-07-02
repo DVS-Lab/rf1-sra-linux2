@@ -36,7 +36,9 @@ printf 'Checking fMRIPrep outputs under: %s\n' "${PROJECT_ROOT}/derivatives/fmri
 printf 'Using subject list: %s\n' "$sublist" >&2
 printf 'Checking %d subject(s).\n' "${#subjects[@]}" >&2
 failed=0
+checked=0
 for sub in "${subjects[@]}"; do
+  checked=$((checked + 1))
   if [[ ! -e "${PROJECT_ROOT}/derivatives/fmriprep/sub-${sub}" && ! -e "${PROJECT_ROOT}/derivatives/fmriprep/sub-${sub}.html" ]]; then
     printf 'sub-%s: no fMRIPrep subject outputs found in this checkout; confirm this subject was run here.\n' "$sub" >&2
   fi
@@ -46,4 +48,9 @@ for sub in "${subjects[@]}"; do
   fi
 done
 
+if ((failed)); then
+  echo "CHECK FAILED: fMRIPrep outputs incomplete for one or more of ${checked} subject(s)."
+else
+  echo "CHECK PASSED: fMRIPrep outputs complete for ${checked} subject(s)."
+fi
 exit "$failed"
