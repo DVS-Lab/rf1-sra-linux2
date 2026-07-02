@@ -9,11 +9,18 @@ from pathlib import Path
 import pandas as pd
 
 
+def parse_acq_times(values: pd.Series) -> pd.Series:
+    try:
+        return pd.to_datetime(values, format="mixed")
+    except (TypeError, ValueError):
+        return values.map(lambda value: pd.to_datetime(value) if pd.notna(value) else pd.NaT)
+
+
 def shift_scans_tsv(path: Path, months: int = 1200, operator: str = "tubric") -> pd.DataFrame:
     df = pd.read_csv(path, sep="\t")
     if "acq_time" not in df.columns:
         raise ValueError(f"acq_time column not found in {path}")
-    df["acq_time"] = pd.to_datetime(df["acq_time"])
+    df["acq_time"] = parse_acq_times(df["acq_time"])
     df["acq_time"] = df["acq_time"] - pd.DateOffset(months=months)
     df["acq_time"] = df["acq_time"].dt.strftime("%Y-%m-%dT%H:%M:%S.%f")
     df["operator"] = operator
