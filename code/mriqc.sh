@@ -49,7 +49,6 @@ if [[ ! -d "${bidsdir}/sub-${sub}/ses-${ses}" ]]; then
   exit 0
 fi
 
-mkdir -p "$outdir" "$scratch"
 export SINGULARITYENV_TEMPLATEFLOW_HOME=/opt/templateflow
 
 cmd=(
@@ -75,5 +74,6 @@ if ((dry_run)); then
   exit 0
 fi
 
+mkdir -p "$outdir" "$scratch"
 rf1_require_file "$MRIQC_IMAGE"
 "${cmd[@]}"

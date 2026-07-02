@@ -9,7 +9,7 @@ stage commands below.
 | Order | Entry point | Worker/helper | Inputs | Outputs | Side effects |
 |------:|-------------|---------------|--------|---------|--------------|
 | 1 | `downloadXNAT.py` | XNAT Python client | Temple XNAT credentials | Raw DICOM folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` | Downloads source data only. |
-| 2 | `run_prepdata.sh` | `prepdata.sh`, `heuristics_rf1.py`, `heuristics_XA30.py`, `shiftdates.py` | `sublist-new.txt`, DICOMs | BIDS session, defaced T1w, shifted `scans.tsv`, optional MRIQC | Stages conversion in scratch; raw DICOMs remain untouched. |
+| 2 | `run_prepdata.sh` | `prepdata.sh`, `heuristics_rf1.py`, `heuristics_XA30.py`, `shiftdates.py` | `sublist-new.txt`, DICOMs | BIDS session, defaced T1w, shifted `scans.tsv` | Stages conversion in scratch; raw DICOMs remain untouched. |
 | 3 | `run_warpkit.sh` | `warpkit.sh` | BIDS multi-echo mag/phase files and JSON | BIDS `fmap/` fieldmap and magnitude files | Removes only explicit generated fmap files when `--overwrite` is used. |
 | 4 | `addIntendedFor.py` | `pipeline_utils.py` | BIDS `fmap/*.json`, existing BOLD files | Updated fieldmap JSON | Atomic writes; `--dry-run` available. |
 | 5 | `run_fmriprep.sh` | `fmriprep.sh`, `fmriprep_config.json` | BIDS data | `derivatives/fmriprep`, `derivatives/freesurfer` | Generates volumetric, fsLR CIFTI, and FreeSurfer outputs; skips only when practical completion outputs exist. |
@@ -24,7 +24,7 @@ stage commands below.
 |--------|--------|---------|-----------|-------------------|
 | `sublist-new.txt` | Batch input | Current batch subject list. This is the normal per-batch edit point. | All wrappers by default | Text editor |
 | `run_prepdata.sh` | Production | Parallel BIDS conversion wrapper. | Operator | Bash, Python |
-| `prepdata.sh` | Production | One subject/session HeuDiConv, deface, date shift, optional MRIQC. | `run_prepdata.sh` | Apptainer/Singularity, HeuDiConv, PyDeface, MRIQC |
+| `prepdata.sh` | Production | One subject/session HeuDiConv, deface, date shift. | `run_prepdata.sh` | Apptainer/Singularity, HeuDiConv, PyDeface |
 | `run_warpkit.sh` | Production | Parallel Warpkit wrapper. | Operator | Bash, Python |
 | `warpkit.sh` | Production | One subject/session/task/run Warpkit fieldmap generation. | `run_warpkit.sh` | Singularity, Warpkit, FSL |
 | `addIntendedFor.py` | Production | Add/repair fieldmap `IntendedFor` entries that point to existing BOLD files. | Operator | Python |
@@ -34,7 +34,7 @@ stage commands below.
 | `tedana.sh` | Production | One-subject TEDANA run across sessions/tasks/runs. | `run_tedana.sh` | TEDANA, Python |
 | `genTedanaConfounds.py` | Production | Build FSL-ready confound tables. | Operator | Python, pandas |
 | `run_mriqc.sh` | Production | Parallel MRIQC wrapper. | Operator | Bash |
-| `mriqc.sh` | Production | One subject/session MRIQC run. | `run_mriqc.sh`, optional prepdata stage | Singularity, MRIQC |
+| `mriqc.sh` | Production | One subject/session MRIQC run. | `run_mriqc.sh` | Singularity, MRIQC |
 | `extract-metrics.py` | Helper | Extract MRIQC `fd_mean` and `tsnr`. | Operator | Python |
 | `submit_fmriprep.sh` | Helper | Backward-compatible launcher for `run_fmriprep.sh`. | Operator | Bash |
 | `check_fmriprep.sh` | Validation | Report incomplete fMRIPrep completion outputs. | Operator/tests | Bash, Python |
@@ -69,12 +69,12 @@ The standard stage commands use `sublist-new.txt` by default:
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 bash run_prepdata.sh --dry-run
+bash run_mriqc.sh --dry-run
 bash run_warpkit.sh --dry-run
 python3 addIntendedFor.py --dry-run
 bash run_fmriprep.sh --dry-run
 bash run_tedana.sh --dry-run
 python3 genTedanaConfounds.py --dry-run
-bash run_mriqc.sh --dry-run
 python3 extract-metrics.py --dry-run
 ```
 
@@ -97,7 +97,7 @@ and containers.
 | Source DICOMs | `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` |
 | Scratch | `/ZPOOL/data/scratch` |
 | Tool/container directory | `/ZPOOL/data/tools` |
-| HeuDiConv | `/ZPOOL/data/tools/heudiconv_1.3.3.sif` |
+| HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
 | Warpkit | `/ZPOOL/data/tools/warpkit.sif` |
