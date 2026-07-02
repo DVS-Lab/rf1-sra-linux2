@@ -159,6 +159,24 @@ def test_fmriprep_completion_checks_expected_outputs(tmp_path: Path) -> None:
     assert is_fmriprep_complete(bids, deriv, "10001")
 
 
+def test_fmriprep_completion_accepts_extra_output_entities(tmp_path: Path) -> None:
+    bids = tmp_path / "bids"
+    deriv = tmp_path / "derivatives"
+    make_bids_run(bids, "sub-10001", "ses-01", "ugr", "1")
+
+    func = deriv / "fmriprep" / "sub-10001" / "ses-01" / "func"
+    func.mkdir(parents=True)
+    (deriv / "fmriprep" / "sub-10001.html").write_text("html")
+    (func / "sub-10001_ses-01_task-ugr_run-1_echo-1_part-mag_space-MNI152NLin6Asym_desc-preproc_bold.nii.gz").write_text("x")
+    (func / "sub-10001_ses-01_task-ugr_run-1_desc-confounds_timeseries.tsv").write_text("x")
+    fs_done = deriv / "freesurfer" / "sub-10001_ses-01" / "scripts" / "recon-all.done"
+    fs_done.parent.mkdir(parents=True, exist_ok=True)
+    fs_done.write_text("x")
+    (func / "sub-10001_ses-01_task-ugr_run-1_space-fsLR_den-91k_bold.dtseries.nii").write_text("x")
+
+    assert is_fmriprep_complete(bids, deriv, "10001")
+
+
 def test_tedana_completion_checks_outputs(tmp_path: Path) -> None:
     deriv = tmp_path / "derivatives"
     expected = tedana_expected_outputs(deriv, "10001", "01", "ugr", "1")

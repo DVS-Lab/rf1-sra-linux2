@@ -196,7 +196,16 @@ def fmriprep_freesurfer_outputs(deriv_root: Path, subject: str) -> list[Path]:
 
 
 def fmriprep_missing_outputs(bids_root: Path, deriv_root: Path, subject: str) -> list[Path]:
-    missing = missing_paths(fmriprep_expected_outputs(bids_root, deriv_root, subject))
+    missing = missing_paths([deriv_root / "fmriprep" / f"sub-{subject}.html"])
+    for bold in sorted((bids_root / f"sub-{subject}").glob("ses-*/func/*_echo-1_part-mag_bold.nii.gz")):
+        stem = bold.name.replace("_echo-1_part-mag_bold.nii.gz", "")
+        func_dir = deriv_root / "fmriprep" / f"sub-{subject}" / bold.parents[1].name / "func"
+        preproc_matches = sorted(func_dir.glob(f"{stem}_echo-1*_desc-preproc_bold.nii.gz"))
+        if not preproc_matches:
+            missing.append(func_dir / f"{stem}_echo-1*_desc-preproc_bold.nii.gz")
+        confound_matches = sorted(func_dir.glob(f"{stem}*_desc-confounds_timeseries.tsv"))
+        if not confound_matches:
+            missing.append(func_dir / f"{stem}*_desc-confounds_timeseries.tsv")
     if not fmriprep_freesurfer_outputs(deriv_root, subject):
         missing.append(
             deriv_root
