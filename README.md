@@ -120,8 +120,11 @@ only an HTML report and session directory. Current fMRIPrep runs also generate
 FreeSurfer subjects under `derivatives/freesurfer` and fsLR CIFTI outputs under
 `derivatives/fmriprep` so those derivatives can be reused by a separate DWI
 workflow such as QSIPrep/QSIRecon. This is a completion check, not a
-scientific-validity guarantee. MRIQC, fMRIPrep, TEDANA, fieldmap metadata, and
-confound outputs still require visual and scientific review on Linux2.
+scientific-validity guarantee. `run_fmriprep.sh --jobs N` controls how many
+subjects run at once and divides the Linux2 fMRIPrep resource budget across
+those jobs before passing `--nprocs`, `--omp-nthreads`, and `--mem` into
+fMRIPrep. MRIQC, fMRIPrep, TEDANA, fieldmap metadata, and confound outputs
+still require visual and scientific review on Linux2.
 
 ## Testing
 

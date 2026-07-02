@@ -104,6 +104,16 @@ and containers.
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
 
+## fMRIPrep Resource Use
+
+`run_fmriprep.sh --jobs N` controls participant-level concurrency. The wrapper
+also divides the fixed Linux2 fMRIPrep budget across those jobs and exports the
+per-subject values passed to fMRIPrep as `--nprocs`, `--omp-nthreads`, and
+`--mem`. Current defaults reserve up to 96 fMRIPrep CPU threads and 196000 MB
+RAM across all simultaneous fMRIPrep subjects, with 8 OpenMP threads per
+process. For example, `--jobs 3` gives each subject `--nprocs 32`,
+`--omp-nthreads 8`, and roughly 65 GB RAM.
+
 ## Overwrite Behavior
 
 Use `--overwrite` only when replacing valid existing outputs is intentional.

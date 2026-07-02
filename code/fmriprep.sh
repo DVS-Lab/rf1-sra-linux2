@@ -47,7 +47,10 @@ sub="$1"
 bidsdir="${PROJECT_ROOT}/bids"
 derivdir="${PROJECT_ROOT}/derivatives"
 freesurferdir="${derivdir}/freesurfer"
-scratchdir="${SCRATCH_ROOT}/$(whoami)"
+scratchdir="${SCRATCH_ROOT}/$(whoami)/fmriprep-sub-${sub}"
+fmriprep_nprocs="${FMRIPREP_NPROCS:-$FMRIPREP_TOTAL_NPROCS}"
+fmriprep_omp_nthreads="${FMRIPREP_OMP_NTHREADS:-8}"
+fmriprep_mem_mb="${FMRIPREP_MEM_MB:-$FMRIPREP_TOTAL_MEM_MB}"
 IFS=' ' read -r -a output_spaces <<< "$FMRIPREP_OUTPUT_SPACES"
 
 bids_subject_dir="${bidsdir}/sub-${sub}"
@@ -79,6 +82,9 @@ cmd=(
   /base/bids /base/derivatives/fmriprep
   participant --participant_label "$sub"
   --stop-on-first-crash
+  --nprocs "$fmriprep_nprocs"
+  --omp-nthreads "$fmriprep_omp_nthreads"
+  --mem "$fmriprep_mem_mb"
   --me-output-echos
   --output-spaces "${output_spaces[@]}"
   --cifti-output "$FMRIPREP_CIFTI_DENSITY"
