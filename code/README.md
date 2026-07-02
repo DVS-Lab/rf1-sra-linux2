@@ -23,6 +23,7 @@ stage commands below.
 | Script | Status | Purpose | Called by | Required software |
 |--------|--------|---------|-----------|-------------------|
 | `sublist-new.txt` | Batch input | Current batch subject list. This is the normal per-batch edit point. | All wrappers by default | Text editor |
+| `run_logged.sh` | Helper | Run a command and optional check with one timestamped raw log plus one tracked Markdown run record. | Operator | Bash |
 | `run_prepdata.sh` | Production | Parallel BIDS conversion wrapper. | Operator | Bash, Python |
 | `prepdata.sh` | Production | One subject/session HeuDiConv, deface, date shift. | `run_prepdata.sh` | Apptainer/Singularity, HeuDiConv, PyDeface |
 | `run_warpkit.sh` | Production | Parallel Warpkit wrapper. | Operator | Bash, Python |
@@ -96,6 +97,17 @@ bash check_tedana.sh
 Each check exits nonzero when expected files are missing and prints a final
 `CHECK PASSED` or `CHECK FAILED` summary suitable for the end of an ignored
 stage log.
+
+To create a Git-trackable run record without committing bulky raw logs:
+
+```bash
+bash run_logged.sh --label fmriprep -- \
+  bash run_fmriprep.sh --sublist "$SUBLIST" --jobs 3 \
+  --check bash check_fmriprep.sh --sublist "$SUBLIST"
+```
+
+The raw output goes to ignored `logs/runs/`; the compact Markdown record goes
+to tracked `logs/records/`.
 
 ## Linux2 Paths
 

@@ -22,7 +22,10 @@ venv/
 env/
 
 # Local work areas and scheduler/container logs
-logs/
+logs/*
+!logs/
+!logs/records/
+!logs/records/*.md
 scratch/
 work/
 nipype_work/

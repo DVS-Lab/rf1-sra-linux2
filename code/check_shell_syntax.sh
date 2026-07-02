@@ -11,6 +11,7 @@ done < <(git ls-files '*.sh')
 if command -v shellcheck >/dev/null 2>&1; then
   shellcheck \
     code/pipeline_common.sh \
+    code/run_logged.sh \
     code/run_prepdata.sh \
     code/prepdata.sh \
     code/run_warpkit.sh \
