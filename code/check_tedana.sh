@@ -32,6 +32,7 @@ done
 
 rf1_require_file "$sublist"
 failed=0
+checked=0
 while IFS= read -r sub; do
   for ses in 01 02; do
     [[ -d "${PROJECT_ROOT}/bids/sub-${sub}/ses-${ses}" ]] || continue
@@ -44,6 +45,7 @@ while IFS= read -r sub; do
       runs=(1 2)
       [[ "$task" == "doors" || "$task" == "socialdoors" ]] && runs=(1)
       for run in "${runs[@]}"; do
+        checked=$((checked + 1))
         if ! python3 "${SCRIPT_DIR}/check_pipeline_state.py" tedana-complete "${PROJECT_ROOT}/derivatives" "$sub" "$ses" "$task" "$run"; then
           echo "sub-${sub} ses-${ses} task-${task} run-${run}: incomplete TEDANA outputs"
           failed=1
@@ -53,4 +55,9 @@ while IFS= read -r sub; do
   done
 done < <(rf1_read_subjects "$sublist")
 
+if ((failed)); then
+  echo "CHECK FAILED: TEDANA outputs incomplete for one or more of ${checked} run(s)."
+else
+  echo "CHECK PASSED: TEDANA outputs complete for ${checked} run(s)."
+fi
 exit "$failed"

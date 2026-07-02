@@ -9,8 +9,8 @@ stage commands below.
 | Order | Entry point | Worker/helper | Inputs | Outputs | Side effects |
 |------:|-------------|---------------|--------|---------|--------------|
 | 1 | `downloadXNAT.py` | XNAT Python client | Temple XNAT credentials | Raw DICOM folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` | Downloads source data only. |
-| 2 | `run_prepdata.sh` | `prepdata.sh`, `heuristics_rf1.py`, `heuristics_XA30.py`, `shiftdates.py` | `sublist-new.txt`, DICOMs | BIDS session, defaced T1w, shifted `scans.tsv` | Stages conversion in scratch; raw DICOMs remain untouched. |
-| 3 | `run_warpkit.sh` | `warpkit.sh` | BIDS multi-echo mag/phase files and JSON | BIDS `fmap/` fieldmap and magnitude files | Removes only explicit generated fmap files when `--overwrite` is used. |
+| 2 | `run_prepdata.sh` | `prepdata.sh`, `heuristics_rf1.py`, `heuristics_XA30.py`, `shiftdates.py` | `sublist-new.txt`, DICOMs | BIDS session, defaced T1w, shifted `scans.tsv` | Stages conversion in scratch; raw DICOMs remain untouched. Check with `check_bids.sh`. |
+| 3 | `run_warpkit.sh` | `warpkit.sh` | BIDS multi-echo mag/phase files and JSON | BIDS `fmap/` fieldmap and magnitude files | Removes only explicit generated fmap files when `--overwrite` is used. Check with `check_warpkit.sh`. |
 | 4 | `addIntendedFor.py` | `pipeline_utils.py` | BIDS `fmap/*.json`, existing BOLD files | Updated fieldmap JSON | Atomic writes; `--dry-run` available. |
 | 5 | `run_fmriprep.sh` | `fmriprep.sh`, `fmriprep_config.json` | BIDS data | `derivatives/fmriprep`, `derivatives/freesurfer` | Generates volumetric, fsLR CIFTI, and FreeSurfer outputs; skips only when practical completion outputs exist. |
 | 6 | `run_tedana.sh` | `tedana.sh` | fMRIPrep echo outputs, BIDS echo metadata | `derivatives/tedana` | Logs missing optional runs under `logs/`. |
@@ -37,9 +37,11 @@ stage commands below.
 | `mriqc.sh` | Production | One subject/session MRIQC run. | `run_mriqc.sh` | Singularity, MRIQC |
 | `extract-metrics.py` | Helper | Extract MRIQC `fd_mean` and `tsnr`. | Operator | Python |
 | `submit_fmriprep.sh` | Helper | Backward-compatible launcher for `run_fmriprep.sh`. | Operator | Bash |
+| `check_bids.sh` | Validation | Report missing BIDS/prepdata outputs and unshifted `scans.tsv` files. | Operator/tests | Bash, Python |
+| `check_warpkit.sh` | Validation | Report missing Warpkit inputs or generated fieldmap outputs. | Operator/tests | Bash, Python |
 | `check_fmriprep.sh` | Validation | Report incomplete fMRIPrep completion outputs. | Operator/tests | Bash, Python |
 | `check_tedana.sh` | Validation | Report incomplete TEDANA completion outputs. | Operator/tests | Bash, Python |
-| `check_mriqc.sh` | Validation | Report missing MRIQC subject folders. | Operator/tests | Bash |
+| `check_mriqc.sh` | Validation | Report missing MRIQC JSON outputs for BIDS BOLD inputs. | Operator/tests | Bash |
 | `check_pipeline_state.py` | Validation | Shared CLI for completion and path checks. | Shell scripts/tests | Python |
 | `check_shell_syntax.sh` | Validation | Shell syntax and optional ShellCheck lint. | `make test` | Bash, ShellCheck optional |
 | `validate_repo.py` | Validation | JSON, README path, and repository hygiene checks. | `make test` | Python |
@@ -80,6 +82,20 @@ python3 extract-metrics.py --dry-run
 
 Remove `--dry-run` after reviewing the planned commands. Use `--sublist FILE`
 only for an exceptional review or recovery run.
+
+After each real stage, run the corresponding completion check:
+
+```bash
+bash check_bids.sh
+bash check_mriqc.sh
+bash check_warpkit.sh
+bash check_fmriprep.sh
+bash check_tedana.sh
+```
+
+Each check exits nonzero when expected files are missing and prints a final
+`CHECK PASSED` or `CHECK FAILED` summary suitable for the end of an ignored
+stage log.
 
 ## Linux2 Paths
 
