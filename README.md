@@ -135,8 +135,8 @@ bash check_fmriprep.sh
 bash run_tedana.sh --dry-run
 bash run_tedana.sh
 bash check_tedana.sh
-python3 genTedanaConfounds.py --dry-run
-python3 genTedanaConfounds.py
+python3 genTedanaConfounds.py --sublist sublist-new.txt --dry-run
+python3 genTedanaConfounds.py --sublist sublist-new.txt
 python3 extract-metrics.py --dry-run
 ```
 

@@ -36,10 +36,26 @@ def load_add_intended_for():
     return module
 
 
+def load_gen_tedana_confounds():
+    pytest.importorskip("pandas")
+    spec = importlib.util.spec_from_file_location("gen_tedana_confounds", CODE_DIR / "genTedanaConfounds.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_read_subject_list_ignores_blank_lines_comments_and_prefixes(tmp_path: Path) -> None:
     sublist = tmp_path / "subjects.txt"
     sublist.write_text("\n# comment\nsub-10001\n10002  # inline\n\n")
     assert read_subject_list(sublist) == ["10001", "10002"]
+
+
+def test_tedana_confound_sublist_filter_accepts_prefixed_and_plain_ids(tmp_path: Path) -> None:
+    module = load_gen_tedana_confounds()
+    sublist = tmp_path / "subjects.txt"
+    sublist.write_text("sub-11923\n11924\n")
+    assert module.subject_filter_from_sublist(sublist) == {"sub-11923", "sub-11924"}
 
 
 def test_session_task_and_run_selection() -> None:

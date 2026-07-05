@@ -101,7 +101,7 @@ bash run_warpkit.sh --dry-run
 python3 addIntendedFor.py --dry-run
 bash run_fmriprep.sh --dry-run
 bash run_tedana.sh --dry-run
-python3 genTedanaConfounds.py --dry-run
+python3 genTedanaConfounds.py --sublist "$SUBLIST" --dry-run
 python3 extract-metrics.py --dry-run
 ```
 
@@ -235,8 +235,10 @@ preprocessed echo and confounds files, a completed FreeSurfer subject under
 has BOLD inputs. FreeSurfer/CIFTI generation makes fMRIPrep slower than the
 previous volume-only run, but creates derivatives that a separate DWI workflow
 can reuse later. TEDANA completion checks look for denoised BOLD, mixing matrix,
-and metrics files for task/runs that have BIDS echo inputs. These checks are
-operational completion checks, not scientific validation.
+and metrics files for task/runs that have BIDS echo inputs.
+`genTedanaConfounds.py --sublist FILE` then builds FSL-ready confound TSVs only
+for TEDANA metric files matching that subject list. These checks and generated
+tables are operational completion products, not scientific validation.
 
 ## Failure Reports
 
