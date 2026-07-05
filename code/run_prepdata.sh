@@ -52,6 +52,7 @@ done
 rf1_require_file "$sublist"
 rf1_require_file "${SCRIPT_DIR}/prepdata.sh"
 echo "Using subject list: $sublist"
+echo "prepdata job plan: up to ${max_jobs} subject/session job(s); OMP threads per job ${omp_threads}"
 
 args=()
 ((dry_run)) && args+=(--dry-run)

@@ -44,6 +44,7 @@ done
 rf1_require_file "$sublist"
 rf1_require_file "${SCRIPT_DIR}/mriqc.sh"
 echo "Using subject list: $sublist"
+echo "MRIQC job plan: up to ${max_jobs} subject/session job(s)"
 
 args=()
 ((dry_run)) && args+=(--dry-run)

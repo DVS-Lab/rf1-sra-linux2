@@ -48,6 +48,8 @@ done
 
 rf1_require_file "$sublist"
 rf1_require_file "${SCRIPT_DIR}/tedana.sh"
+echo "Using subject list: $sublist"
+echo "TEDANA job plan: up to ${max_jobs} subject job(s)"
 
 args=()
 ((dry_run)) && args+=(--dry-run)

@@ -49,6 +49,8 @@ done
 
 rf1_require_file "$sublist"
 rf1_require_file "${SCRIPT_DIR}/warpkit.sh"
+echo "Using subject list: $sublist"
+echo "Warpkit job plan: up to ${max_jobs} subject/session/task/run job(s); OMP threads per job ${omp_threads}"
 
 args=()
 ((dry_run)) && args+=(--dry-run)
