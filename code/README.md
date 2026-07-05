@@ -7,9 +7,10 @@ stage commands below.
 ## Upstream/Downstream Boundary
 
 `rf1-sra-linux2` runs before `rf1-dwi`. This repository owns the shared RF1-SRA
-BIDS dataset plus fMRIPrep, FreeSurfer, CIFTI, TEDANA, MRIQC, and metric
-derivatives. The DWI repository should consume those validated outputs for
-QSIPrep/QSIRecon instead of copying or regenerating them.
+BIDS dataset plus fMRIPrep, FreeSurfer, CIFTI, TEDANA, MRIQC, confound
+derivatives, and cohort-level metric summaries. The DWI repository should
+consume those validated outputs for QSIPrep/QSIRecon instead of copying or
+regenerating them.
 
 The dependency map is:
 
@@ -18,7 +19,8 @@ Raw DICOMs / XNAT
   -> rf1-sra-linux2 BIDS conversion
   -> rf1-sra-linux2 Warpkit / IntendedFor
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
-  -> rf1-sra-linux2 TEDANA / MRIQC / metrics
+  -> rf1-sra-linux2 TEDANA / MRIQC / confounds
+  -> rf1-sra-linux2 cohort-level MRIQC metrics and outlier review
   -> rf1-dwi QSIPrep / QSIRecon
 ```
 
@@ -40,7 +42,8 @@ either path.
 | 6 | `run_tedana.sh` | `tedana.sh` | fMRIPrep echo outputs, BIDS echo metadata | `derivatives/tedana` | Logs missing optional runs under `logs/`. |
 | 7 | `genTedanaConfounds.py` | pandas | fMRIPrep confounds, TEDANA mixing/metrics | `derivatives/fsl/confounds_tedana` | Atomic TSV writes; row-count validation. |
 | 8 | `run_mriqc.sh` | `mriqc.sh` | BIDS data | `derivatives/mriqc` | Container run only; no raw-source edits. |
-| 9 | `extract-metrics.py` | MRIQC JSON outputs | MRIQC participant JSON | CSV metrics table | Atomic CSV write. |
+| 9 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
+| 10 | `extract-metrics.py` | MRIQC JSON outputs | Completed cohort MRIQC participant JSON | CSV metrics table | Cohort-level helper; atomic CSV write. |
 
 ## Script Index
 
@@ -60,7 +63,8 @@ either path.
 | `genTedanaConfounds.py` | Production | Build FSL-ready confound tables. | Operator | Python, pandas |
 | `run_mriqc.sh` | Production | Parallel MRIQC wrapper. | Operator | Bash |
 | `mriqc.sh` | Production | One subject/session MRIQC run. | `run_mriqc.sh` | Singularity, MRIQC |
-| `extract-metrics.py` | Helper | Extract MRIQC `fd_mean` and `tsnr`. | Operator | Python |
+| `mriqc_group.sh` | Production | Run the MRIQC group report after participant MRIQC is complete. | Operator | Singularity, MRIQC |
+| `extract-metrics.py` | Helper | Extract MRIQC `fd_mean` and `tsnr` for cohort-level QC review. | Operator | Python |
 | `submit_fmriprep.sh` | Helper | Backward-compatible launcher for `run_fmriprep.sh`. | Operator | Bash |
 | `check_bids.sh` | Validation | Report missing BIDS/prepdata outputs and unshifted `scans.tsv` files. | Operator/tests | Bash, Python |
 | `check_warpkit.sh` | Validation | Report missing Warpkit inputs or generated fieldmap outputs. | Operator/tests | Bash, Python |
@@ -101,8 +105,7 @@ bash run_warpkit.sh --dry-run
 python3 addIntendedFor.py --dry-run
 bash run_fmriprep.sh --dry-run
 bash run_tedana.sh --dry-run
-python3 genTedanaConfounds.py --sublist "$SUBLIST" --dry-run
-python3 extract-metrics.py --dry-run
+python3 genTedanaConfounds.py --sublist sublist-new.txt --dry-run
 ```
 
 Remove `--dry-run` after reviewing the planned commands. Use `--sublist FILE`
@@ -240,6 +243,28 @@ and metrics files for task/runs that have BIDS echo inputs.
 for TEDANA metric files matching that subject list. These checks and generated
 tables are operational completion products, not scientific validation.
 
+## Full-Cohort MRIQC And Outlier Review
+
+Run cohort-level MRIQC and metric/outlier summaries only after the full
+participant batch has completed participant-level MRIQC. This follows the R21
+resting-state workflow pattern: participant MRIQC first, the MRIQC group report
+afterward, then run/subject metric summaries and outlier review. Do not treat
+`extract-metrics.py` output as a routine new-subject smoke-test requirement.
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+bash mriqc_group.sh --dry-run
+bash mriqc_group.sh
+python3 extract-metrics.py --sublist sublist-new.txt --dry-run
+python3 extract-metrics.py --sublist sublist-new.txt
+```
+
+`extract-metrics.py` collects run-level `tsnr` and `fd_mean` from MRIQC JSON
+files; replace `sublist-new.txt` with the final cohort subject list if that
+list lives somewhere else. Any run or subject outlier decisions should be made
+and documented with the group MRIQC review, not as automatic per-batch
+exclusions.
+
 ## Failure Reports
 
 When something fails, send David or Jacob:
@@ -286,9 +311,10 @@ Before this branch can merge, Jacob should:
 16. Confirm fMRIPrep reports, expected session-level outputs, fsLR CIFTI outputs, and `derivatives/freesurfer/sub-*/scripts/recon-all.done`.
 17. Confirm TEDANA denoised outputs, mixing matrices, and metrics files.
 18. Confirm confound row counts match the corresponding BOLD time series.
-19. Confirm MRIQC outputs and metric extraction.
-20. Run `make test`.
-21. Leave a PR comment with the commit SHA tested, subjects/sessions tested, stages tested, pass/fail result, discrepancies, and merge/request-changes recommendation.
+19. Confirm MRIQC participant outputs exist for the validation subjects.
+20. Defer `mriqc_group.sh`, `extract-metrics.py`, and run/subject outlier review until the full participant batch is complete.
+21. Run `make test`.
+22. Leave a PR comment with the commit SHA tested, subjects/sessions tested, stages tested, pass/fail result, discrepancies, and merge/request-changes recommendation.
 
 The branch should remain draft until this checklist is complete and David
 approves the pull request.

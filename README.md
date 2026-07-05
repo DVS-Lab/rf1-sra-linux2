@@ -4,8 +4,8 @@ This repository contains the Smith Lab Linux2 preprocessing workflow for RF1-SRA
 multi-echo fMRI data from the UGR, Social Doors, Trust, and Shared Reward tasks.
 Behavioral task processing lives in separate repositories. This repository is
 for MRI data management, BIDS conversion, fieldmap preparation, fMRIPrep,
-FreeSurfer/CIFTI derivative generation, TEDANA, MRIQC, and downstream
-confound/metric extraction helpers.
+FreeSurfer/CIFTI derivative generation, TEDANA, MRIQC, downstream confound
+generation, and cohort-level metric extraction helpers.
 
 ## Scope And Privacy
 
@@ -92,7 +92,8 @@ Raw DICOMs / XNAT
   -> rf1-sra-linux2 BIDS conversion
   -> rf1-sra-linux2 Warpkit / IntendedFor
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
-  -> rf1-sra-linux2 TEDANA / MRIQC / metrics
+  -> rf1-sra-linux2 TEDANA / MRIQC / confounds
+  -> rf1-sra-linux2 cohort-level MRIQC metrics and outlier review
   -> rf1-dwi QSIPrep / QSIRecon
 ```
 
@@ -107,7 +108,7 @@ flowchart TD
   E --> F["Run TEDANA"]
   F --> G["Generate TEDANA/FSL confounds"]
   B --> H["Run MRIQC"]
-  H --> I["Extract QC metrics"]
+  H --> I["Group MRIQC and cohort QC metrics"]
   E --> J["rf1-dwi consumes shared BIDS/fMRIPrep/FreeSurfer"]
 ```
 
@@ -137,7 +138,6 @@ bash run_tedana.sh
 bash check_tedana.sh
 python3 genTedanaConfounds.py --sublist sublist-new.txt --dry-run
 python3 genTedanaConfounds.py --sublist sublist-new.txt
-python3 extract-metrics.py --dry-run
 ```
 
 `--dry-run` means print or validate the planned work before launching the heavy
@@ -214,6 +214,31 @@ subjects run at once and divides the Linux2 fMRIPrep resource budget across
 those jobs before passing `--nprocs`, `--omp-nthreads`, and `--mem` into
 fMRIPrep. MRIQC, fMRIPrep, TEDANA, fieldmap metadata, and confound outputs
 still require visual and scientific review on Linux2.
+
+## Full-Cohort MRIQC
+
+Run cohort-level MRIQC and metric/outlier summaries only after the full
+participant batch has completed participant-level MRIQC. Do not use these
+summaries as part of routine new-subject smoke validation, because outlier
+thresholds are only meaningful when the cohort is present.
+
+The group report follows the same pattern as the R21 resting-state workflow:
+participant MRIQC first, group MRIQC second, then run/subject metric summaries
+and outlier review.
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+bash mriqc_group.sh --dry-run
+bash mriqc_group.sh
+python3 extract-metrics.py --sublist sublist-new.txt --dry-run
+python3 extract-metrics.py --sublist sublist-new.txt
+```
+
+Use `extract-metrics.py` at this stage to collect run-level `tsnr` and
+`fd_mean` from completed MRIQC JSON files; replace `sublist-new.txt` with the
+final cohort subject list if that list lives somewhere else. Any run or subject
+outlier decisions should be documented with the group MRIQC outputs and
+reviewed scientifically; they are not automatic per-batch exclusions.
 
 ## How To Know Whether It Worked
 

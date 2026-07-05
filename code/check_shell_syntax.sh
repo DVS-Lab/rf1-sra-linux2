@@ -22,6 +22,7 @@ if command -v shellcheck >/dev/null 2>&1; then
     code/tedana.sh \
     code/run_mriqc.sh \
     code/mriqc.sh \
+    code/mriqc_group.sh \
     code/check_bids.sh \
     code/check_warpkit.sh \
     code/check_fmriprep.sh \
