@@ -24,11 +24,12 @@ Raw DICOMs / XNAT
   -> rf1-dwi QSIPrep / QSIRecon
 ```
 
-Downstream paths should point at the Linux2 checkout Jacob validated, such as
-`/ZPOOL/data/projects/rf1-sra-linux2` or a separate validation checkout like
-`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test`. Scripts in this repo
-derive `PROJECT_ROOT` from the checkout location so they can run safely from
-either path.
+Downstream paths should point at the production Linux2 checkout:
+`/ZPOOL/data/projects/rf1-sra-linux2`. Historical validation checkouts such as
+`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` may appear in old logs,
+but they are not production defaults. Scripts in this repo derive
+`PROJECT_ROOT` from the checkout location so an intentional validation clone
+can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 
 ## Canonical Pipeline
 
@@ -45,44 +46,414 @@ either path.
 | 9 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
 | 10 | `extract-metrics.py` | MRIQC JSON outputs | Completed cohort MRIQC participant JSON | CSV metrics table | Cohort-level helper; atomic CSV write. |
 
-## Script Index
+## Script Reference
 
-| Script | Status | Purpose | Called by | Required software |
-|--------|--------|---------|-----------|-------------------|
-| `sublist-new.txt` | Batch input | Current batch subject list. This is the normal per-batch edit point. | All wrappers by default | Text editor |
-| `run_logged.sh` | Helper | Run a command and optional check with one timestamped raw log plus one tracked Markdown run record. | Operator | Bash |
-| `run_prepdata.sh` | Production | Parallel BIDS conversion wrapper. | Operator | Bash, Python |
-| `prepdata.sh` | Production | One subject/session HeuDiConv, deface, date shift. | `run_prepdata.sh` | Apptainer/Singularity, HeuDiConv, PyDeface |
-| `run_warpkit.sh` | Production | Parallel Warpkit wrapper. | Operator | Bash, Python |
-| `warpkit.sh` | Production | One subject/session/task/run Warpkit fieldmap generation. | `run_warpkit.sh` | Singularity, Warpkit, FSL |
-| `addIntendedFor.py` | Production | Add/repair fieldmap `IntendedFor` entries that point to existing BOLD files. | Operator | Python |
-| `run_fmriprep.sh` | Production | Parallel fMRIPrep wrapper. | Operator | Bash, Python |
-| `fmriprep.sh` | Production | One-subject fMRIPrep run. | `run_fmriprep.sh`, `submit_fmriprep.sh` | Singularity, fMRIPrep |
-| `run_tedana.sh` | Production | Parallel TEDANA wrapper. | Operator | Bash, Python |
-| `tedana.sh` | Production | One-subject TEDANA run across sessions/tasks/runs. | `run_tedana.sh` | TEDANA, Python |
-| `genTedanaConfounds.py` | Production | Build FSL-ready confound tables. | Operator | Python, pandas |
-| `run_mriqc.sh` | Production | Parallel MRIQC wrapper. | Operator | Bash |
-| `mriqc.sh` | Production | One subject/session MRIQC run. | `run_mriqc.sh` | Singularity, MRIQC |
-| `mriqc_group.sh` | Production | Run the MRIQC group report after participant MRIQC is complete. | Operator | Singularity, MRIQC |
-| `extract-metrics.py` | Helper | Extract MRIQC `fd_mean` and `tsnr` for cohort-level QC review. | Operator | Python |
-| `submit_fmriprep.sh` | Helper | Backward-compatible launcher for `run_fmriprep.sh`. | Operator | Bash |
-| `check_bids.sh` | Validation | Report missing BIDS/prepdata outputs and unshifted `scans.tsv` files. | Operator/tests | Bash, Python |
-| `check_warpkit.sh` | Validation | Report missing Warpkit inputs or generated fieldmap outputs. | Operator/tests | Bash, Python |
-| `check_fmriprep.sh` | Validation | Report incomplete fMRIPrep completion outputs. | Operator/tests | Bash, Python |
-| `check_tedana.sh` | Validation | Report incomplete TEDANA completion outputs. | Operator/tests | Bash, Python |
-| `check_mriqc.sh` | Validation | Report missing MRIQC JSON outputs for BIDS BOLD inputs. | Operator/tests | Bash |
-| `check_pipeline_state.py` | Validation | Shared CLI for completion and path checks. | Shell scripts/tests | Python |
-| `check_shell_syntax.sh` | Validation | Shell syntax and optional ShellCheck lint. | `make test` | Bash, ShellCheck optional |
-| `validate_repo.py` | Validation | JSON, README path, and repository hygiene checks. | `make test` | Python |
-| `pipeline_utils.py` | Validation | Testable parsing, path, IntendedFor, and completion helpers. | Python scripts/tests | Python |
-| `pipeline_common.sh` | Shared constants | Fixed Linux2 source/tool paths plus checkout-relative project outputs. | Shell scripts | Bash |
-| `print_subjects.py` | Helper | Normalize subject-list parsing for shell scripts. | `pipeline_common.sh` | Python |
-| `downloadXNAT.py` | Production | Incremental XNAT download using prompted credentials. | Operator | Python, `xnat` |
-| `heuristics_rf1.py` | Configuration | Pre-upgrade HeuDiConv heuristic. | `prepdata.sh` | HeuDiConv |
-| `heuristics_XA30.py` | Configuration | XA30-era HeuDiConv heuristic. | `prepdata.sh` | HeuDiConv |
-| `fmriprep_config.json` | Configuration | fMRIPrep BIDS filter configuration for multi-session runs; keeps functional inputs to magnitude images. | `fmriprep.sh` | fMRIPrep |
-| `convert_SocialDoorsBids.m` | Helper | MATLAB event converter for Social Doors/Doors that reads `sublist-new.txt` and handles both sessions. | Operator only | MATLAB |
-| FLAIR/anatomical QC helpers | Helper | Optional anatomical QC checks kept in `code/`: `bet-flair.sh`, `bet-flair-coverage.sh`, `check-wm-mask.sh`, `create-T2.sh`, `extract_icv_fmriprep.py`, `flair-metrics.sh`, `flair-outliers.sh`, `flair_to_mni_flirt.py`, `voxel-count-L1.sh`. | Operator only | FSL/Python as noted in scripts |
+Each entry uses the same fields so operators can scan quickly.
+
+### `sublist-new.txt`
+- Status: Batch input.
+- Purpose: Current fMRI/data-management production batch list.
+- Inputs: One subject per line, with comments and blank lines allowed.
+- Outputs: None.
+- Typical command: edit with a text editor before a new batch.
+- Checker: Parsed by each wrapper and checker.
+- Notes: This is the normal per-batch edit point.
+
+### `run_logged.sh`
+- Status: Logging helper.
+- Purpose: Run a command and optional checker with one raw log and one compact run record.
+- Inputs: A command after `--`, and optionally a checker after `--check`.
+- Outputs: Ignored `logs/runs/*.log` plus tracked `logs/records/*.md`.
+- Typical command: `bash run_logged.sh --label fmriprep-check -- bash check_fmriprep.sh --sublist "$SUBLIST"`.
+- Checker: The optional command supplied after `--check`.
+- Notes: Use separate run and check records for long production stages when readability matters.
+
+### `downloadXNAT.py`
+- Status: Production input helper.
+- Purpose: Incrementally download source DICOMs from Temple XNAT.
+- Inputs: XNAT credentials and the configured RF1-SRA source-data destination.
+- Outputs: Raw DICOM folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra`.
+- Typical command: run `downloadXNAT.py` with Python 3.
+- Checker: Confirm expected subject folders exist before conversion.
+- Notes: Downloads source data only; preprocessing scripts treat source data as immutable.
+
+### `run_prepdata.sh`
+- Status: Production wrapper.
+- Purpose: Launch BIDS conversion for every listed subject and session.
+- Inputs: `sublist-new.txt`, raw DICOM source data, and `prepdata.sh`.
+- Outputs: BIDS sessions, defaced T1w images, and shifted `scans.tsv` files.
+- Typical command: `bash run_prepdata.sh --sublist "$SUBLIST" --jobs 6`.
+- Checker: `bash check_bids.sh --sublist "$SUBLIST"`.
+- Notes: Prints the subject list and job plan before launching.
+
+### `prepdata.sh`
+- Status: Production worker.
+- Purpose: Run one subject/session through HeuDiConv, defacing, and date shifting.
+- Inputs: One subject, one session, DICOMs, HeuDiConv image, heuristics, and `shiftdates.py`.
+- Outputs: One staged and then live BIDS subject/session tree.
+- Typical command: normally called by `run_prepdata.sh`.
+- Checker: `check_bids.sh`.
+- Notes: Stages in scratch before replacing live BIDS outputs; `--overwrite` is required for replacement.
+
+### `heuristics_rf1.py`
+- Status: HeuDiConv configuration.
+- Purpose: Classify pre-upgrade RF1-SRA sequences for BIDS conversion.
+- Inputs: HeuDiConv sequence metadata.
+- Outputs: BIDS key assignments.
+- Typical command: not run directly.
+- Checker: Conversion output plus tests around heuristic selection.
+- Notes: Preserve unless a scanner/sequence rule is scientifically corrected.
+
+### `heuristics_XA30.py`
+- Status: HeuDiConv configuration.
+- Purpose: Classify XA30-era RF1-SRA sequences for BIDS conversion.
+- Inputs: HeuDiConv sequence metadata.
+- Outputs: BIDS key assignments.
+- Typical command: not run directly.
+- Checker: Conversion output plus tests around heuristic selection.
+- Notes: The March 4, 2025 cutoff remains the current production behavior.
+
+### `shiftdates.py`
+- Status: Production helper.
+- Purpose: Shift BIDS dates after conversion.
+- Inputs: Generated BIDS metadata and scan files.
+- Outputs: Updated date fields and `scans.tsv` files.
+- Typical command: normally called by `prepdata.sh`.
+- Checker: `check_bids.sh`.
+- Notes: Keeps raw DICOM source data untouched.
+
+### `run_warpkit.sh`
+- Status: Production wrapper.
+- Purpose: Launch Warpkit fieldmap generation across expected subject/session/task/run inputs.
+- Inputs: BIDS multi-echo magnitude/phase files and `warpkit.sh`.
+- Outputs: BIDS `fmap/` products plus Warpkit completion markers.
+- Typical command: `bash run_warpkit.sh --sublist "$SUBLIST" --jobs 8`.
+- Checker: `bash check_warpkit.sh --sublist "$SUBLIST"`.
+- Notes: Prints the subject list and job plan before launching.
+
+### `warpkit.sh`
+- Status: Production worker.
+- Purpose: Generate fieldmap and magnitude products for one subject/session/task/run.
+- Inputs: Four magnitude images, phase images, phase JSON files, Warpkit, and FSL.
+- Outputs: BIDS `fmap/*` NIfTI/JSON files and `derivatives/warpkit` markers.
+- Typical command: normally called by `run_warpkit.sh`.
+- Checker: `check_warpkit.sh`.
+- Notes: `--overwrite` deletes only explicit generated fieldmap products.
+
+### `addIntendedFor.py`
+- Status: Production metadata helper.
+- Purpose: Add or repair BIDS fieldmap `IntendedFor` entries.
+- Inputs: BIDS fieldmap JSON files and existing BOLD files.
+- Outputs: Updated fieldmap JSON files.
+- Typical command: `python3 addIntendedFor.py --sublist "$SUBLIST"`.
+- Checker: BIDS validation plus `check_warpkit.sh` context.
+- Notes: Supports `--dry-run`, writes atomically, and is idempotent.
+
+### `run_mriqc.sh`
+- Status: Production wrapper.
+- Purpose: Launch participant-level MRIQC across listed subjects/sessions.
+- Inputs: BIDS data and `mriqc.sh`.
+- Outputs: Participant-level MRIQC derivatives.
+- Typical command: `bash run_mriqc.sh --sublist "$SUBLIST" --jobs 10`.
+- Checker: `bash check_mriqc.sh --sublist "$SUBLIST"`.
+- Notes: MRIQC is restartable and does not require reconverting BIDS.
+
+### `mriqc.sh`
+- Status: Production worker.
+- Purpose: Run one subject/session through MRIQC.
+- Inputs: BIDS data, MRIQC container, TemplateFlow, and scratch.
+- Outputs: `derivatives/mriqc` participant reports and JSON files.
+- Typical command: normally called by `run_mriqc.sh`.
+- Checker: `check_mriqc.sh`.
+- Notes: Participant MRIQC should complete before cohort-level group MRIQC.
+
+### `mriqc_group.sh`
+- Status: Cohort-level production step.
+- Purpose: Run the MRIQC group report after participant MRIQC is complete.
+- Inputs: Completed participant-level MRIQC outputs.
+- Outputs: MRIQC group report under `derivatives/mriqc`.
+- Typical command: run `mriqc_group.sh` with Bash.
+- Checker: Inspect group report and cohort QC outputs.
+- Notes: Run with full-batch/cohort review, not during routine new-subject validation.
+
+### `extract-metrics.py`
+- Status: Cohort-level QC helper.
+- Purpose: Extract MRIQC `fd_mean` and `tsnr` values for run/subject review.
+- Inputs: Completed MRIQC participant JSON files and a full-batch subject list.
+- Outputs: CSV metric summaries.
+- Typical command: `python3 extract-metrics.py --sublist "$SUBLIST"`.
+- Checker: Review generated CSVs with group MRIQC.
+- Notes: Use after a full batch, not as a per-new-subject gate.
+
+### `run_fmriprep.sh`
+- Status: Production wrapper.
+- Purpose: Launch fMRIPrep across listed subjects.
+- Inputs: BIDS data, `fmriprep.sh`, fMRIPrep config, TemplateFlow, and FreeSurfer license.
+- Outputs: `derivatives/fmriprep` and `derivatives/freesurfer`.
+- Typical command: `bash run_fmriprep.sh --sublist "$SUBLIST" --jobs 2`.
+- Checker: `bash check_fmriprep.sh --sublist "$SUBLIST"`.
+- Notes: Splits 96 CPU threads and 196000 MB RAM across simultaneous subjects.
+
+### `fmriprep.sh`
+- Status: Production worker.
+- Purpose: Run one subject through fMRIPrep with FreeSurfer and fsLR CIFTI outputs.
+- Inputs: BIDS data, fMRIPrep container, `fmriprep_config.json`, TemplateFlow, and license.
+- Outputs: Subject HTML, volumetric outputs, CIFTI dtseries, and FreeSurfer subject.
+- Typical command: normally called by `run_fmriprep.sh`.
+- Checker: `check_fmriprep.sh`.
+- Notes: Generates the upstream anatomy derivatives consumed by `rf1-dwi`.
+
+### `fmriprep_config.json`
+- Status: fMRIPrep configuration.
+- Purpose: Filter multi-session fMRIPrep inputs for this dataset.
+- Inputs: BIDS dataset metadata.
+- Outputs: fMRIPrep BIDS filter settings.
+- Typical command: not run directly.
+- Checker: `check_fmriprep.sh` plus fMRIPrep reports.
+- Notes: Keeps functional inputs to magnitude images.
+
+### `submit_fmriprep.sh`
+- Status: Compatibility helper.
+- Purpose: Preserve an older launcher name for fMRIPrep work.
+- Inputs: Same as `run_fmriprep.sh`.
+- Outputs: Same as `run_fmriprep.sh`.
+- Typical command: prefer `bash run_fmriprep.sh --sublist "$SUBLIST" --jobs 2`.
+- Checker: `check_fmriprep.sh`.
+- Notes: New production docs should point at `run_fmriprep.sh`.
+
+### `run_tedana.sh`
+- Status: Production wrapper.
+- Purpose: Launch TEDANA across listed subjects.
+- Inputs: BIDS echo metadata, fMRIPrep echo outputs, and `tedana.sh`.
+- Outputs: `derivatives/tedana`.
+- Typical command: `bash run_tedana.sh --sublist "$SUBLIST" --jobs 8`.
+- Checker: `bash check_tedana.sh --sublist "$SUBLIST"`.
+- Notes: Prints the subject list and job plan before launching.
+
+### `tedana.sh`
+- Status: Production worker.
+- Purpose: Run TEDANA for available task/runs for one subject.
+- Inputs: fMRIPrep echo outputs and BIDS echo metadata.
+- Outputs: Denoised BOLD, mixing matrix, and component metrics.
+- Typical command: normally called by `run_tedana.sh`.
+- Checker: `check_tedana.sh`.
+- Notes: Missing optional runs are logged and skipped when no BIDS echo input exists.
+
+### `genTedanaConfounds.py`
+- Status: Production helper.
+- Purpose: Build FSL-ready confound TSVs from TEDANA and fMRIPrep outputs.
+- Inputs: fMRIPrep confounds, TEDANA mixing matrices, TEDANA metrics, and subject list.
+- Outputs: `derivatives/fsl/confounds_tedana`.
+- Typical command: `python3 genTedanaConfounds.py --sublist "$SUBLIST"`.
+- Checker: Row-count validation inside the script and downstream FSL model review.
+- Notes: Writes atomically.
+
+### `check_bids.sh`
+- Status: Checker.
+- Purpose: Report missing BIDS/prepdata outputs and unshifted `scans.tsv` files.
+- Inputs: Subject list and BIDS tree.
+- Outputs: Terminal pass/fail summary.
+- Typical command: `bash check_bids.sh --sublist "$SUBLIST"`.
+- Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
+- Notes: Suitable for `run_logged.sh` records.
+
+### `check_warpkit.sh`
+- Status: Checker.
+- Purpose: Report missing Warpkit inputs or generated fieldmap outputs.
+- Inputs: Subject list, BIDS tree, and Warpkit derivatives.
+- Outputs: Terminal pass/fail summary.
+- Typical command: `bash check_warpkit.sh --sublist "$SUBLIST"`.
+- Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
+- Notes: Fails only when expected outputs are missing for available inputs.
+
+### `check_mriqc.sh`
+- Status: Checker.
+- Purpose: Report missing MRIQC JSON outputs for BIDS BOLD inputs.
+- Inputs: Subject list, BIDS tree, and MRIQC derivatives.
+- Outputs: Terminal pass/fail summary.
+- Typical command: `bash check_mriqc.sh --sublist "$SUBLIST"`.
+- Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
+- Notes: Participant-level only; group MRIQC is a separate cohort step.
+
+### `check_fmriprep.sh`
+- Status: Checker.
+- Purpose: Report incomplete fMRIPrep, FreeSurfer, and CIFTI completion outputs.
+- Inputs: Subject list, BIDS tree, fMRIPrep derivatives, and FreeSurfer subjects.
+- Outputs: Terminal pass/fail summary.
+- Typical command: `bash check_fmriprep.sh --sublist "$SUBLIST"`.
+- Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
+- Notes: Operational completion check, not scientific image review.
+
+### `check_tedana.sh`
+- Status: Checker.
+- Purpose: Report incomplete TEDANA denoised outputs, mixing matrices, and metrics.
+- Inputs: Subject list, BIDS echo inputs, and TEDANA derivatives.
+- Outputs: Terminal pass/fail summary.
+- Typical command: `bash check_tedana.sh --sublist "$SUBLIST"`.
+- Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
+- Notes: Skips task/runs without BIDS echo input.
+
+### `check_pipeline_state.py`
+- Status: Shared checker implementation.
+- Purpose: Provide testable completion and path checks for shell wrappers.
+- Inputs: CLI options from `check_*.sh`.
+- Outputs: Detailed pass/fail diagnostics.
+- Typical command: called by checker scripts.
+- Checker: Covered by `make test`.
+- Notes: Keep expected session/task/run rules centralized here and in `pipeline_utils.py`.
+
+### `check_shell_syntax.sh`
+- Status: Repository validation.
+- Purpose: Run shell syntax checks and optional ShellCheck lint.
+- Inputs: Tracked shell scripts and qsub files.
+- Outputs: Terminal pass/fail status.
+- Typical command: run `code/check_shell_syntax.sh` with Bash.
+- Checker: Included in `make test`.
+- Notes: Does not require imaging data or containers.
+
+### `validate_repo.py`
+- Status: Repository validation.
+- Purpose: Check JSON files, README paths, and repository hygiene.
+- Inputs: Repository files.
+- Outputs: Terminal pass/fail status.
+- Typical command: run `code/validate_repo.py` with Python 3.
+- Checker: Included in `make test`.
+- Notes: Helps prevent generated outputs and stale path references from creeping back in.
+
+### `pipeline_common.sh`
+- Status: Shared shell configuration.
+- Purpose: Define Linux2 paths, project-root detection, subject parsing, and job helpers.
+- Inputs: Environment overrides and checkout location.
+- Outputs: Shell functions and variables for wrappers.
+- Typical command: sourced by shell scripts.
+- Checker: `bash -n`, ShellCheck, and wrapper dry-runs.
+- Notes: Project outputs stay checkout-relative.
+
+### `pipeline_utils.py`
+- Status: Shared Python helper.
+- Purpose: Implement subject parsing, expected runs, IntendedFor logic, and completion helpers.
+- Inputs: Paths and metadata from Python scripts/checkers.
+- Outputs: Parsed structures and validation decisions.
+- Typical command: imported by Python scripts and tests.
+- Checker: `make test`.
+- Notes: Prefer adding behavior here when it needs unit tests.
+
+### `print_subjects.py`
+- Status: Shared helper.
+- Purpose: Normalize subject-list parsing for shell scripts.
+- Inputs: Subject-list file.
+- Outputs: One normalized subject ID per line.
+- Typical command: called by `pipeline_common.sh`.
+- Checker: Wrapper dry-runs and tests.
+- Notes: Accepts `10001` and `sub-10001` forms.
+
+### `convert_SocialDoorsBids.m`
+- Status: Task helper.
+- Purpose: Convert Social Doors/Doors behavioral events into BIDS event files.
+- Inputs: Task event sources and `sublist-new.txt`.
+- Outputs: BIDS event TSV files.
+- Typical command: run in MATLAB when event conversion is needed.
+- Checker: Manual event-file review.
+- Notes: Handles both RF1-SRA sessions.
+
+### `bet-flair.sh`
+- Status: Optional anatomical QC helper.
+- Purpose: Run FSL BET-style FLAIR processing.
+- Inputs: FLAIR/T1 anatomical files.
+- Outputs: Derived FLAIR masks or intermediate files.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Visual/anatomical QC.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `bet-flair-coverage.sh`
+- Status: Optional anatomical QC helper.
+- Purpose: Summarize FLAIR brain-extraction coverage.
+- Inputs: FLAIR masks and anatomical references.
+- Outputs: Coverage diagnostics.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Visual/anatomical QC.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `check-wm-mask.sh`
+- Status: Optional anatomical QC helper.
+- Purpose: Check white-matter mask coverage.
+- Inputs: fMRIPrep/FreeSurfer anatomical outputs.
+- Outputs: Mask diagnostics.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Visual/anatomical QC.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `create-T2.sh`
+- Status: Optional anatomical QC helper.
+- Purpose: Create or prepare T2-style anatomical derivatives.
+- Inputs: Anatomical inputs expected by the script.
+- Outputs: T2/anatomical helper outputs.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Visual/anatomical QC.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `extract_icv_fmriprep.py`
+- Status: Optional anatomical QC helper.
+- Purpose: Extract intracranial-volume style summaries from fMRIPrep derivatives.
+- Inputs: fMRIPrep anatomical derivatives.
+- Outputs: ICV summary tables.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Review generated summaries.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `flair-metrics.sh`
+- Status: Optional anatomical QC helper.
+- Purpose: Build FLAIR metric summaries.
+- Inputs: FLAIR/anatomical derivatives.
+- Outputs: Metric tables.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Review generated summaries.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `flair-outliers.sh`
+- Status: Optional anatomical QC helper.
+- Purpose: Identify FLAIR metric outliers.
+- Inputs: FLAIR metric tables.
+- Outputs: Outlier summaries.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Review generated summaries.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `flair-outliers.txt`
+- Status: Optional anatomical QC artifact.
+- Purpose: Store FLAIR outlier notes or IDs used by helper scripts.
+- Inputs: Manual/QC review.
+- Outputs: Text list.
+- Typical command: not executable.
+- Checker: Manual review.
+- Notes: Keep separate from routine fMRI production decisions.
+
+### `flair_to_mni_flirt.py`
+- Status: Optional anatomical QC helper.
+- Purpose: Register FLAIR-derived data to MNI with FLIRT-style transforms.
+- Inputs: FLAIR images, references, and transform settings.
+- Outputs: MNI-space FLAIR derivatives.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Visual/anatomical QC.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `voxel-count-L1.sh`
+- Status: Optional anatomical QC helper.
+- Purpose: Count voxels for L1/anatomical masks.
+- Inputs: Mask files.
+- Outputs: Voxel-count summaries.
+- Typical command: run only for anatomical QC workflows.
+- Checker: Review generated summaries.
+- Notes: Not part of the routine fMRI preprocessing path.
+
+### `README.md`
+- Status: Documentation.
+- Purpose: Explain this code directory and production workflow.
+- Inputs: Maintainer edits.
+- Outputs: Operator documentation.
+- Typical command: read before running production stages.
+- Checker: `make test` README-path checks.
+- Notes: Keep aligned with the top-level README and `rf1-dwi`.
 
 ## Batch Operation
 
@@ -99,26 +470,34 @@ The standard stage commands use `sublist-new.txt` by default:
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
-bash run_prepdata.sh --dry-run
-bash run_mriqc.sh --dry-run
-bash run_warpkit.sh --dry-run
-python3 addIntendedFor.py --dry-run
-bash run_fmriprep.sh --dry-run
-bash run_tedana.sh --dry-run
-python3 genTedanaConfounds.py --sublist sublist-new.txt --dry-run
+SUBLIST=sublist-new.txt
+PREP_JOBS=6
+MRIQC_JOBS=10
+WARPKIT_JOBS=8
+FMRIPREP_JOBS=2
+TEDANA_JOBS=8
+
+bash run_prepdata.sh --sublist "$SUBLIST" --jobs "$PREP_JOBS" --dry-run
+bash run_mriqc.sh --sublist "$SUBLIST" --jobs "$MRIQC_JOBS" --dry-run
+bash run_warpkit.sh --sublist "$SUBLIST" --jobs "$WARPKIT_JOBS" --dry-run
+python3 addIntendedFor.py --sublist "$SUBLIST" --dry-run
+bash run_fmriprep.sh --sublist "$SUBLIST" --jobs "$FMRIPREP_JOBS" --dry-run
+bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS" --dry-run
+python3 genTedanaConfounds.py --sublist "$SUBLIST" --dry-run
 ```
 
 Remove `--dry-run` after reviewing the planned commands. Use `--sublist FILE`
-only for an exceptional review or recovery run.
+only for an exceptional review, recovery run, or intentionally separate
+validation list.
 
 After each real stage, run the corresponding completion check:
 
 ```bash
-bash check_bids.sh
-bash check_mriqc.sh
-bash check_warpkit.sh
-bash check_fmriprep.sh
-bash check_tedana.sh
+bash check_bids.sh --sublist "$SUBLIST"
+bash check_mriqc.sh --sublist "$SUBLIST"
+bash check_warpkit.sh --sublist "$SUBLIST"
+bash check_fmriprep.sh --sublist "$SUBLIST"
+bash check_tedana.sh --sublist "$SUBLIST"
 ```
 
 Each check exits nonzero when expected files are missing and prints a final
@@ -157,17 +536,15 @@ bash run_logged.sh --label fmriprep-check -- \
 
 The pipeline assumes the standard Smith Lab Linux2 source-data and tool layout.
 Operators should not edit paths for routine runs. The project root is derived
-from the checkout location, which allows a separate validation clone such as
-`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` or
-`/ZPOOL/data/projects/rf1-sra-linux2-jacob` to write to its own `bids/`,
-`derivatives/`, and `logs/` directories while reading the same source DICOMs
-and containers.
+from the checkout location. Production should run from
+`/ZPOOL/data/projects/rf1-sra-linux2`; an intentional validation clone can
+still write to its own `bids/`, `derivatives/`, and `logs/` directories while
+reading the same source DICOMs and containers.
 
 | Item | Path |
 | --- | --- |
 | Production checkout | `/ZPOOL/data/projects/rf1-sra-linux2` |
-| Recent validation checkout | `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` |
-| Other validation checkout example | `/ZPOOL/data/projects/rf1-sra-linux2-jacob` |
+| Historical validation checkout | `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` |
 | Source DICOMs | `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` |
 | Scratch | `/ZPOOL/data/scratch` |
 | Tool/container directory | `/ZPOOL/data/tools` |
@@ -177,6 +554,18 @@ and containers.
 | Warpkit | `/ZPOOL/data/tools/warpkit.sif` |
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
+
+## Choosing `--jobs`
+
+Start with the defaults unless Linux2 is busy or a stage is being debugged:
+predata uses 6 subject/session jobs, MRIQC uses 10 subject/session jobs,
+Warpkit uses 8 subject/session/task/run jobs, fMRIPrep uses 2 subject jobs, and
+TEDANA uses 8 subject jobs. Each wrapper prints its subject list and job plan
+before launching.
+
+Use `--jobs 1` when isolating a failure. Raise concurrency only when the dry-run
+and first real subject look healthy, and avoid stacking multiple heavy stages at
+high concurrency.
 
 ## fMRIPrep Resource Use
 
@@ -249,7 +638,7 @@ Run cohort-level MRIQC and metric/outlier summaries only after the full
 participant batch has completed participant-level MRIQC. This follows the R21
 resting-state workflow pattern: participant MRIQC first, the MRIQC group report
 afterward, then run/subject metric summaries and outlier review. Do not treat
-`extract-metrics.py` output as a routine new-subject smoke-test requirement.
+`extract-metrics.py` output as a routine new-subject validation requirement.
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
@@ -289,35 +678,39 @@ heuristic selection around the preserved March 4 cutoff, IntendedFor generation
 for present/missing runs, atomic metadata writes, unsafe path refusal, Warpkit
 input manifests, and fMRIPrep/TEDANA completion checks.
 
-## Jacob's Linux2 Validation Checklist
+## Linux2 Validation Checklist
 
-Before this branch can merge, Jacob should:
+Use this checklist for any future workflow change or separate validation clone:
 
-1. Clone or switch to `codex/repo-cleanup-validation` on Linux2.
-2. Confirm the production `main` checkout remains untouched.
-3. Create a separate scratch test workspace.
-4. Record the branch commit SHA and container versions.
-5. Select a minimal representative set: one pre-upgrade ses-01 case, one post-upgrade ses-01 case, one ses-02 subject, and one intentionally absent task/run when available. Prefer overlap with the `rf1-dwi` smoke subjects, such as `10317` and `10953`, when they cover these needs.
-6. Run every stage first with `--dry-run` or validation mode.
-7. Run actual processing only in the scratch workspace.
-8. Compare outputs with trusted production outputs when available.
-9. Record every command, exit code, and unexpected warning.
-10. Confirm raw DICOM source data were not changed.
-11. Confirm no existing production BIDS or derivatives were removed except where `--overwrite` was intentionally used.
-12. Run the BIDS validator after conversion and fieldmap metadata changes.
-13. Verify expected subject/session/task/run coverage.
-14. Confirm all `IntendedFor` paths resolve to existing BOLD files.
-15. Confirm fieldmap units and metadata.
-16. Confirm fMRIPrep reports, expected session-level outputs, fsLR CIFTI outputs, and `derivatives/freesurfer/sub-*/scripts/recon-all.done`.
-17. Confirm TEDANA denoised outputs, mixing matrices, and metrics files.
-18. Confirm confound row counts match the corresponding BOLD time series.
-19. Confirm MRIQC participant outputs exist for the validation subjects.
-20. Defer `mriqc_group.sh`, `extract-metrics.py`, and run/subject outlier review until the full participant batch is complete.
-21. Run `make test`.
-22. Leave a PR comment with the commit SHA tested, subjects/sessions tested, stages tested, pass/fail result, discrepancies, and merge/request-changes recommendation.
-
-The branch should remain draft until this checklist is complete and David
-approves the pull request.
+1. Record the commit SHA, checkout path, and container versions.
+2. Keep the production `main` checkout protected unless the operator has
+   intentionally chosen to run from it.
+3. Select a minimal representative set: one pre-upgrade `ses-01` case, one
+   post-upgrade `ses-01` case, one `ses-02` subject, and one intentionally
+   absent task/run when available. Prefer overlap with the `rf1-dwi` validation
+   subjects, such as `10317` and `10953`, when they cover these needs.
+4. Store the validation list under `logs/validation/` or another review-only
+   location rather than replacing `sublist-new.txt`.
+5. Run every stage first with `--dry-run` or validation mode.
+6. Compare outputs with trusted production outputs when available.
+7. Record every command, exit code, and unexpected warning.
+8. Confirm raw DICOM source data were not changed.
+9. Confirm no existing production BIDS or derivatives were removed except where
+   `--overwrite` was intentionally used.
+10. Run the BIDS validator after conversion and fieldmap metadata changes.
+11. Verify expected subject/session/task/run coverage.
+12. Confirm all `IntendedFor` paths resolve to existing BOLD files.
+13. Confirm fieldmap units and metadata.
+14. Confirm fMRIPrep reports, expected session-level outputs, fsLR CIFTI
+   outputs, and `derivatives/freesurfer/sub-*/scripts/recon-all.done`.
+15. Confirm TEDANA denoised outputs, mixing matrices, and metrics files.
+16. Confirm confound row counts match the corresponding BOLD time series.
+17. Confirm MRIQC participant outputs exist for the validation subjects.
+18. Defer `mriqc_group.sh`, `extract-metrics.py`, and run/subject outlier
+   review until the full participant batch is complete.
+19. Run `make test`.
+20. Document the commit SHA tested, subjects/sessions tested, stages tested,
+   pass/fail result, and discrepancies.
 
 ## Still To Confirm
 

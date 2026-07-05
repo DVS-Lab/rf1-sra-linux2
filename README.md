@@ -15,21 +15,21 @@ NIfTI images, fMRIPrep derivatives, TEDANA outputs, MRIQC reports, scheduler
 logs, temporary files, generated metrics, and the generated `bids/` tree are
 intentionally excluded from version control.
 
-Production processing should occur on Smith Lab Linux2. Common checkout paths
-include the production project and separate validation clones, for example:
+Production processing should occur on Smith Lab Linux2 from the production
+checkout:
 
 ```bash
 /ZPOOL/data/projects/rf1-sra-linux2
-/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test
 ```
 
 The scripts derive `PROJECT_ROOT` from the checkout that is running them, so a
-validation clone writes to its own `bids/`, `derivatives/`, and `logs/` trees.
-Do not hard-code one project root into wrappers or downstream commands.
+separate validation clone can still write to its own `bids/`, `derivatives/`,
+and `logs/` trees when one is intentionally created. Do not hard-code one
+project root into wrappers or downstream commands.
 
-Do not run destructive production processing from an unreviewed branch. This
-cleanup branch is repository-tested only and still requires Jacob's Linux2
-integration validation before merge.
+Do not run destructive production processing from unreviewed local edits. Use
+`--dry-run` first, keep logs, and require an explicit operator decision before
+using `--overwrite`.
 
 ## Relationship To rf1-dwi
 
@@ -39,18 +39,17 @@ FreeSurfer subjects, and fsLR CIFTI outputs that `rf1-dwi` may consume for
 QSIPrep/QSIRecon.
 
 `rf1-dwi` should not duplicate BIDS, fMRIPrep, or FreeSurfer outputs. Instead,
-point the DWI repo at the validated Linux2 checkout for this repo. Depending on
-which checkout Jacob has validated, those paths may look like either of these:
+point the DWI repo at the production Linux2 checkout for this repo:
 
 ```bash
 BIDS_ROOT=/ZPOOL/data/projects/rf1-sra-linux2/bids
 FMRIPREP_DERIVATIVES_DIR=/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep
 FREESURFER_SUBJECTS_DIR=/ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurfer
-
-BIDS_ROOT=/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/bids
-FMRIPREP_DERIVATIVES_DIR=/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/fmriprep
-FREESURFER_SUBJECTS_DIR=/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test/derivatives/freesurfer
 ```
+
+Historical validation checkouts such as
+`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` may still appear in old
+logs and run records, but they are not the production defaults.
 
 ## Repository Layout
 
@@ -80,8 +79,8 @@ clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 
 The script comments historically said the scanner-upgrade heuristic cutoff was
 March 18, 2025, while the code has used March 4, 2025 since the first Linux2
-commit. This cleanup preserves the March 4 behavior and flags the discrepancy
-for Jacob to confirm during Linux2 validation.
+commit. The production workflow preserves the March 4 behavior until David or
+Jacob confirms a scientific correction.
 
 ## Pipeline Map
 
@@ -116,28 +115,41 @@ Quick start on Linux2:
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
-# Update this file for each new batch, then run the standard commands.
 vim sublist-new.txt
+SUBLIST=sublist-new.txt
+PREP_JOBS=6
+MRIQC_JOBS=10
+WARPKIT_JOBS=8
+FMRIPREP_JOBS=2
+TEDANA_JOBS=8
+
 python3 downloadXNAT.py
-bash run_prepdata.sh --dry-run
-bash run_prepdata.sh
-bash check_bids.sh
-bash run_mriqc.sh --dry-run
-bash run_mriqc.sh
-bash check_mriqc.sh
-bash run_warpkit.sh --dry-run
-bash run_warpkit.sh
-bash check_warpkit.sh
-python3 addIntendedFor.py --dry-run
-python3 addIntendedFor.py
-bash run_fmriprep.sh --dry-run
-bash run_fmriprep.sh
-bash check_fmriprep.sh
-bash run_tedana.sh --dry-run
-bash run_tedana.sh
-bash check_tedana.sh
-python3 genTedanaConfounds.py --sublist sublist-new.txt --dry-run
-python3 genTedanaConfounds.py --sublist sublist-new.txt
+
+bash run_prepdata.sh --sublist "$SUBLIST" --jobs "$PREP_JOBS" --dry-run
+bash run_prepdata.sh --sublist "$SUBLIST" --jobs "$PREP_JOBS"
+bash check_bids.sh --sublist "$SUBLIST"
+
+bash run_mriqc.sh --sublist "$SUBLIST" --jobs "$MRIQC_JOBS" --dry-run
+bash run_mriqc.sh --sublist "$SUBLIST" --jobs "$MRIQC_JOBS"
+bash check_mriqc.sh --sublist "$SUBLIST"
+
+bash run_warpkit.sh --sublist "$SUBLIST" --jobs "$WARPKIT_JOBS" --dry-run
+bash run_warpkit.sh --sublist "$SUBLIST" --jobs "$WARPKIT_JOBS"
+bash check_warpkit.sh --sublist "$SUBLIST"
+
+python3 addIntendedFor.py --sublist "$SUBLIST" --dry-run
+python3 addIntendedFor.py --sublist "$SUBLIST"
+
+bash run_fmriprep.sh --sublist "$SUBLIST" --jobs "$FMRIPREP_JOBS" --dry-run
+bash run_fmriprep.sh --sublist "$SUBLIST" --jobs "$FMRIPREP_JOBS"
+bash check_fmriprep.sh --sublist "$SUBLIST"
+
+bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS" --dry-run
+bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS"
+bash check_tedana.sh --sublist "$SUBLIST"
+
+python3 genTedanaConfounds.py --sublist "$SUBLIST" --dry-run
+python3 genTedanaConfounds.py --sublist "$SUBLIST"
 ```
 
 `--dry-run` means print or validate the planned work before launching the heavy
@@ -151,6 +163,20 @@ new batch. It is a plain text file with one subject per line. Blank lines and
 comments beginning with `#` are ignored, and either `10001` or `sub-10001`
 forms are accepted by the wrappers. Scripts should not need edits for routine
 new-batch processing.
+
+## Choosing `--jobs`
+
+Start conservatively when the Linux2 load is unknown, then raise `--jobs` only
+after the dry-run and the first real subject look healthy. Current defaults are
+`run_prepdata.sh --jobs 6`, `run_mriqc.sh --jobs 10`,
+`run_warpkit.sh --jobs 8`, `run_fmriprep.sh --jobs 2`, and
+`run_tedana.sh --jobs 8`. The wrappers print their job plan before launching.
+
+fMRIPrep is the tightest stage: `run_fmriprep.sh --jobs N` splits a fixed
+Linux2 budget of 96 CPU threads and 196000 MB RAM across simultaneous subjects.
+Use `--jobs 1` for debugging, keep the default `--jobs 2` for normal production
+unless Linux2 is quiet and the operator intentionally raises it, and avoid
+mixing high fMRIPrep concurrency with other heavy container stages.
 
 ## Sessions And Expected Absences
 
@@ -170,13 +196,14 @@ Doors generally lack run 2, so the wrappers and checkers expect run 1 only.
 Some participants may intentionally lack a task or run; validation notes should
 say whether an absence is expected or requires investigation.
 
-For Linux2 smoke validation, prefer subjects that overlap with the `rf1-dwi`
-smoke subjects, such as `10317` and `10953`, when they cover useful fMRI data.
-Because this repository must validate multi-session behavior, Jacob's final
-test set should also include at least one `ses-01`, at least one `ses-02`, at
-least one intentionally absent task/run, and ideally one pre-upgrade and one
-post-upgrade scanner/heuristic case if available. Keep that validation list as
-a review artifact; do not make it a production default unless David asks.
+For a small Linux2 validation list, prefer subjects that overlap with the
+`rf1-dwi` validation subjects, such as `10317` and `10953`, when they cover
+useful fMRI data. Because this repository must validate multi-session behavior,
+the validation set should also include at least one `ses-01`, at least one
+`ses-02`, at least one intentionally absent task/run, and ideally one
+pre-upgrade and one post-upgrade scanner/heuristic case if available. Keep that
+validation list under `logs/validation/` or another review-only location; do
+not make it a production default unless David asks.
 
 ## Safety And Reruns
 
@@ -219,8 +246,8 @@ still require visual and scientific review on Linux2.
 
 Run cohort-level MRIQC and metric/outlier summaries only after the full
 participant batch has completed participant-level MRIQC. Do not use these
-summaries as part of routine new-subject smoke validation, because outlier
-thresholds are only meaningful when the cohort is present.
+summaries as part of routine new-subject validation, because outlier thresholds
+are only meaningful when the cohort is present.
 
 The group report follows the same pattern as the R21 resting-state workflow:
 participant MRIQC first, group MRIQC second, then run/subject metric summaries
@@ -275,14 +302,15 @@ validation, and a small temporary-file hygiene check.
 
 ## Development Workflow
 
-Do not modify `main` directly. Create a branch from `origin/main`, commit small
-coherent changes, push the branch, and open a draft pull request. The PR must
-remain a draft until Jacob validates the revised workflow on Linux2 and David
-approves it.
+Keep production changes small and coherent. For ordinary development, create a
+branch from `origin/main`, commit focused changes, push the branch, and open a
+pull request. When maintainers intentionally work directly on `main`, use the
+same discipline: inspect the diff, run `make test`, and push only reviewed
+documentation or code changes.
 
 Historical repository size may still reflect previously tracked derivatives and
-logs. This cleanup removes current tracked generated files only. Any history
-rewrite would need a separate, coordinated `git filter-repo` plan.
+logs. Current generated imaging outputs stay ignored. Any history rewrite would
+need a separate, coordinated `git filter-repo` plan.
 
 ## Outside Users And OpenNeuro
 
