@@ -45,6 +45,12 @@ while IFS= read -r sub; do
       runs=(1 2)
       [[ "$task" == "doors" || "$task" == "socialdoors" ]] && runs=(1)
       for run in "${runs[@]}"; do
+        stem="sub-${sub}_ses-${ses}_task-${task}_run-${run}"
+        bids_input="${PROJECT_ROOT}/bids/sub-${sub}/ses-${ses}/func/${stem}_echo-1_part-mag_bold.nii.gz"
+        if [[ ! -f "$bids_input" ]]; then
+          echo "SKIP sub-${sub} ses-${ses} task-${task} run-${run}: no BIDS echo-1 magnitude input"
+          continue
+        fi
         checked=$((checked + 1))
         if ! python3 "${SCRIPT_DIR}/check_pipeline_state.py" tedana-complete "${PROJECT_ROOT}/derivatives" "$sub" "$ses" "$task" "$run"; then
           echo "sub-${sub} ses-${ses} task-${task} run-${run}: incomplete TEDANA outputs"

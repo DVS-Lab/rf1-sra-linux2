@@ -4,6 +4,30 @@ All repository scripts live in this directory. Routine batch processing should
 not require editing scripts: update `sublist-new.txt`, then run the standard
 stage commands below.
 
+## Upstream/Downstream Boundary
+
+`rf1-sra-linux2` runs before `rf1-dwi`. This repository owns the shared RF1-SRA
+BIDS dataset plus fMRIPrep, FreeSurfer, CIFTI, TEDANA, MRIQC, and metric
+derivatives. The DWI repository should consume those validated outputs for
+QSIPrep/QSIRecon instead of copying or regenerating them.
+
+The dependency map is:
+
+```text
+Raw DICOMs / XNAT
+  -> rf1-sra-linux2 BIDS conversion
+  -> rf1-sra-linux2 Warpkit / IntendedFor
+  -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
+  -> rf1-sra-linux2 TEDANA / MRIQC / metrics
+  -> rf1-dwi QSIPrep / QSIRecon
+```
+
+Downstream paths should point at the Linux2 checkout Jacob validated, such as
+`/ZPOOL/data/projects/rf1-sra-linux2` or a separate validation checkout like
+`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test`. Scripts in this repo
+derive `PROJECT_ROOT` from the checkout location so they can run safely from
+either path.
+
 ## Canonical Pipeline
 
 | Order | Entry point | Worker/helper | Inputs | Outputs | Side effects |
@@ -107,13 +131,31 @@ bash run_logged.sh --label fmriprep -- \
 ```
 
 The raw output goes to ignored `logs/runs/`; the compact Markdown record goes
-to tracked `logs/records/`.
+to tracked `logs/records/`. The `--` marker means `run_logged.sh` options stop
+there and the real command starts after it. The optional `--check` marker starts
+a checker command that runs only after the main command succeeds. Without a
+checker the record says `Check exit: none`; if the main command fails, the check
+is skipped and the record says `Check exit: skipped`. Use
+`--include-full-log` only for small successful diagnostic commands whose full
+terminal output belongs in the Markdown record.
+
+For new users, the clearest pattern is often to log the run and the checker as
+two separate commands:
+
+```bash
+bash run_logged.sh --label fmriprep-run -- \
+  bash run_fmriprep.sh --sublist "$SUBLIST" --jobs 3
+
+bash run_logged.sh --label fmriprep-check -- \
+  bash check_fmriprep.sh --sublist "$SUBLIST"
+```
 
 ## Linux2 Paths
 
 The pipeline assumes the standard Smith Lab Linux2 source-data and tool layout.
 Operators should not edit paths for routine runs. The project root is derived
 from the checkout location, which allows a separate validation clone such as
+`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` or
 `/ZPOOL/data/projects/rf1-sra-linux2-jacob` to write to its own `bids/`,
 `derivatives/`, and `logs/` directories while reading the same source DICOMs
 and containers.
@@ -121,7 +163,8 @@ and containers.
 | Item | Path |
 | --- | --- |
 | Production checkout | `/ZPOOL/data/projects/rf1-sra-linux2` |
-| Example validation checkout | `/ZPOOL/data/projects/rf1-sra-linux2-jacob` |
+| Recent validation checkout | `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` |
+| Other validation checkout example | `/ZPOOL/data/projects/rf1-sra-linux2-jacob` |
 | Source DICOMs | `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` |
 | Scratch | `/ZPOOL/data/scratch` |
 | Tool/container directory | `/ZPOOL/data/tools` |
@@ -154,6 +197,24 @@ live `bids/` tree free of non-BIDS backup folders.
 `warpkit.sh` deletes only explicit generated fieldmap outputs when
 `--overwrite` is supplied.
 
+## Session And Task Rules
+
+The current session/task/run rules are centralized in `pipeline_utils.py` and
+covered by tests. Preserve these rules unless David or Jacob confirms a
+scientific correction:
+
+| Session | Tasks | Runs |
+| --- | --- | --- |
+| `ses-01` | `ugr`, `trust`, `sharedreward`, `doors`, `socialdoors` | UGR/Trust/Shared Reward runs 1-2; Doors/Social Doors run 1 |
+| `ses-02` | `ugr`, `doors`, `socialdoors` | UGR runs 1-2; Doors/Social Doors run 1 |
+
+`run_prepdata.sh` and `run_mriqc.sh` try `ses-01` and `ses-02` for each subject;
+optional missing `ses-02` source data are reported as skips. Warpkit and TEDANA
+iterate the expected task/run set for each existing BIDS session and skip
+task/runs that have no BIDS echo input. The checkers should therefore report
+what they skipped and fail only when an expected output is missing for an
+available input.
+
 ## Expected Outputs
 
 Predata/HeuDiConv should create `bids/sub-<id>/ses-<ses>/`, BIDS metadata,
@@ -174,8 +235,19 @@ preprocessed echo and confounds files, a completed FreeSurfer subject under
 has BOLD inputs. FreeSurfer/CIFTI generation makes fMRIPrep slower than the
 previous volume-only run, but creates derivatives that a separate DWI workflow
 can reuse later. TEDANA completion checks look for denoised BOLD, mixing matrix,
-and metrics files. These checks are operational completion checks, not
-scientific validation.
+and metrics files for task/runs that have BIDS echo inputs. These checks are
+operational completion checks, not scientific validation.
+
+## Failure Reports
+
+When something fails, send David or Jacob:
+
+1. The exact command.
+2. The newest Markdown file in `logs/records/`.
+3. Whether `Command exit` and `Check exit` are 0.
+4. The first `CHECK FAILED`, `ERROR`, or missing-file line.
+5. The expected subject/session/task/run coverage, especially whether `ses-02`
+   or a missing task/run was supposed to be present.
 
 ## Tests
 
@@ -198,7 +270,7 @@ Before this branch can merge, Jacob should:
 2. Confirm the production `main` checkout remains untouched.
 3. Create a separate scratch test workspace.
 4. Record the branch commit SHA and container versions.
-5. Select a minimal representative set: one pre-upgrade ses-01 case, one post-upgrade ses-01 case, one ses-02 subject, and one intentionally absent task/run when available.
+5. Select a minimal representative set: one pre-upgrade ses-01 case, one post-upgrade ses-01 case, one ses-02 subject, and one intentionally absent task/run when available. Prefer overlap with the `rf1-dwi` smoke subjects, such as `10317` and `10953`, when they cover these needs.
 6. Run every stage first with `--dry-run` or validation mode.
 7. Run actual processing only in the scratch workspace.
 8. Compare outputs with trusted production outputs when available.
