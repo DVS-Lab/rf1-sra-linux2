@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from pipeline_utils import read_subject_list
+
 
 DESIRED_FMRIPREP_COLUMNS = [
     "a_comp_cor_00",
@@ -74,20 +76,31 @@ def atomic_write_tsv(df: pd.DataFrame, path: Path) -> None:
     tmp.replace(path)
 
 
+def subject_filter_from_sublist(sublist: Path | None) -> set[str] | None:
+    if sublist is None:
+        return None
+    return {f"sub-{sub}" for sub in read_subject_list(sublist)}
+
+
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fmriprep-dir", type=Path, default=repo_root / "derivatives" / "fmriprep")
     parser.add_argument("--tedana-dir", type=Path, default=repo_root / "derivatives" / "tedana")
     parser.add_argument("--output-dir", type=Path, default=repo_root / "derivatives" / "fsl" / "confounds_tedana")
+    parser.add_argument("--sublist", type=Path, help="Optional subject list limiting which TEDANA outputs are processed.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     metric_files = sorted(args.tedana_dir.rglob("*_desc-tedana_metrics.tsv"))
+    allowed_subjects = subject_filter_from_sublist(args.sublist)
     failures = 0
+    processed = 0
     for metric_file in metric_files:
         parsed = parse_metric_file(metric_file)
         sub = parsed["sub"]
+        if allowed_subjects is not None and sub not in allowed_subjects:
+            continue
         ses = parsed["ses"]
         task = parsed["task"]
         run = parsed["run"]
@@ -109,12 +122,14 @@ def main() -> int:
 
         missing = [p for p in [mixing_file, fmriprep_file] if not p.exists()]
         if missing:
+            processed += 1
             failures += 1
             print(f"Missing confound input for {sub} ses-{ses} task-{task} run-{run}:")
             for path in missing:
                 print(f"  {path}")
             continue
 
+        processed += 1
         print(f"Making confounds: {sub} ses-{ses} task-{task} run-{run} -> {out_file}")
         if args.dry_run:
             continue
@@ -125,6 +140,7 @@ def main() -> int:
             failures += 1
             print(f"Failed {sub} ses-{ses} task-{task} run-{run}: {exc}")
 
+    print(f"Processed {processed} TEDANA metric file(s).")
     return 1 if failures else 0
 
 
