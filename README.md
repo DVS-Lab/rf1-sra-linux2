@@ -47,9 +47,9 @@ FMRIPREP_DERIVATIVES_DIR=/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmripre
 FREESURFER_SUBJECTS_DIR=/ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurfer
 ```
 
-Historical validation checkouts such as
-`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` may still appear in old
-logs and run records, but they are not the production defaults.
+Historical validation checkout names are documented in
+[validation history](docs/archive/validation-history.md), but they are not the
+production defaults.
 
 ## Repository Layout
 
@@ -61,26 +61,6 @@ logs and run records, but they are not the production defaults.
 | `tests/` | Synthetic pytest coverage for parsing, path generation, safety checks, and completion checks. |
 
 See `code/README.md` for the detailed implementation manual.
-
-## Software
-
-The shared Linux2 source-data and tool paths are fixed in `code/pipeline_common.sh`.
-The project root is derived from the checkout location so a separate validation
-clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
-
-| Tool | Default image/location |
-| --- | --- |
-| HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
-| MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
-| fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
-| Warpkit | `/ZPOOL/data/tools/warpkit.sif` |
-| TemplateFlow | `/ZPOOL/data/tools/templateflow` |
-| FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
-
-The script comments historically said the scanner-upgrade heuristic cutoff was
-March 18, 2025, while the code has used March 4, 2025 since the first Linux2
-commit. The production workflow preserves the March 4 behavior until David or
-Jacob confirms a scientific correction.
 
 ## Pipeline Map
 
@@ -110,6 +90,86 @@ flowchart TD
   H --> I["Group MRIQC and cohort QC metrics"]
   E --> J["rf1-dwi consumes shared BIDS/fMRIPrep/FreeSurfer"]
 ```
+
+## Standard Paths
+
+The shared Linux2 source-data and tool paths are fixed in `code/pipeline_common.sh`.
+The project root is derived from the checkout location so a separate validation
+clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
+
+| Item | Path |
+| --- | --- |
+| Production checkout | `/ZPOOL/data/projects/rf1-sra-linux2` |
+| Production BIDS root | `/ZPOOL/data/projects/rf1-sra-linux2/bids` |
+| Production fMRIPrep derivatives | `/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep` |
+| Production FreeSurfer subjects | `/ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurfer` |
+| Source DICOMs | `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` |
+| Scratch | `/ZPOOL/data/scratch` |
+| Tool/container directory | `/ZPOOL/data/tools` |
+| TemplateFlow | `/ZPOOL/data/tools/templateflow` |
+| FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
+
+| Tool | Default image/location |
+| --- | --- |
+| HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
+| MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
+| fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
+| Warpkit | `/ZPOOL/data/tools/warpkit.sif` |
+| TemplateFlow | `/ZPOOL/data/tools/templateflow` |
+| FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
+
+The script comments historically said the scanner-upgrade heuristic cutoff was
+March 18, 2025, while the code has used March 4, 2025 since the first Linux2
+commit. The production workflow preserves the March 4 behavior until David or
+Jacob confirms a scientific correction.
+
+## Subject Lists
+
+Use subject lists in this order:
+
+| Level | Purpose | Normal location |
+| --- | --- | --- |
+| Full production/cohort list | Run cohort-level MRIQC, metrics, and final completeness checks after all intended participants are present. | Lab-maintained full cohort list for final batch review. |
+| New-batch list | Run newly available participants through the modular fMRI/data-management stages. | `code/sublist-new.txt` |
+| Small validation list | Validate a workflow change with representative subjects before production use. | Local operator list, commonly under `logs/validation/` |
+
+`code/sublist-new.txt` is the only file operators should normally edit for a
+new incoming batch. It is a plain text file with one subject per line. Blank
+lines and comments beginning with `#` are ignored, and either `10001` or
+`sub-10001` forms are accepted by the wrappers. Scripts should not need edits
+for routine new-batch processing.
+
+For a small validation run, keep a separate review-only list and pass it with
+`--sublist`:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+mkdir -p logs/validation
+printf '10317\n10953\n' > logs/validation/sublist-fmri-validation.txt
+
+cd code
+SUBLIST=../logs/validation/sublist-fmri-validation.txt
+```
+
+For full-cohort MRIQC and metric review, replace `sublist-new.txt` in the
+examples with the lab-maintained full cohort list. Do not make a tiny
+validation list or a new-batch list look like the final cohort list.
+
+## Choosing `--jobs`
+
+Start conservatively when the Linux2 load is unknown, then raise `--jobs` only
+after the dry-run and the first real subject look healthy. Current defaults are
+`run_prepdata.sh --jobs 6`, `run_mriqc.sh --jobs 10`,
+`run_warpkit.sh --jobs 8`, `run_fmriprep.sh --jobs 2`, and
+`run_tedana.sh --jobs 8`. The wrappers print their job plan before launching.
+
+fMRIPrep is the tightest stage: `run_fmriprep.sh --jobs N` splits a fixed
+Linux2 budget of 96 CPU threads and 196000 MB RAM across simultaneous subjects.
+Use `--jobs 1` for debugging, keep the default `--jobs 2` for normal production
+unless Linux2 is quiet and the operator intentionally raises it, and avoid
+mixing high fMRIPrep concurrency with other heavy container stages.
+
+## Everyday Use
 
 Quick start on Linux2:
 
@@ -158,26 +218,6 @@ list instead of `code/sublist-new.txt`. `--jobs N` controls how many
 subject-level jobs run at once; fMRIPrep also divides its CPU and memory budget
 across those jobs.
 
-`code/sublist-new.txt` is the only file operators should normally edit for a
-new batch. It is a plain text file with one subject per line. Blank lines and
-comments beginning with `#` are ignored, and either `10001` or `sub-10001`
-forms are accepted by the wrappers. Scripts should not need edits for routine
-new-batch processing.
-
-## Choosing `--jobs`
-
-Start conservatively when the Linux2 load is unknown, then raise `--jobs` only
-after the dry-run and the first real subject look healthy. Current defaults are
-`run_prepdata.sh --jobs 6`, `run_mriqc.sh --jobs 10`,
-`run_warpkit.sh --jobs 8`, `run_fmriprep.sh --jobs 2`, and
-`run_tedana.sh --jobs 8`. The wrappers print their job plan before launching.
-
-fMRIPrep is the tightest stage: `run_fmriprep.sh --jobs N` splits a fixed
-Linux2 budget of 96 CPU threads and 196000 MB RAM across simultaneous subjects.
-Use `--jobs 1` for debugging, keep the default `--jobs 2` for normal production
-unless Linux2 is quiet and the operator intentionally raises it, and avoid
-mixing high fMRIPrep concurrency with other heavy container stages.
-
 ## Sessions And Expected Absences
 
 Many RF1-SRA participants have both `ses-01` and `ses-02`. The production
@@ -205,7 +245,7 @@ pre-upgrade and one post-upgrade scanner/heuristic case if available. Keep that
 validation list under `logs/validation/` or another review-only location; do
 not make it a production default unless David asks.
 
-## Safety And Reruns
+## Advanced: Logged Runs
 
 Use `--dry-run` first for pipeline stages that support it. `prepdata.sh` runs
 HeuDiConv into scratch first, validates that a new BIDS session exists there,
@@ -282,12 +322,17 @@ Look for these signals:
   newest Markdown record under `logs/records/`, then the matching raw log under
   `logs/runs/`.
 
+## Before Asking For Help
+
 When asking David or Jacob for help, send the command, the newest
 `logs/records/*.md` file, whether `Command exit` and `Check exit` are 0, the
 first `CHECK FAILED` or error line, and whether the case was expected to have
 `ses-01`, `ses-02`, and the task/run being checked.
 
-## Testing
+## More Details
+
+- [Code manual](code/README.md)
+- [Validation history](docs/archive/validation-history.md)
 
 Repository-level checks do not require real imaging data or neuroimaging
 containers:

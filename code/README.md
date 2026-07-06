@@ -25,9 +25,9 @@ Raw DICOMs / XNAT
 ```
 
 Downstream paths should point at the production Linux2 checkout:
-`/ZPOOL/data/projects/rf1-sra-linux2`. Historical validation checkouts such as
-`/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` may appear in old logs,
-but they are not production defaults. Scripts in this repo derive
+`/ZPOOL/data/projects/rf1-sra-linux2`. Historical validation checkout names are
+documented in `docs/archive/validation-history.md`, but they are not production
+defaults. Scripts in this repo derive
 `PROJECT_ROOT` from the checkout location so an intentional validation clone
 can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 
@@ -544,7 +544,6 @@ reading the same source DICOMs and containers.
 | Item | Path |
 | --- | --- |
 | Production checkout | `/ZPOOL/data/projects/rf1-sra-linux2` |
-| Historical validation checkout | `/ZPOOL/data/projects/rf1-sra-linux2-heudiconv14-test` |
 | Source DICOMs | `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` |
 | Scratch | `/ZPOOL/data/scratch` |
 | Tool/container directory | `/ZPOOL/data/tools` |
