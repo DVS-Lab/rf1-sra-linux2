@@ -49,10 +49,10 @@ if [[ ! -d "${bidsdir}/sub-${sub}/ses-${ses}" ]]; then
   exit 0
 fi
 
-export SINGULARITYENV_TEMPLATEFLOW_HOME=/opt/templateflow
+export APPTAINERENV_TEMPLATEFLOW_HOME=/opt/templateflow
 
 cmd=(
-  singularity run --cleanenv
+  apptainer run --cleanenv
   -B "${TEMPLATEFLOW_HOME}:/opt/templateflow"
   -B "${bidsdir}:/data"
   -B "${outdir}:/out"

@@ -72,7 +72,7 @@ export APPTAINERENV_TEMPLATEFLOW_HOME=/opt/templateflow
 export APPTAINERENV_MPLCONFIGDIR=/opt/mplconfigdir
 
 cmd=(
-  singularity run --cleanenv
+  apptainer run --cleanenv
   -B "${TEMPLATEFLOW_HOME}:/opt/templateflow"
   -B "${MPLCONFIGDIR_HOST}:/opt/mplconfigdir"
   -B "${PROJECT_ROOT}:/base"
