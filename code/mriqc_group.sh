@@ -34,10 +34,10 @@ bidsdir="${PROJECT_ROOT}/bids"
 outdir="${PROJECT_ROOT}/derivatives/mriqc"
 scratch="${SCRATCH_ROOT}/$(whoami)/mriqc-group"
 
-export SINGULARITYENV_TEMPLATEFLOW_HOME=/opt/templateflow
+export APPTAINERENV_TEMPLATEFLOW_HOME=/opt/templateflow
 
 cmd=(
-  singularity run --cleanenv
+  apptainer run --cleanenv
   -B "${TEMPLATEFLOW_HOME}:/opt/templateflow"
   -B "${bidsdir}:/data"
   -B "${outdir}:/out"

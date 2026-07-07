@@ -96,7 +96,7 @@ cleanup_default_gre=(
 )
 
 warpkit_cmd=(
-  /usr/bin/singularity run --cleanenv
+  apptainer run --cleanenv
   -B "$indir:/base"
   -B "$outdir:/out"
   "$WARPKIT_IMAGE"
