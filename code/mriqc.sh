@@ -42,7 +42,7 @@ sub="$1"
 ses="$2"
 bidsdir="${PROJECT_ROOT}/bids"
 outdir="${PROJECT_ROOT}/derivatives/mriqc"
-scratch="${SCRATCH_ROOT}/$(whoami)"
+scratch="${SCRATCH_ROOT}/$(whoami)/mriqc-sub-${sub}-ses-${ses}"
 
 if [[ ! -d "${bidsdir}/sub-${sub}/ses-${ses}" ]]; then
   echo "No BIDS data for optional sub-${sub} ses-${ses}; skipping MRIQC."
@@ -66,6 +66,7 @@ cmd=(
   -w /scratch
 )
 
+printf 'MRIQC scratch: %s\n' "$scratch"
 printf 'MRIQC command:'
 printf ' %q' "${cmd[@]}"
 printf '\n'
