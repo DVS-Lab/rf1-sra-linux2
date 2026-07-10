@@ -46,6 +46,10 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 | 9 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
 | 10 | `extract-metrics.py` | MRIQC JSON outputs | Completed cohort MRIQC participant JSON | CSV metrics table | Cohort-level helper; atomic CSV write. |
 
+`make_repair_runlists.py` is the filesystem audit helper for recovery runs. It
+does not launch processing; it writes targeted runlists and a missing-path TSV
+under `logs/runlists/`.
+
 ## Script Reference
 
 Each entry uses the same fields so operators can scan quickly.
@@ -67,6 +71,15 @@ Each entry uses the same fields so operators can scan quickly.
 - Typical command: `bash run_logged.sh --label fmriprep-check -- bash check_fmriprep.sh --sublist "$SUBLIST"`.
 - Checker: The optional command supplied after `--check`.
 - Notes: Use separate run and check records for long production stages when readability matters.
+
+### `make_repair_runlists.py`
+- Status: Recovery helper.
+- Purpose: Inspect the live filesystem and create subject lists for incomplete BIDS, MRIQC, WarpKit, IntendedFor, and fMRIPrep stages.
+- Inputs: A subject list, the project BIDS/derivatives tree, and source DICOM root.
+- Outputs: `logs/runlists/*_*-repair.txt`, `*_fmriprep-ready.txt`, `*_fmriprep-incomplete.txt`, and `*_missing-paths.tsv`.
+- Typical command: `python3 make_repair_runlists.py --sublist "$SUBLIST" --prefix repair-$(date +%Y%m%d)`.
+- Checker: Review the missing-path TSV and rerun the relevant stage checkers after repair runs.
+- Notes: `fmriprep-ready` excludes subjects with BIDS/WarpKit/IntendedFor prerequisite issues; MRIQC is tracked separately because it is QC, not an fMRIPrep prerequisite.
 
 ### `downloadXNAT.py`
 - Status: Production input helper.
