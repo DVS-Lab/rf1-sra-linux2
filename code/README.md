@@ -142,7 +142,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS `fmap/` products plus Warpkit completion markers.
 - Typical command: `bash run_warpkit.sh --sublist "$SUBLIST" --jobs 8`.
 - Checker: `bash check_warpkit.sh --sublist "$SUBLIST"`.
-- Notes: Prints the subject list and job plan before launching. Set `WARPKIT_N_CPUS`, `OMP_THREADS`, `JULIA_NUM_THREADS`, or `JULIA_NUM_GC_THREADS` to tune per-run concurrency.
+- Notes: Prints the subject list and job plan before launching. Set `WARPKIT_BACKEND=native` and `WARPKIT_CMD=/path/to/wk-medic` to use a native WarpKit install. Set `WARPKIT_N_CPUS`, `OMP_THREADS`, `JULIA_NUM_THREADS`, or `JULIA_NUM_GC_THREADS` to tune per-run concurrency.
 
 ### `warpkit.sh`
 - Status: Production worker.
@@ -151,7 +151,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS `fmap/*` NIfTI/JSON files and `derivatives/warpkit` markers.
 - Typical command: normally called by `run_warpkit.sh`.
 - Checker: `check_warpkit.sh`.
-- Notes: `--overwrite` deletes only explicit generated fieldmap products. The worker passes `WARPKIT_N_CPUS` through to WarpKit's `--n_cpus` option and logs the thread plan.
+- Notes: `--overwrite` deletes only explicit generated fieldmap products. The worker supports `WARPKIT_BACKEND=apptainer` and `WARPKIT_BACKEND=native`, passes `WARPKIT_N_CPUS` through to WarpKit, and logs the backend/thread plan.
 
 ### `addIntendedFor.py`
 - Status: Production metadata helper.

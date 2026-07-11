@@ -47,6 +47,9 @@ sub="$1"
 ses="$2"
 task="$3"
 run="$4"
+stem="sub-${sub}_ses-${ses}_task-${task}_run-${run}"
+warpkit_backend="${WARPKIT_BACKEND:-apptainer}"
+warpkit_cmd_name="${WARPKIT_CMD:-wk-medic}"
 warpkit_n_cpus="${WARPKIT_N_CPUS:-1}"
 
 logdir="${PROJECT_ROOT}/logs"
@@ -71,7 +74,7 @@ fi
 
 outdir="${PROJECT_ROOT}/derivatives/warpkit/sub-${sub}/ses-${ses}"
 fmapdir="${PROJECT_ROOT}/bids/sub-${sub}/ses-${ses}/fmap"
-doneflag="${outdir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}.warpkit_done"
+doneflag="${outdir}/${stem}.warpkit_done"
 fmap_out="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_fieldmap.nii.gz"
 mag_out="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_magnitude.nii.gz"
 fmap_json="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_fieldmap.json"
@@ -103,40 +106,72 @@ export APPTAINERENV_MKL_NUM_THREADS="${APPTAINERENV_MKL_NUM_THREADS:-1}"
 export APPTAINERENV_JULIA_NUM_THREADS="${APPTAINERENV_JULIA_NUM_THREADS:-1}"
 export APPTAINERENV_JULIA_NUM_GC_THREADS="${APPTAINERENV_JULIA_NUM_GC_THREADS:-1}"
 
-warpkit_cmd=(
-  apptainer run --cleanenv
-  -B "$indir:/base"
-  -B "$outdir:/out"
-  "$WARPKIT_IMAGE"
-  --n_cpus "$warpkit_n_cpus"
-  --magnitude
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-mag_bold.nii.gz"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-2_part-mag_bold.nii.gz"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-3_part-mag_bold.nii.gz"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-4_part-mag_bold.nii.gz"
-  --phase
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-phase_bold.nii.gz"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-2_part-phase_bold.nii.gz"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-3_part-phase_bold.nii.gz"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-4_part-phase_bold.nii.gz"
-  --metadata
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-phase_bold.json"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-2_part-phase_bold.json"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-3_part-phase_bold.json"
-  "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-4_part-phase_bold.json"
-  --out_prefix "/out/sub-${sub}_ses-${ses}_task-${task}_run-${run}"
-)
+magnitude_paths=()
+phase_paths=()
+metadata_paths=()
+for echo in 1 2 3 4; do
+  magnitude_paths+=("${indir}/${stem}_echo-${echo}_part-mag_bold.nii.gz")
+  phase_paths+=("${indir}/${stem}_echo-${echo}_part-phase_bold.nii.gz")
+  metadata_paths+=("${indir}/${stem}_echo-${echo}_part-phase_bold.json")
+done
+
+warpkit_cmd=()
+case "$warpkit_backend" in
+  apptainer)
+    container_magnitude_paths=()
+    container_phase_paths=()
+    container_metadata_paths=()
+    for echo in 1 2 3 4; do
+      container_magnitude_paths+=("/base/${stem}_echo-${echo}_part-mag_bold.nii.gz")
+      container_phase_paths+=("/base/${stem}_echo-${echo}_part-phase_bold.nii.gz")
+      container_metadata_paths+=("/base/${stem}_echo-${echo}_part-phase_bold.json")
+    done
+    warpkit_cmd=(
+      apptainer run --cleanenv
+      -B "$indir:/base"
+      -B "$outdir:/out"
+      "$WARPKIT_IMAGE"
+      --n_cpus "$warpkit_n_cpus"
+      --magnitude "${container_magnitude_paths[@]}"
+      --phase "${container_phase_paths[@]}"
+      --metadata "${container_metadata_paths[@]}"
+      --out_prefix "/out/${stem}"
+    )
+    ;;
+  native)
+    warpkit_cmd=(
+      "$warpkit_cmd_name"
+      --n-cpus "$warpkit_n_cpus"
+      --magnitude "${magnitude_paths[@]}"
+      --phase "${phase_paths[@]}"
+      --metadata "${metadata_paths[@]}"
+      --out-prefix "${outdir}/${stem}"
+    )
+    ;;
+  *)
+    echo "Unsupported WARPKIT_BACKEND: $warpkit_backend (expected apptainer or native)" >&2
+    exit 2
+    ;;
+esac
 
 printf 'Warpkit command:'
 printf ' %q' "${warpkit_cmd[@]}"
 printf '\n'
-echo "Warpkit thread plan: WarpKit n_cpus=${warpkit_n_cpus}; OMP=${APPTAINERENV_OMP_NUM_THREADS}; OpenBLAS=${APPTAINERENV_OPENBLAS_NUM_THREADS}; NumExpr=${APPTAINERENV_NUMEXPR_NUM_THREADS}; MKL=${APPTAINERENV_MKL_NUM_THREADS}; Julia=${APPTAINERENV_JULIA_NUM_THREADS}; Julia GC=${APPTAINERENV_JULIA_NUM_GC_THREADS}"
+echo "Warpkit thread plan: backend=${warpkit_backend}; command=${warpkit_cmd_name}; WarpKit n_cpus=${warpkit_n_cpus}; OMP=${APPTAINERENV_OMP_NUM_THREADS}; OpenBLAS=${APPTAINERENV_OPENBLAS_NUM_THREADS}; NumExpr=${APPTAINERENV_NUMEXPR_NUM_THREADS}; MKL=${APPTAINERENV_MKL_NUM_THREADS}; Julia=${APPTAINERENV_JULIA_NUM_THREADS}; Julia GC=${APPTAINERENV_JULIA_NUM_GC_THREADS}"
 if ((dry_run)); then
   echo "Dry run: not running Warpkit or writing fmap outputs."
   exit 0
 fi
 
-rf1_require_file "$WARPKIT_IMAGE"
+case "$warpkit_backend" in
+  apptainer)
+    rf1_require_file "$WARPKIT_IMAGE"
+    command -v apptainer >/dev/null 2>&1 || { echo "Required command not found: apptainer" >&2; exit 1; }
+    ;;
+  native)
+    command -v "$warpkit_cmd_name" >/dev/null 2>&1 || { echo "Required command not found: $warpkit_cmd_name" >&2; exit 1; }
+    ;;
+esac
 command -v fslroi >/dev/null 2>&1 || { echo "Required command not found: fslroi" >&2; exit 1; }
 
 if ((overwrite)); then
@@ -155,7 +190,7 @@ fi
 
 "${warpkit_cmd[@]}"
 
-fieldmaps_4d="${outdir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_fieldmaps.nii"
+fieldmaps_4d="${outdir}/${stem}_fieldmaps.nii"
 rf1_require_file "$fieldmaps_4d"
 
 fslroi "$fieldmaps_4d" "${fmap_out%.nii.gz}" 0 1
