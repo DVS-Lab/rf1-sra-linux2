@@ -47,6 +47,7 @@ sub="$1"
 ses="$2"
 task="$3"
 run="$4"
+warpkit_n_cpus="${WARPKIT_N_CPUS:-1}"
 
 logdir="${PROJECT_ROOT}/logs"
 mkdir -p "$logdir"
@@ -107,6 +108,7 @@ warpkit_cmd=(
   -B "$indir:/base"
   -B "$outdir:/out"
   "$WARPKIT_IMAGE"
+  --n_cpus "$warpkit_n_cpus"
   --magnitude
   "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-mag_bold.nii.gz"
   "/base/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-2_part-mag_bold.nii.gz"
@@ -128,7 +130,7 @@ warpkit_cmd=(
 printf 'Warpkit command:'
 printf ' %q' "${warpkit_cmd[@]}"
 printf '\n'
-echo "Warpkit thread plan: OMP=${APPTAINERENV_OMP_NUM_THREADS}; OpenBLAS=${APPTAINERENV_OPENBLAS_NUM_THREADS}; NumExpr=${APPTAINERENV_NUMEXPR_NUM_THREADS}; MKL=${APPTAINERENV_MKL_NUM_THREADS}; Julia=${APPTAINERENV_JULIA_NUM_THREADS}; Julia GC=${APPTAINERENV_JULIA_NUM_GC_THREADS}"
+echo "Warpkit thread plan: WarpKit n_cpus=${warpkit_n_cpus}; OMP=${APPTAINERENV_OMP_NUM_THREADS}; OpenBLAS=${APPTAINERENV_OPENBLAS_NUM_THREADS}; NumExpr=${APPTAINERENV_NUMEXPR_NUM_THREADS}; MKL=${APPTAINERENV_MKL_NUM_THREADS}; Julia=${APPTAINERENV_JULIA_NUM_THREADS}; Julia GC=${APPTAINERENV_JULIA_NUM_GC_THREADS}"
 if ((dry_run)); then
   echo "Dry run: not running Warpkit or writing fmap outputs."
   exit 0
