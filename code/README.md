@@ -167,7 +167,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Purpose: Launch participant-level MRIQC across listed subjects/sessions.
 - Inputs: BIDS data and `mriqc.sh`.
 - Outputs: Participant-level MRIQC derivatives.
-- Typical command: `bash run_mriqc.sh --sublist "$SUBLIST" --jobs 10`.
+- Typical command: `bash run_mriqc.sh --sublist "$SUBLIST" --jobs 8`.
 - Checker: `bash check_mriqc.sh --sublist "$SUBLIST"`.
 - Notes: MRIQC is restartable and does not require reconverting BIDS.
 
@@ -485,7 +485,7 @@ The standard stage commands use `sublist-new.txt` by default:
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 SUBLIST=sublist-new.txt
 PREP_JOBS=6
-MRIQC_JOBS=10
+MRIQC_JOBS=8
 WARPKIT_JOBS=8
 FMRIPREP_JOBS=2
 TEDANA_JOBS=8
@@ -576,7 +576,7 @@ reading the same source DICOMs and containers.
 ## Choosing `--jobs`
 
 Start with the defaults unless Linux2 is busy or a stage is being debugged:
-predata uses 6 subject/session jobs, MRIQC uses 10 subject/session jobs,
+predata uses 6 subject/session jobs, MRIQC uses 8 subject/session jobs,
 Warpkit uses 8 subject/session/task/run jobs, fMRIPrep uses 2 subject jobs, and
 TEDANA uses 8 subject jobs. Each wrapper prints its subject list and job plan
 before launching.

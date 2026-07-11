@@ -159,7 +159,7 @@ validation list or a new-batch list look like the final cohort list.
 
 Start conservatively when the Linux2 load is unknown, then raise `--jobs` only
 after the dry-run and the first real subject look healthy. Current defaults are
-`run_prepdata.sh --jobs 6`, `run_mriqc.sh --jobs 10`,
+`run_prepdata.sh --jobs 6`, `run_mriqc.sh --jobs 8`,
 `run_warpkit.sh --jobs 8`, `run_fmriprep.sh --jobs 2`, and
 `run_tedana.sh --jobs 8`. The wrappers print their job plan before launching.
 
@@ -178,7 +178,7 @@ cd /ZPOOL/data/projects/rf1-sra-linux2/code
 vim sublist-new.txt
 SUBLIST=sublist-new.txt
 PREP_JOBS=6
-MRIQC_JOBS=10
+MRIQC_JOBS=8
 WARPKIT_JOBS=8
 FMRIPREP_JOBS=2
 TEDANA_JOBS=8

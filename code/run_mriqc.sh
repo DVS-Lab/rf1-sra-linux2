@@ -13,7 +13,7 @@ source "${scriptdir}/pipeline_common.sh"
 rf1_load_config
 
 sublist="$BATCH_SUBLIST"
-max_jobs=10
+max_jobs=8
 dry_run=0
 
 while (($#)); do
