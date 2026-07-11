@@ -142,7 +142,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS `fmap/` products plus Warpkit completion markers.
 - Typical command: `bash run_warpkit.sh --sublist "$SUBLIST" --jobs 8`.
 - Checker: `bash check_warpkit.sh --sublist "$SUBLIST"`.
-- Notes: Prints the subject list and job plan before launching. Set `WARPKIT_BACKEND=native` and `WARPKIT_CMD=/path/to/wk-medic` to use a native WarpKit install. Set `WARPKIT_N_CPUS`, `OMP_THREADS`, `JULIA_NUM_THREADS`, or `JULIA_NUM_GC_THREADS` to tune per-run concurrency.
+- Notes: Uses native `wk-medic` from `PATH` by default. Install it with `python -m pip install warpkit` in a Python >=3.11 environment. Set `WARPKIT_BACKEND=apptainer` only to use the legacy container fallback. Set `WARPKIT_N_CPUS`, `OMP_THREADS`, `JULIA_NUM_THREADS`, or `JULIA_NUM_GC_THREADS` to tune per-run concurrency.
 
 ### `warpkit.sh`
 - Status: Production worker.
@@ -151,7 +151,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS `fmap/*` NIfTI/JSON files and `derivatives/warpkit` markers.
 - Typical command: normally called by `run_warpkit.sh`.
 - Checker: `check_warpkit.sh`.
-- Notes: `--overwrite` deletes only explicit generated fieldmap products. The worker supports `WARPKIT_BACKEND=apptainer` and `WARPKIT_BACKEND=native`, passes `WARPKIT_N_CPUS` through to WarpKit, and logs the backend/thread plan.
+- Notes: `--overwrite` deletes only explicit generated fieldmap and Warpkit derivative products. The worker supports default `WARPKIT_BACKEND=native` and fallback `WARPKIT_BACKEND=apptainer`, passes `WARPKIT_N_CPUS` through to WarpKit, and logs the backend/thread plan.
 
 ### `addIntendedFor.py`
 - Status: Production metadata helper.
@@ -517,6 +517,12 @@ Each check exits nonzero when expected files are missing and prints a final
 `CHECK PASSED` or `CHECK FAILED` summary suitable for the end of an ignored
 stage log.
 
+When changing Warpkit versions or switching between native/container backends,
+do not mix fieldmaps in the same batch. Test one representative run with
+`warpkit.sh --overwrite`, then rerun `run_warpkit.sh --overwrite`,
+`addIntendedFor.py`, and the Warpkit/IntendedFor checks for the affected
+subject list before resuming fMRIPrep.
+
 To create a Git-trackable run record without committing bulky raw logs:
 
 ```bash
@@ -554,7 +560,7 @@ from the checkout location. Production should run from
 still write to its own `bids/`, `derivatives/`, and `logs/` directories while
 reading the same source DICOMs and containers.
 
-| Item | Path |
+| Item | Path/configuration |
 | --- | --- |
 | Production checkout | `/ZPOOL/data/projects/rf1-sra-linux2` |
 | Source DICOMs | `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` |
@@ -563,7 +569,7 @@ reading the same source DICOMs and containers.
 | HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
-| Warpkit | `/ZPOOL/data/tools/warpkit.sif` |
+| Warpkit | Native `wk-medic` from `pip install warpkit`; legacy fallback `/ZPOOL/data/tools/warpkit.sif` |
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
 

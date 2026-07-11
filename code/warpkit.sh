@@ -48,7 +48,7 @@ ses="$2"
 task="$3"
 run="$4"
 stem="sub-${sub}_ses-${ses}_task-${task}_run-${run}"
-warpkit_backend="${WARPKIT_BACKEND:-apptainer}"
+warpkit_backend="${WARPKIT_BACKEND:-native}"
 warpkit_cmd_name="${WARPKIT_CMD:-wk-medic}"
 warpkit_n_cpus="${WARPKIT_N_CPUS:-1}"
 
@@ -97,6 +97,11 @@ cleanup_default_gre=(
   "${fmapdir}/sub-${sub}_ses-${ses}_acq-bold_magnitude.json"
   "${fmapdir}/sub-${sub}_ses-${ses}_acq-bold_phasediff.nii.gz"
   "${fmapdir}/sub-${sub}_ses-${ses}_acq-bold_phasediff.json"
+)
+cleanup_warpkit_derivatives=(
+  "${outdir}/${stem}_fieldmaps.nii"
+  "${outdir}/${stem}_fieldmaps_native.nii"
+  "${outdir}/${stem}_displacementmaps.nii"
 )
 
 export APPTAINERENV_OMP_NUM_THREADS="${APPTAINERENV_OMP_NUM_THREADS:-1}"
@@ -178,6 +183,12 @@ if ((overwrite)); then
   for old in "${cleanup_default_gre[@]}" "$fmap_out" "$mag_out" "$fmap_json" "$mag_json"; do
     [[ -e "$old" ]] || continue
     python3 "${scriptdir}/check_pipeline_state.py" safe-child "$fmapdir" "$old" >/dev/null
+    echo "Removing prior generated output: $old"
+    rm -f "$old"
+  done
+  for old in "${cleanup_warpkit_derivatives[@]}"; do
+    [[ -e "$old" ]] || continue
+    python3 "${scriptdir}/check_pipeline_state.py" safe-child "$outdir" "$old" >/dev/null
     echo "Removing prior generated output: $old"
     rm -f "$old"
   done

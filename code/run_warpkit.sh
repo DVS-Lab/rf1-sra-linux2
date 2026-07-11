@@ -20,7 +20,7 @@ omp_threads="${OMP_THREADS:-4}"
 julia_threads="${JULIA_NUM_THREADS:-1}"
 julia_gc_threads="${JULIA_NUM_GC_THREADS:-1}"
 warpkit_n_cpus="${WARPKIT_N_CPUS:-1}"
-warpkit_backend="${WARPKIT_BACKEND:-apptainer}"
+warpkit_backend="${WARPKIT_BACKEND:-native}"
 warpkit_cmd_name="${WARPKIT_CMD:-wk-medic}"
 
 while (($#)); do

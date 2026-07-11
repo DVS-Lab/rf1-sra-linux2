@@ -109,12 +109,12 @@ clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
 
-| Tool | Default image/location |
+| Tool | Default location/configuration |
 | --- | --- |
 | HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
-| Warpkit | `/ZPOOL/data/tools/warpkit.sif` by default; set `WARPKIT_BACKEND=native` and `WARPKIT_CMD` to use native `wk-medic` |
+| Warpkit | Native `wk-medic` from `pip install warpkit`; legacy fallback: `/ZPOOL/data/tools/warpkit.sif` with `WARPKIT_BACKEND=apptainer` |
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
 
@@ -217,6 +217,11 @@ stage. `--sublist FILE` points a wrapper or checker at a review-specific subject
 list instead of `code/sublist-new.txt`. `--jobs N` controls how many
 subject-level jobs run at once; fMRIPrep also divides its CPU and memory budget
 across those jobs.
+
+When changing Warpkit versions or backends, avoid mixing fieldmap provenance:
+test one representative run with `warpkit.sh --overwrite`, then rerun
+`run_warpkit.sh --overwrite`, `addIntendedFor.py`, and the Warpkit/IntendedFor
+checks for the affected subject list before resuming fMRIPrep.
 
 ## Sessions And Expected Absences
 
