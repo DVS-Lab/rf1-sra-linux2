@@ -106,7 +106,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: One staged and then live BIDS subject/session tree.
 - Typical command: normally called by `run_prepdata.sh`.
 - Checker: `check_bids.sh`.
-- Notes: Stages in scratch before replacing live BIDS outputs; `--overwrite` is required for replacement.
+- Notes: Stages in scratch before replacing live BIDS outputs; `--overwrite` is required for replacement. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing because they are scanner-generated non-BIDS series that can trigger enhanced-DICOM parsing failures.
 
 ### `heuristics_rf1.py`
 - Status: HeuDiConv configuration.
@@ -115,7 +115,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS key assignments.
 - Typical command: not run directly.
 - Checker: Conversion output plus tests around heuristic selection.
-- Notes: Preserve unless a scanner/sequence rule is scientifically corrected.
+- Notes: Includes the same conservative filename filter as `heuristics_XA30.py`: localizer and PhoenixZIPReport scan directories are excluded before DICOM parsing, without modifying raw source data.
 
 ### `heuristics_XA30.py`
 - Status: HeuDiConv configuration.
@@ -124,7 +124,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS key assignments.
 - Typical command: not run directly.
 - Checker: Conversion output plus tests around heuristic selection.
-- Notes: The March 4, 2025 cutoff remains the current production behavior.
+- Notes: The March 4, 2025 cutoff remains the current production behavior. Uses the same localizer/PhoenixZIPReport filename filter as `heuristics_rf1.py`.
 
 ### `shiftdates.py`
 - Status: Production helper.

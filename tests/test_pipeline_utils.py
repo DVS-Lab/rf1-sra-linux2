@@ -28,6 +28,14 @@ from pipeline_utils import (  # noqa: E402
 )
 
 
+def load_heuristic(name: str):
+    spec = importlib.util.spec_from_file_location(name.removesuffix(".py"), CODE_DIR / name)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def load_add_intended_for():
     spec = importlib.util.spec_from_file_location("add_intended_for", CODE_DIR / "addIntendedFor.py")
     assert spec is not None and spec.loader is not None
@@ -70,6 +78,26 @@ def test_scanner_heuristic_selection_preserves_current_cutoff() -> None:
     assert choose_heuristic("01", date(2025, 3, 5)) == "heuristics_XA30.py"
     assert choose_heuristic("01", date(2026, 1, 1), subject="11433") == "heuristics_rf1.py"
     assert choose_heuristic("02", date(2024, 1, 1)) == "heuristics_XA30.py"
+
+
+@pytest.mark.parametrize("heuristic_name", ["heuristics_rf1.py", "heuristics_XA30.py"])
+@pytest.mark.parametrize(
+    ("filename", "expected"),
+    [
+        ("/sourcedata/Smith-SRA-11922/Smith-SRA-11922/scans/10-T1w/resources/DICOM/files/example.dcm", True),
+        ("/sourcedata/Smith-SRA-11922/Smith-SRA-11922/scans/20-Trust/resources/DICOM/files/example.dcm", True),
+        ("/sourcedata/Smith-SRA-11922/Smith-SRA-11922/scans/1-localizer/resources/DICOM/files/example.dcm", False),
+        ("/sourcedata/Smith-SRA-11922/Smith-SRA-11922/scans/27-LOCALIZER/resources/DICOM/files/example.dcm", False),
+        ("/sourcedata/Smith-SRA-11922/Smith-SRA-11922/scans/99-PhoenixZIPReport/resources/DICOM/files/example.dcm", False),
+        ("/sourcedata/Smith-SRA-11922/Smith-SRA-11922/scans/99-pHoEnIxZiPrEpOrT/resources/DICOM/files/example.dcm", False),
+        ("/sourcedata/Smith-SRA-11922/Smith-SRA-11922/scans/30-localizer_corrected_T1/resources/DICOM/files/example.dcm", True),
+        ("/sourcedata/Smith-SRA-11922/Smith-SRA-11922/not-scans/1-localizer/resources/DICOM/files/example.dcm", True),
+        ("/sourcedata/localizer_notes/Smith-SRA-11922/scans/10-T1w/resources/DICOM/files/example.dcm", True),
+    ],
+)
+def test_heuristic_filter_files_skips_only_scanner_generated_scan_dirs(heuristic_name: str, filename: str, expected: bool) -> None:
+    heuristic = load_heuristic(heuristic_name)
+    assert heuristic.filter_files(filename) is expected
 
 
 def make_bids_run(root: Path, sub: str, ses: str, task: str, run: str, echoes: int = 4) -> None:
