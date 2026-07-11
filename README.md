@@ -112,6 +112,7 @@ clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 | Tool | Default location/configuration |
 | --- | --- |
 | HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
+| PyDeface | `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface` |
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
 | Warpkit | Native `wk-medic` from `pip install warpkit`; legacy fallback: `/ZPOOL/data/tools/warpkit.sif` with `WARPKIT_BACKEND=apptainer` |

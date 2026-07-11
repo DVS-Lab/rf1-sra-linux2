@@ -21,6 +21,7 @@ rf1_load_config() {
   LICENSES_DIR="${TOOLS_ROOT}/licenses"
 
   HEUDICONV_IMAGE="${TOOLS_ROOT}/heudiconv-1.4.0.sif"
+  PYDEFACE_CMD="${PYDEFACE_CMD:-${TOOLS_ROOT}/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface}"
   MRIQC_IMAGE="${TOOLS_ROOT}/mriqc-24.0.2.simg"
   FMRIPREP_IMAGE="${TOOLS_ROOT}/fmriprep-25.2.5.simg"
   WARPKIT_IMAGE="${TOOLS_ROOT}/warpkit.sif"
