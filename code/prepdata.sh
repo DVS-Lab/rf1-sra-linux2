@@ -195,8 +195,17 @@ fi
 
 t1="${target_session}/anat/sub-${sub}_ses-${ses}_T1w.nii.gz"
 if [[ -f "$t1" ]]; then
+  if [[ "$PYDEFACE_CMD" == */* ]]; then
+    if [[ ! -x "$PYDEFACE_CMD" ]]; then
+      echo "Configured pydeface executable is not executable: $PYDEFACE_CMD" >&2
+      exit 1
+    fi
+  elif ! command -v "$PYDEFACE_CMD" >/dev/null 2>&1; then
+    echo "Configured pydeface command was not found on PATH: $PYDEFACE_CMD" >&2
+    exit 1
+  fi
   echo "Defacing $t1"
-  pydeface "$t1"
+  "$PYDEFACE_CMD" "$t1"
   def="${target_session}/anat/sub-${sub}_ses-${ses}_T1w_defaced.nii.gz"
   [[ -f "$def" ]] && mv -f "$def" "$t1"
 fi

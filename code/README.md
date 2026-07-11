@@ -106,7 +106,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: One staged and then live BIDS subject/session tree.
 - Typical command: normally called by `run_prepdata.sh`.
 - Checker: `check_bids.sh`.
-- Notes: Stages in scratch before replacing live BIDS outputs; `--overwrite` is required for replacement. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing because they are scanner-generated non-BIDS series that can trigger enhanced-DICOM parsing failures.
+- Notes: Stages in scratch before replacing live BIDS outputs; `--overwrite` is required for replacement. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing because they are scanner-generated non-BIDS series that can trigger enhanced-DICOM parsing failures.
 
 ### `heuristics_rf1.py`
 - Status: HeuDiConv configuration.
@@ -567,6 +567,7 @@ reading the same source DICOMs and containers.
 | Scratch | `/ZPOOL/data/scratch` |
 | Tool/container directory | `/ZPOOL/data/tools` |
 | HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
+| PyDeface | `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface` |
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
 | Warpkit | Native `wk-medic` from `pip install warpkit`; legacy fallback `/ZPOOL/data/tools/warpkit.sif` |
