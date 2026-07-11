@@ -1,4 +1,17 @@
 import os
+from pathlib import Path
+
+
+def filter_files(filename):
+    """Return False for XNAT scanner-generated series that should not be indexed."""
+    parts = Path(filename).parts
+    scan_dir = next((parts[idx + 1] for idx, part in enumerate(parts[:-1]) if part.lower() == 'scans'), '')
+    if '-' not in scan_dir:
+        return True
+    scan_label = scan_dir.split('-', 1)[1].lower()
+    if scan_label in {'localizer', 'phoenixzipreport'}:
+        return False
+    return True
 
 def create_key(template, outtype=('nii.gz',), annotation_classes=None):
         if template is None or not template:
