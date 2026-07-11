@@ -114,7 +114,7 @@ clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 | HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
-| Warpkit | `/ZPOOL/data/tools/warpkit.sif` |
+| Warpkit | `/ZPOOL/data/tools/warpkit.sif` by default; set `WARPKIT_BACKEND=native` and `WARPKIT_CMD` to use native `wk-medic` |
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
 
