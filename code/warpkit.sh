@@ -95,6 +95,13 @@ cleanup_default_gre=(
   "${fmapdir}/sub-${sub}_ses-${ses}_acq-bold_phasediff.json"
 )
 
+export APPTAINERENV_OMP_NUM_THREADS="${APPTAINERENV_OMP_NUM_THREADS:-1}"
+export APPTAINERENV_OPENBLAS_NUM_THREADS="${APPTAINERENV_OPENBLAS_NUM_THREADS:-1}"
+export APPTAINERENV_NUMEXPR_NUM_THREADS="${APPTAINERENV_NUMEXPR_NUM_THREADS:-1}"
+export APPTAINERENV_MKL_NUM_THREADS="${APPTAINERENV_MKL_NUM_THREADS:-1}"
+export APPTAINERENV_JULIA_NUM_THREADS="${APPTAINERENV_JULIA_NUM_THREADS:-1}"
+export APPTAINERENV_JULIA_NUM_GC_THREADS="${APPTAINERENV_JULIA_NUM_GC_THREADS:-1}"
+
 warpkit_cmd=(
   apptainer run --cleanenv
   -B "$indir:/base"
@@ -121,6 +128,7 @@ warpkit_cmd=(
 printf 'Warpkit command:'
 printf ' %q' "${warpkit_cmd[@]}"
 printf '\n'
+echo "Warpkit thread plan: OMP=${APPTAINERENV_OMP_NUM_THREADS}; OpenBLAS=${APPTAINERENV_OPENBLAS_NUM_THREADS}; NumExpr=${APPTAINERENV_NUMEXPR_NUM_THREADS}; MKL=${APPTAINERENV_MKL_NUM_THREADS}; Julia=${APPTAINERENV_JULIA_NUM_THREADS}; Julia GC=${APPTAINERENV_JULIA_NUM_GC_THREADS}"
 if ((dry_run)); then
   echo "Dry run: not running Warpkit or writing fmap outputs."
   exit 0
