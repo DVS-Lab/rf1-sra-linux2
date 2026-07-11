@@ -19,6 +19,7 @@ overwrite=0
 omp_threads="${OMP_THREADS:-4}"
 julia_threads="${JULIA_NUM_THREADS:-1}"
 julia_gc_threads="${JULIA_NUM_GC_THREADS:-1}"
+warpkit_n_cpus="${WARPKIT_N_CPUS:-1}"
 
 while (($#)); do
   case "$1" in
@@ -52,7 +53,7 @@ done
 rf1_require_file "$sublist"
 rf1_require_file "${SCRIPT_DIR}/warpkit.sh"
 echo "Using subject list: $sublist"
-echo "Warpkit job plan: up to ${max_jobs} subject/session/task/run job(s); OMP threads per job ${omp_threads}; Julia threads ${julia_threads}; Julia GC threads ${julia_gc_threads}"
+echo "Warpkit job plan: up to ${max_jobs} subject/session/task/run job(s); WarpKit n_cpus ${warpkit_n_cpus}; OMP threads per job ${omp_threads}; Julia threads ${julia_threads}; Julia GC threads ${julia_gc_threads}"
 
 args=()
 ((dry_run)) && args+=(--dry-run)
@@ -78,6 +79,7 @@ while IFS= read -r sub; do
         APPTAINERENV_MKL_NUM_THREADS=1 \
         APPTAINERENV_JULIA_NUM_THREADS="$julia_threads" \
         APPTAINERENV_JULIA_NUM_GC_THREADS="$julia_gc_threads" \
+        WARPKIT_N_CPUS="$warpkit_n_cpus" \
           bash "${SCRIPT_DIR}/warpkit.sh" "${args[@]}" "$sub" "$ses" "$task" "$run" &
         pids+=("$!")
       done
