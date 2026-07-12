@@ -98,6 +98,16 @@ def test_repair_runlists_report_missing_required_sources(tmp_path: Path) -> None
     assert module.missing_required_sources(tmp_path, ["10001", "10002"]) == {"10001"}
 
 
+def test_repair_runlists_accept_11891_nested_source_layout(tmp_path: Path) -> None:
+    module = load_make_repair_runlists()
+    scans = tmp_path / "11891" / "Smith-SRA-11891" / "Smith-SRA-11891" / "scans" / "1-T1w" / "resources" / "DICOM" / "files"
+    scans.mkdir(parents=True)
+    (scans / "image.dcm").write_text("dicom")
+
+    assert module.source_has_dicoms(tmp_path, "11891")
+    assert module.missing_required_sources(tmp_path, ["11891"]) == set()
+
+
 def test_repair_runlists_report_excluded_sources(tmp_path: Path) -> None:
     module = load_make_repair_runlists()
     (tmp_path / "Smith-SRA-10001").mkdir()

@@ -42,7 +42,12 @@ fi
 
 source_has_dicoms() {
   local folder_sub="$1"
-  local subdir="${SOURCEDATA_ROOT}/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}"
+  local subdir
+  if [[ "$folder_sub" == "11891" ]]; then
+    subdir="${SOURCEDATA_ROOT}/11891/Smith-SRA-11891/Smith-SRA-11891"
+  else
+    subdir="${SOURCEDATA_ROOT}/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}"
+  fi
   [[ -d "$subdir" ]] || return 1
   find "${subdir}/scans" -type f -name '*.dcm' -print -quit 2>/dev/null | grep -q .
 }

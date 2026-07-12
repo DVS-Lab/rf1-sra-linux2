@@ -73,7 +73,13 @@ else
   dicom_template="/sourcedata/Smith-SRA-{subject}/Smith-SRA-{subject}/scans/*/*/DICOM/files/*.dcm"
 fi
 
-subdir="${SOURCEDATA_ROOT}/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}"
+if [[ "$ses" == "01" && "$sub" == "11891" ]]; then
+  subdir="${SOURCEDATA_ROOT}/11891/Smith-SRA-11891/Smith-SRA-11891"
+  dicom_template="/sourcedata/11891/Smith-SRA-{subject}/Smith-SRA-{subject}/scans/*/*/DICOM/files/*.dcm"
+  echo "Using special source layout for sub-${sub} ses-${ses}: $subdir"
+else
+  subdir="${SOURCEDATA_ROOT}/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}"
+fi
 scandir="${subdir}/scans"
 if [[ ! -d "$subdir" ]]; then
   if [[ "$ses" == "02" ]]; then
