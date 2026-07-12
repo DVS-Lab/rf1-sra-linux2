@@ -79,7 +79,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: `logs/runlists/*_*-repair.txt`, `*_source-excluded.txt`, `*_source-missing.txt`, `*_fmriprep-ready.txt`, `*_fmriprep-incomplete.txt`, and `*_missing-paths.tsv`.
 - Typical command: `python3 make_repair_runlists.py --sublist "$SUBLIST" --prefix repair-$(date +%Y%m%d)`.
 - Checker: Review the missing-path TSV and rerun the relevant stage checkers after repair runs.
-- Notes: Subjects with source folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions` are written to `source-excluded` and omitted from repair/ready counts. `source-missing` subjects need source DICOM download/triage before `prepdata.sh` can repair them. `fmriprep-ready` excludes subjects with BIDS/WarpKit/IntendedFor prerequisite issues; MRIQC is tracked separately because it is QC, not an fMRIPrep prerequisite.
+- Notes: Subjects with source folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions` are written to `source-excluded` and omitted from repair/ready counts. `source-missing` subjects need source DICOM download/triage before `prepdata.sh` can repair them. `sub-11891` has a documented nested source layout under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra/11891/Smith-SRA-11891/Smith-SRA-11891/scans`. `fmriprep-ready` excludes subjects with BIDS/WarpKit/IntendedFor prerequisite issues; MRIQC is tracked separately because it is QC, not an fMRIPrep prerequisite.
 
 ### `downloadXNAT.py`
 - Status: Production input helper.
@@ -106,7 +106,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: One staged and then live BIDS subject/session tree.
 - Typical command: normally called by `run_prepdata.sh`.
 - Checker: `check_bids.sh`.
-- Notes: Stages in scratch before replacing live BIDS outputs; `--overwrite` is required for replacement. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing because they are scanner-generated non-BIDS series that can trigger enhanced-DICOM parsing failures.
+- Notes: Stages in scratch before replacing live BIDS outputs; `--overwrite` is required for replacement. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. `sub-11891` session 01 uses its nested source-data path explicitly. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing because they are scanner-generated non-BIDS series that can trigger enhanced-DICOM parsing failures.
 
 ### `heuristics_rf1.py`
 - Status: HeuDiConv configuration.

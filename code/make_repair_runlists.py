@@ -64,8 +64,14 @@ def write_subject_list(path: Path, subjects: set[str]) -> None:
     path.write_text("".join(f"{subject}\n" for subject in sorted(subjects)))
 
 
+def source_scan_dir(source_root: Path, folder_sub: str) -> Path:
+    if folder_sub == "11891":
+        return source_root / "11891" / "Smith-SRA-11891" / "Smith-SRA-11891" / "scans"
+    return source_root / f"Smith-SRA-{folder_sub}" / f"Smith-SRA-{folder_sub}" / "scans"
+
+
 def source_has_dicoms(source_root: Path, folder_sub: str) -> bool:
-    scans = source_root / f"Smith-SRA-{folder_sub}" / f"Smith-SRA-{folder_sub}" / "scans"
+    scans = source_scan_dir(source_root, folder_sub)
     return scans.is_dir() and any(scans.glob("*/*/DICOM/files/*.dcm"))
 
 
@@ -117,7 +123,7 @@ def add_bids_issues(
                         subject,
                         "bids",
                         session=session,
-                        path=source_root / f"Smith-SRA-{folder_sub}",
+                        path=source_scan_dir(source_root, folder_sub),
                         message="required source DICOMs not found",
                     )
                 continue
