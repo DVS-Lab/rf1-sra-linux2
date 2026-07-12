@@ -22,6 +22,7 @@ from pipeline_utils import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUBLIST = Path(__file__).resolve().parent / "sublist-new.txt"
+DEFAULT_EXCLUSIONS_ROOT = Path("/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions")
 
 
 @dataclass
@@ -66,6 +67,16 @@ def write_subject_list(path: Path, subjects: set[str]) -> None:
 def source_has_dicoms(source_root: Path, folder_sub: str) -> bool:
     scans = source_root / f"Smith-SRA-{folder_sub}" / f"Smith-SRA-{folder_sub}" / "scans"
     return scans.is_dir() and any(scans.glob("*/*/DICOM/files/*.dcm"))
+
+
+def source_is_excluded(exclusions_root: Path, subject: str) -> bool:
+    return (exclusions_root / f"Smith-SRA-{subject}").exists()
+
+
+def excluded_sources(exclusions_root: Path, subjects: list[str]) -> set[str]:
+    if not exclusions_root.is_dir():
+        return set()
+    return {subject for subject in subjects if source_is_excluded(exclusions_root, subject)}
 
 
 def missing_required_sources(source_root: Path, subjects: list[str]) -> set[str]:
@@ -296,6 +307,12 @@ def main() -> int:
         default=Path("/ZPOOL/data/sourcedata/sourcedata/rf1-sra"),
     )
     parser.add_argument(
+        "--exclusions-root",
+        type=Path,
+        default=DEFAULT_EXCLUSIONS_ROOT,
+        help="Root containing intentionally excluded Smith-SRA source folders.",
+    )
+    parser.add_argument(
         "--outdir",
         type=Path,
         default=PROJECT_ROOT / "logs" / "runlists",
@@ -312,7 +329,9 @@ def main() -> int:
     outdir = args.outdir.resolve()
     outdir.mkdir(parents=True, exist_ok=True)
     prefix = args.prefix or f"repair-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-    subjects = read_subject_list(args.sublist)
+    all_subjects = read_subject_list(args.sublist)
+    source_excluded = excluded_sources(args.exclusions_root, all_subjects)
+    subjects = [subject for subject in all_subjects if subject not in source_excluded]
     issues: list[Issue] = []
 
     source_missing = missing_required_sources(args.source_root, subjects)
@@ -326,6 +345,7 @@ def main() -> int:
     fmriprep_ready = set(subjects) - prereq_repair
 
     outputs = {
+        "source-excluded": source_excluded,
         "source-missing": source_missing,
         "bids-repair": bids,
         "mriqc-repair": mriqc,
@@ -345,6 +365,7 @@ def main() -> int:
     print(f"{issue_path}: {len(issues)} issue row(s)")
 
     print()
+    print("Use source-excluded for subjects intentionally parked outside production source data.")
     print("Use fmriprep-ready for subjects whose BIDS/WarpKit/IntendedFor prerequisites look complete.")
     print("Use fmriprep-incomplete later to resume fMRIPrep subjects that still lack completion outputs.")
     return 0
