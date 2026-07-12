@@ -98,6 +98,14 @@ def test_repair_runlists_report_missing_required_sources(tmp_path: Path) -> None
     assert module.missing_required_sources(tmp_path, ["10001", "10002"]) == {"10001"}
 
 
+def test_repair_runlists_report_excluded_sources(tmp_path: Path) -> None:
+    module = load_make_repair_runlists()
+    (tmp_path / "Smith-SRA-10001").mkdir()
+
+    assert module.excluded_sources(tmp_path, ["10001", "10002"]) == {"10001"}
+    assert module.excluded_sources(tmp_path / "missing", ["10001"]) == set()
+
+
 @pytest.mark.parametrize("heuristic_name", ["heuristics_rf1.py", "heuristics_XA30.py"])
 @pytest.mark.parametrize(
     ("filename", "expected"),

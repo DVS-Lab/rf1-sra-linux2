@@ -76,10 +76,10 @@ Each entry uses the same fields so operators can scan quickly.
 - Status: Recovery helper.
 - Purpose: Inspect the live filesystem and create subject lists for incomplete BIDS, MRIQC, WarpKit, IntendedFor, and fMRIPrep stages.
 - Inputs: A subject list, the project BIDS/derivatives tree, and source DICOM root.
-- Outputs: `logs/runlists/*_*-repair.txt`, `*_source-missing.txt`, `*_fmriprep-ready.txt`, `*_fmriprep-incomplete.txt`, and `*_missing-paths.tsv`.
+- Outputs: `logs/runlists/*_*-repair.txt`, `*_source-excluded.txt`, `*_source-missing.txt`, `*_fmriprep-ready.txt`, `*_fmriprep-incomplete.txt`, and `*_missing-paths.tsv`.
 - Typical command: `python3 make_repair_runlists.py --sublist "$SUBLIST" --prefix repair-$(date +%Y%m%d)`.
 - Checker: Review the missing-path TSV and rerun the relevant stage checkers after repair runs.
-- Notes: `source-missing` subjects need source DICOM download/triage before `prepdata.sh` can repair them. `fmriprep-ready` excludes subjects with BIDS/WarpKit/IntendedFor prerequisite issues; MRIQC is tracked separately because it is QC, not an fMRIPrep prerequisite.
+- Notes: Subjects with source folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions` are written to `source-excluded` and omitted from repair/ready counts. `source-missing` subjects need source DICOM download/triage before `prepdata.sh` can repair them. `fmriprep-ready` excludes subjects with BIDS/WarpKit/IntendedFor prerequisite issues; MRIQC is tracked separately because it is QC, not an fMRIPrep prerequisite.
 
 ### `downloadXNAT.py`
 - Status: Production input helper.
