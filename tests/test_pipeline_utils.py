@@ -53,6 +53,15 @@ def load_gen_tedana_confounds():
     return module
 
 
+def load_make_repair_runlists():
+    spec = importlib.util.spec_from_file_location("make_repair_runlists", CODE_DIR / "make_repair_runlists.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_read_subject_list_ignores_blank_lines_comments_and_prefixes(tmp_path: Path) -> None:
     sublist = tmp_path / "subjects.txt"
     sublist.write_text("\n# comment\nsub-10001\n10002  # inline\n\n")
@@ -78,6 +87,15 @@ def test_scanner_heuristic_selection_preserves_current_cutoff() -> None:
     assert choose_heuristic("01", date(2025, 3, 5)) == "heuristics_XA30.py"
     assert choose_heuristic("01", date(2026, 1, 1), subject="11433") == "heuristics_rf1.py"
     assert choose_heuristic("02", date(2024, 1, 1)) == "heuristics_XA30.py"
+
+
+def test_repair_runlists_report_missing_required_sources(tmp_path: Path) -> None:
+    module = load_make_repair_runlists()
+    scans = tmp_path / "Smith-SRA-10002" / "Smith-SRA-10002" / "scans" / "1-T1w" / "resources" / "DICOM" / "files"
+    scans.mkdir(parents=True)
+    (scans / "image.dcm").write_text("dicom")
+
+    assert module.missing_required_sources(tmp_path, ["10001", "10002"]) == {"10001"}
 
 
 @pytest.mark.parametrize("heuristic_name", ["heuristics_rf1.py", "heuristics_XA30.py"])
