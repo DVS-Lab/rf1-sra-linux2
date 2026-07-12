@@ -68,6 +68,14 @@ def source_has_dicoms(source_root: Path, folder_sub: str) -> bool:
     return scans.is_dir() and any(scans.glob("*/*/DICOM/files/*.dcm"))
 
 
+def missing_required_sources(source_root: Path, subjects: list[str]) -> set[str]:
+    return {
+        subject
+        for subject in subjects
+        if not source_has_dicoms(source_root, subject)
+    }
+
+
 def bids_session_ok(project_root: Path, subject: str, session: str) -> tuple[bool, list[Path]]:
     bids_root = project_root / "bids"
     session_dir = bids_root / f"sub-{subject}" / f"ses-{session}"
@@ -307,6 +315,7 @@ def main() -> int:
     subjects = read_subject_list(args.sublist)
     issues: list[Issue] = []
 
+    source_missing = missing_required_sources(args.source_root, subjects)
     bids = add_bids_issues(issues, project_root, args.source_root, subjects)
     mriqc = add_mriqc_issues(issues, project_root, subjects)
     warpkit = add_warpkit_issues(issues, project_root, subjects)
@@ -317,6 +326,7 @@ def main() -> int:
     fmriprep_ready = set(subjects) - prereq_repair
 
     outputs = {
+        "source-missing": source_missing,
         "bids-repair": bids,
         "mriqc-repair": mriqc,
         "warpkit-repair": warpkit,
