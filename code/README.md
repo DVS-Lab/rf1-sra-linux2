@@ -142,7 +142,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS `fmap/` products plus Warpkit completion markers.
 - Typical command: `bash run_warpkit.sh --sublist "$SUBLIST" --jobs 8`.
 - Checker: `bash check_warpkit.sh --sublist "$SUBLIST"`.
-- Notes: Uses native `wk-medic` from `PATH` by default. Install it with `python -m pip install warpkit` in a Python >=3.11 environment. Set `WARPKIT_BACKEND=apptainer` only to use the legacy container fallback. Set `WARPKIT_N_CPUS`, `OMP_THREADS`, `JULIA_NUM_THREADS`, or `JULIA_NUM_GC_THREADS` to tune per-run concurrency.
+- Notes: Uses the shared native `wk-medic` executable at `/ZPOOL/data/tools/anaconda/tug87422/envs/warpkit-1.4.0/bin/wk-medic` by default. This path is shared lab tooling despite the username in the path. Override `WARPKIT_CMD` only for a tested alternate executable. Set `WARPKIT_BACKEND=apptainer` only to use the legacy container fallback. Set `WARPKIT_N_CPUS`, `OMP_THREADS`, `JULIA_NUM_THREADS`, or `JULIA_NUM_GC_THREADS` to tune per-run concurrency.
 
 ### `warpkit.sh`
 - Status: Production worker.
@@ -570,7 +570,7 @@ reading the same source DICOMs and containers.
 | PyDeface | `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface` |
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
-| Warpkit | Native `wk-medic` from `pip install warpkit`; legacy fallback `/ZPOOL/data/tools/warpkit.sif` |
+| Warpkit | `/ZPOOL/data/tools/anaconda/tug87422/envs/warpkit-1.4.0/bin/wk-medic`; legacy fallback `/ZPOOL/data/tools/warpkit.sif` |
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
 
