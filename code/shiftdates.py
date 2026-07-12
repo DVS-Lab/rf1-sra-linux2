@@ -4,33 +4,70 @@
 from __future__ import annotations
 
 import argparse
+import calendar
+import csv
+from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
+
+TSVRows = list[dict[str, str]]
 
 
-def parse_acq_times(values: pd.Series) -> pd.Series:
-    try:
-        return pd.to_datetime(values, format="mixed")
-    except (TypeError, ValueError):
-        return values.map(lambda value: pd.to_datetime(value) if pd.notna(value) else pd.NaT)
+def parse_acq_time(value: str) -> datetime:
+    value = value.strip()
+    if not value:
+        raise ValueError("empty acq_time value")
+    return datetime.fromisoformat(value)
 
 
-def shift_scans_tsv(path: Path, months: int = 1200, operator: str = "tubric") -> pd.DataFrame:
-    df = pd.read_csv(path, sep="\t")
-    if "acq_time" not in df.columns:
+def shift_months(value: datetime, months: int) -> datetime:
+    month_index = value.year * 12 + value.month - 1 - months
+    year, month_zero = divmod(month_index, 12)
+    month = month_zero + 1
+    day = min(value.day, calendar.monthrange(year, month)[1])
+    return value.replace(year=year, month=month, day=day)
+
+
+def read_tsv(path: Path) -> tuple[list[str], TSVRows]:
+    with path.open(newline="") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        fieldnames = list(reader.fieldnames or [])
+        rows = [dict(row) for row in reader]
+    return fieldnames, rows
+
+
+def shift_scans_tsv(path: Path, months: int = 1200, operator: str = "tubric") -> TSVRows:
+    fieldnames, rows = read_tsv(path)
+    if "acq_time" not in fieldnames:
         raise ValueError(f"acq_time column not found in {path}")
-    df["acq_time"] = parse_acq_times(df["acq_time"])
-    df["acq_time"] = df["acq_time"] - pd.DateOffset(months=months)
-    df["acq_time"] = df["acq_time"].dt.strftime("%Y-%m-%dT%H:%M:%S.%f")
-    df["operator"] = operator
-    return df
+    for row in rows:
+        row["acq_time"] = shift_months(parse_acq_time(row["acq_time"]), months).strftime(
+            "%Y-%m-%dT%H:%M:%S.%f"
+        )
+        row["operator"] = operator
+    return rows
 
 
-def atomic_write_tsv(df: pd.DataFrame, path: Path) -> None:
+def atomic_write_tsv(rows: TSVRows, path: Path) -> None:
+    fieldnames, _ = read_tsv(path)
+    if "operator" not in fieldnames:
+        fieldnames.append("operator")
     tmp = path.with_name(f".{path.name}.tmp")
-    df.to_csv(tmp, sep="\t", index=False)
+    with tmp.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, delimiter="\t", fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
     tmp.replace(path)
+
+
+def preview_rows(rows: TSVRows, limit: int = 5) -> str:
+    rows = rows[:limit]
+    if not rows:
+        return ""
+    fieldnames = list(rows[0])
+    lines = ["\t".join(fieldnames)]
+    lines.extend("\t".join(row.get(field, "") for field in fieldnames) for row in rows)
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -44,7 +81,7 @@ def main() -> int:
     print(f"Scrubbing {args.scans_tsv}")
     shifted = shift_scans_tsv(args.scans_tsv, months=args.months, operator=args.operator)
     if args.dry_run:
-        print(shifted.head().to_string(index=False))
+        print(preview_rows(shifted))
         return 0
     atomic_write_tsv(shifted, args.scans_tsv)
     return 0

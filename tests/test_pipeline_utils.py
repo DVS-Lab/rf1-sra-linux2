@@ -138,7 +138,6 @@ def test_atomic_write_json_replaces_metadata(tmp_path: Path) -> None:
 
 
 def test_shift_scans_tsv_accepts_mixed_iso_acq_times(tmp_path: Path) -> None:
-    pytest.importorskip("pandas")
     from shiftdates import shift_scans_tsv  # noqa: PLC0415
 
     scans_tsv = tmp_path / "sub-11982_ses-01_scans.tsv"
@@ -150,7 +149,7 @@ def test_shift_scans_tsv_accepts_mixed_iso_acq_times(tmp_path: Path) -> None:
 
     shifted = shift_scans_tsv(scans_tsv, months=1200)
 
-    assert shifted["acq_time"].tolist() == [
+    assert [row["acq_time"] for row in shifted] == [
         "1926-06-12T17:51:05.123000",
         "1926-06-12T17:51:05.000000",
     ]
