@@ -27,7 +27,7 @@ RUNS_BY_TASK = {
     "ugr": ("1", "2"),
 }
 WARPKIT_FMAP_RE = re.compile(
-    r"_acq-(ugr|trust|sharedreward|doors|socialdoors)_run-([0-9]+)_(fieldmap|magnitude)\.json$"
+    r"_acq-(ugr|trust|sharedreward|doors|socialdoors)_run-([0-9]+)_fieldmap\.json$"
 )
 
 
