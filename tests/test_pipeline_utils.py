@@ -170,6 +170,7 @@ def test_intended_for_generation_ignores_non_warpkit_fmap_json(tmp_path: Path) -
     make_bids_run(bids, "sub-10001", "ses-01", "ugr", "1")
     fmap = bids / "sub-10001" / "ses-01" / "fmap"
     (fmap / "sub-10001_ses-01_acq-bold_magnitude.json").write_text("{}")
+    (fmap / "sub-10001_ses-01_acq-ugr_run-1_magnitude.json").write_text("{}")
     (fmap / "sub-10001_ses-01_phasediff.json").write_text("{}")
 
     updates = collect_intended_for_updates(bids)
