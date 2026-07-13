@@ -47,11 +47,14 @@ sub="$1"
 bidsdir="${PROJECT_ROOT}/bids"
 derivdir="${PROJECT_ROOT}/derivatives"
 freesurferdir="${derivdir}/freesurfer"
+lockroot="${PROJECT_ROOT}/logs/locks"
+lockdir="${lockroot}/fmriprep-sub-${sub}.lock"
 scratchdir="${SCRATCH_ROOT}/$(whoami)/fmriprep-sub-${sub}"
 fmriprep_nprocs="${FMRIPREP_NPROCS:-$FMRIPREP_TOTAL_NPROCS}"
 fmriprep_omp_nthreads="${FMRIPREP_OMP_NTHREADS:-8}"
 fmriprep_mem_mb="${FMRIPREP_MEM_MB:-$FMRIPREP_TOTAL_MEM_MB}"
 IFS=' ' read -r -a output_spaces <<< "$FMRIPREP_OUTPUT_SPACES"
+lock_acquired=0
 
 bids_subject_dir="${bidsdir}/sub-${sub}"
 if [[ ! -d "$bids_subject_dir" ]]; then
@@ -67,6 +70,33 @@ if [[ "$overwrite" -ne 1 ]] && python3 "${scriptdir}/check_pipeline_state.py" fm
   echo "sub-${sub} already has practical fMRIPrep completion outputs; skipping"
   exit 0
 fi
+
+mkdir -p "$lockroot"
+if ! mkdir "$lockdir" 2>/dev/null; then
+  lock_pid="$(cat "${lockdir}/pid" 2>/dev/null || true)"
+  lock_host="$(cat "${lockdir}/host" 2>/dev/null || true)"
+  this_host="$(hostname 2>/dev/null || true)"
+  if [[ -n "$lock_pid" && "$lock_host" == "$this_host" ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+    echo "Removing stale fMRIPrep lock for sub-${sub}: $lockdir"
+    rf1_remove_tree_under "$lockroot" "$lockdir"
+    mkdir "$lockdir"
+  else
+    echo "LOCKED (skipping): fMRIPrep appears active for sub-${sub}: $lockdir"
+    exit 0
+  fi
+fi
+lock_acquired=1
+{
+  echo "$$" > "${lockdir}/pid"
+  hostname > "${lockdir}/host" 2>/dev/null || true
+  date -Is > "${lockdir}/started"
+}
+cleanup_lock() {
+  if ((lock_acquired)); then
+    rf1_remove_tree_under "$lockroot" "$lockdir" || true
+  fi
+}
+trap cleanup_lock EXIT
 
 export APPTAINERENV_TEMPLATEFLOW_HOME=/opt/templateflow
 export APPTAINERENV_MPLCONFIGDIR=/opt/mplconfigdir
