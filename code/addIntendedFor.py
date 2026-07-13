@@ -7,7 +7,7 @@ import argparse
 import json
 from pathlib import Path
 
-from pipeline_utils import atomic_write_json, collect_intended_for_updates
+from pipeline_utils import atomic_write_json, collect_intended_for_updates, read_subject_list
 
 DEFAULT_BIDS_ROOT = Path(__file__).resolve().parents[1] / "bids"
 
@@ -30,6 +30,12 @@ def main() -> int:
         help="BIDS root to update. Defaults to the BIDS directory in this checkout.",
     )
     parser.add_argument(
+        "--sublist",
+        type=Path,
+        default=None,
+        help="Optional subject list limiting which subjects are updated.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Print planned changes without modifying JSON files.",
@@ -44,7 +50,8 @@ def main() -> int:
             return 0
         raise FileNotFoundError(f"BIDS root not found: {bids_root}")
 
-    updates = collect_intended_for_updates(bids_root)
+    subjects = read_subject_list(args.sublist) if args.sublist else None
+    updates = collect_intended_for_updates(bids_root, subjects)
     changed = 0
     skipped = 0
     for update in updates:

@@ -26,6 +26,9 @@ RUNS_BY_TASK = {
     "trust": ("1", "2"),
     "ugr": ("1", "2"),
 }
+WARPKIT_FMAP_RE = re.compile(
+    r"_acq-(ugr|trust|sharedreward|doors|socialdoors)_run-([0-9]+)_(fieldmap|magnitude)\.json$"
+)
 
 
 def read_subject_list(path: Path) -> list[str]:
@@ -110,9 +113,15 @@ def intended_for_targets(
     return targets
 
 
-def collect_intended_for_updates(bids_root: Path) -> list[IntendedForUpdate]:
+def collect_intended_for_updates(
+    bids_root: Path,
+    subjects: Iterable[str] | None = None,
+) -> list[IntendedForUpdate]:
     updates: list[IntendedForUpdate] = []
+    wanted = {subject.removeprefix("sub-") for subject in subjects} if subjects is not None else None
     for subject_dir in sorted(p for p in bids_root.glob("sub-*") if p.is_dir()):
+        if wanted is not None and subject_dir.name.removeprefix("sub-") not in wanted:
+            continue
         session_dirs = sorted(p for p in subject_dir.glob("ses-*") if p.is_dir())
         if not session_dirs:
             session_dirs = [subject_dir]
@@ -122,9 +131,7 @@ def collect_intended_for_updates(bids_root: Path) -> list[IntendedForUpdate]:
             if not fmap_dir.is_dir():
                 continue
             for json_path in sorted(fmap_dir.glob("*.json")):
-                if "dwi" in json_path.name or not (
-                    "fieldmap" in json_path.name or "magnitude" in json_path.name
-                ):
+                if not WARPKIT_FMAP_RE.search(json_path.name):
                     continue
                 data = json.loads(json_path.read_text())
                 task, run = parse_task_run(json_path.name, data)

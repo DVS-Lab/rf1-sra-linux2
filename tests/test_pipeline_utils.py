@@ -165,6 +165,40 @@ def test_intended_for_generation_filters_missing_runs(tmp_path: Path) -> None:
     assert len(ses2.intended_for) == 3
 
 
+def test_intended_for_generation_ignores_non_warpkit_fmap_json(tmp_path: Path) -> None:
+    bids = tmp_path / "bids"
+    make_bids_run(bids, "sub-10001", "ses-01", "ugr", "1")
+    fmap = bids / "sub-10001" / "ses-01" / "fmap"
+    (fmap / "sub-10001_ses-01_acq-bold_magnitude.json").write_text("{}")
+    (fmap / "sub-10001_ses-01_phasediff.json").write_text("{}")
+
+    updates = collect_intended_for_updates(bids)
+
+    assert [update.json_path.name for update in updates] == [
+        "sub-10001_ses-01_acq-ugr_run-1_fieldmap.json"
+    ]
+
+
+def test_add_intended_for_accepts_sublist_filter(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    module = load_add_intended_for()
+    bids = tmp_path / "bids"
+    make_bids_run(bids, "sub-10001", "ses-01", "ugr", "1")
+    make_bids_run(bids, "sub-10002", "ses-01", "ugr", "1")
+    sublist = tmp_path / "subjects.txt"
+    sublist.write_text("10002\n")
+
+    original_argv = sys.argv[:]
+    sys.argv = ["addIntendedFor.py", "--bids-root", str(bids), "--sublist", str(sublist), "--dry-run"]
+    try:
+        assert module.main() == 0
+    finally:
+        sys.argv = original_argv
+
+    captured = capsys.readouterr()
+    assert "sub-10001" not in captured.out
+    assert "sub-10002" in captured.out
+
+
 def test_atomic_write_json_replaces_metadata(tmp_path: Path) -> None:
     path = tmp_path / "fieldmap.json"
     path.write_text('{"Units": "rad/s"}')
