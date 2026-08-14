@@ -116,6 +116,26 @@ def test_repair_runlists_report_excluded_sources(tmp_path: Path) -> None:
     assert module.excluded_sources(tmp_path / "missing", ["10001"]) == set()
 
 
+def test_repair_runlists_issue_tsv_uses_unix_line_endings(tmp_path: Path) -> None:
+    module = load_make_repair_runlists()
+    output = tmp_path / "missing-paths.tsv"
+    issue = module.Issue(
+        subject="10001",
+        stage="mriqc",
+        session="01",
+        task="",
+        run="",
+        path="/tmp/output.json",
+        message="MRIQC JSON missing",
+    )
+
+    module.write_issues(output, [issue])
+
+    contents = output.read_bytes()
+    assert b"\r\n" not in contents
+    assert contents.endswith(b"MRIQC JSON missing\n")
+
+
 @pytest.mark.parametrize("heuristic_name", ["heuristics_rf1.py", "heuristics_XA30.py"])
 @pytest.mark.parametrize(
     ("filename", "expected"),

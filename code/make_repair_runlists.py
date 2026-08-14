@@ -297,6 +297,7 @@ def write_issues(path: Path, issues: list[Issue]) -> None:
             handle,
             fieldnames=("subject", "stage", "session", "task", "run", "path", "message"),
             dialect="excel-tab",
+            lineterminator="\n",
         )
         writer.writeheader()
         for issue in issues:
