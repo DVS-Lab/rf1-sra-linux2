@@ -582,6 +582,11 @@ Warpkit uses 8 subject/session/task/run jobs, fMRIPrep uses 2 subject jobs, and
 TEDANA uses 8 subject jobs. Each wrapper prints its subject list and job plan
 before launching.
 
+Each MRIQC session is capped at `MRIQC_NPROCS=8`,
+`MRIQC_OMP_NTHREADS=4`, and `MRIQC_MEM_GB=20` unless those environment
+variables are overridden. These limits prevent every container from
+auto-detecting all processors on Linux2 when several sessions run together.
+
 Use `--jobs 1` when isolating a failure. Raise concurrency only when the dry-run
 and first real subject look healthy, and avoid stacking multiple heavy stages at
 high concurrency.
