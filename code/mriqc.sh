@@ -63,10 +63,15 @@ cmd=(
   --session-id "$ses"
   --modalities bold
   --no-sub
+  --nprocs "$MRIQC_NPROCS"
+  --omp-nthreads "$MRIQC_OMP_NTHREADS"
+  --mem-gb "$MRIQC_MEM_GB"
   -w /scratch
 )
 
 printf 'MRIQC scratch: %s\n' "$scratch"
+printf 'MRIQC resources: nprocs=%s, omp-nthreads=%s, mem-gb=%s\n' \
+  "$MRIQC_NPROCS" "$MRIQC_OMP_NTHREADS" "$MRIQC_MEM_GB"
 printf 'MRIQC command:'
 printf ' %q' "${cmd[@]}"
 printf '\n'

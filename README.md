@@ -164,6 +164,12 @@ after the dry-run and the first real subject look healthy. Current defaults are
 `run_warpkit.sh --jobs 8`, `run_fmriprep.sh --jobs 2`, and
 `run_tedana.sh --jobs 8`. The wrappers print their job plan before launching.
 
+Each MRIQC session is capped at 8 processors, 4 OpenMP threads, and 20 GB RAM
+by default. Override `MRIQC_NPROCS`, `MRIQC_OMP_NTHREADS`, or `MRIQC_MEM_GB`
+when the host load warrants it. On an otherwise quiet Linux2, 10 simultaneous
+sessions at those defaults have aggregate ceilings of 80 CPU threads and
+200 GB RAM.
+
 fMRIPrep is the tightest stage: `run_fmriprep.sh --jobs N` splits a fixed
 Linux2 budget of 96 CPU threads and 196000 MB RAM across simultaneous subjects.
 Use `--jobs 1` for debugging, keep the default `--jobs 2` for normal production
