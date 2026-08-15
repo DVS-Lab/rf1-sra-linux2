@@ -137,5 +137,15 @@ fi
 mkdir -p "$derivdir" "$freesurferdir" "$scratchdir"
 rf1_require_file "$FMRIPREP_IMAGE"
 rf1_require_file "${LICENSES_DIR}/fs_license.txt"
-"${cmd[@]}"
+subject_log="${PROJECT_ROOT}/logs/runs/$(date +%Y%m%d-%H%M%S)_fmriprep-sub-${sub}.log"
+mkdir -p "$(dirname "$subject_log")"
+echo "fMRIPrep subject log: $subject_log"
+set +e
+"${cmd[@]}" 2>&1 | tee "$subject_log"
+fmriprep_status=${PIPESTATUS[0]}
+set -e
+if ((fmriprep_status != 0)); then
+  echo "fMRIPrep container failed for sub-${sub} (exit ${fmriprep_status}); see $subject_log" >&2
+  exit "$fmriprep_status"
+fi
 python3 "${scriptdir}/check_pipeline_state.py" fmriprep-complete "$bidsdir" "$derivdir" "$sub"

@@ -214,7 +214,9 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Subject HTML, volumetric outputs, CIFTI dtseries, and FreeSurfer subject.
 - Typical command: normally called by `run_fmriprep.sh`.
 - Checker: `check_fmriprep.sh`.
-- Notes: Generates the upstream anatomy derivatives consumed by `rf1-dwi`.
+- Notes: Generates the upstream anatomy derivatives consumed by `rf1-dwi`. Each
+  real invocation also writes an ignored subject-specific raw log under
+  `logs/runs/*_fmriprep-sub-<ID>.log` for failures in concurrent batches.
 
 ### `fmriprep_config.json`
 - Status: fMRIPrep configuration.
