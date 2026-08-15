@@ -213,7 +213,7 @@ fi
     cat "$raw_log"
     echo '```'
   elif ((include_tail)); then
-    error_lines="$(grep -Ei 'error|traceback|exception|bids|validation|failed|not found|no such file|permission denied' "$raw_log" | tail -n 40 || true)"
+    error_lines="$(grep -Ei 'nodeexecutionerror|traceback|exception|could not run node|crashfile|segmentation fault|out of memory|killed|permission denied|no such file|not found|(^|[[:space:]])(error|failed|failure)([[:space:]:]|$)' "$raw_log" | tail -n 40 || true)"
     if [[ -n "$error_lines" ]]; then
       echo
       echo "## Error Lines"
