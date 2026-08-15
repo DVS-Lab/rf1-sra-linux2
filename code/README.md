@@ -636,8 +636,10 @@ available input.
 ## Expected Outputs
 
 Predata/HeuDiConv should create `bids/sub-<id>/ses-<ses>/`, BIDS metadata,
-expected multi-echo task files, a defaced T1w when T1w exists, and shifted
-`scans.tsv`. It must not alter raw DICOM source data.
+expected multi-echo task files, a defaced T1w, and shifted `scans.tsv`. A
+subject without any BIDS T1w is reported as blocked before fMRIPrep/FreeSurfer;
+inspect the source scan and heuristic before rerunning conversion. Predata must
+not alter raw DICOM source data.
 
 Warpkit requires all four magnitude NIfTIs, phase NIfTIs, and phase JSON files
 before launch. It writes fieldmap/magnitude NIfTIs and JSON files under the BIDS

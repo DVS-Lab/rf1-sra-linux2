@@ -188,6 +188,16 @@ def subject_has_bold_inputs(bids_root: Path, subject: str) -> bool:
     return any((bids_root / f"sub-{subject}").glob("ses-*/func/*_echo-1_part-mag_bold.nii.gz"))
 
 
+def subject_t1w_inputs(bids_root: Path, subject: str) -> list[Path]:
+    subject_dir = bids_root / f"sub-{subject}"
+    return sorted(
+        {
+            *subject_dir.glob("anat/*_T1w.nii.gz"),
+            *subject_dir.glob("ses-*/anat/*_T1w.nii.gz"),
+        }
+    )
+
+
 def fmriprep_cifti_outputs(deriv_root: Path, subject: str) -> list[Path]:
     subject_dir = deriv_root / "fmriprep" / f"sub-{subject}"
     return sorted(subject_dir.glob("ses-*/func/*_space-fsLR_den-91k_bold.dtseries.nii"))

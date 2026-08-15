@@ -22,6 +22,7 @@ from pipeline_utils import (  # noqa: E402
     missing_paths,
     read_subject_list,
     runs_for_task,
+    subject_t1w_inputs,
     tasks_for_session,
     tedana_expected_outputs,
     warpkit_required_inputs,
@@ -265,6 +266,36 @@ def test_warpkit_manifest_detects_missing_echo(tmp_path: Path) -> None:
     for path in required[:-1]:
         path.write_text("x")
     assert missing_paths(required) == [required[-1]]
+
+
+def test_subject_t1w_inputs_accepts_session_and_subject_anat(tmp_path: Path) -> None:
+    bids = tmp_path / "bids"
+    session_t1w = bids / "sub-10001" / "ses-01" / "anat" / "sub-10001_ses-01_T1w.nii.gz"
+    subject_t1w = bids / "sub-10002" / "anat" / "sub-10002_T1w.nii.gz"
+    session_t1w.parent.mkdir(parents=True)
+    subject_t1w.parent.mkdir(parents=True)
+    session_t1w.write_text("nii")
+    subject_t1w.write_text("nii")
+
+    assert subject_t1w_inputs(bids, "10001") == [session_t1w]
+    assert subject_t1w_inputs(bids, "10002") == [subject_t1w]
+    assert subject_t1w_inputs(bids, "10003") == []
+
+
+def test_repair_runlists_report_missing_t1w_as_bids_issue(tmp_path: Path) -> None:
+    module = load_make_repair_runlists()
+    project_root = tmp_path / "project"
+    session = project_root / "bids" / "sub-10001" / "ses-01"
+    func = session / "func"
+    func.mkdir(parents=True)
+    (session / "sub-10001_ses-01_scans.tsv").write_text("filename\tacq_time\n")
+    (func / "sub-10001_ses-01_task-ugr_run-1_bold.nii.gz").write_text("nii")
+    issues = []
+
+    needs_repair = module.add_bids_issues(issues, project_root, tmp_path / "source", ["10001"])
+
+    assert needs_repair == {"10001"}
+    assert any(issue.message == "no BIDS T1w input available for fMRIPrep/FreeSurfer" for issue in issues)
 
 
 def test_fmriprep_completion_checks_expected_outputs(tmp_path: Path) -> None:

@@ -15,6 +15,7 @@ from pipeline_utils import (
     missing_paths,
     read_subject_list,
     runs_for_task,
+    subject_t1w_inputs,
     tasks_for_session,
     warpkit_required_inputs,
 )
@@ -140,6 +141,22 @@ def add_bids_issues(
                     path=path,
                     message="expected BIDS/prepdata output missing",
                 )
+        if not subject_t1w_inputs(project_root / "bids", subject):
+            needs_repair.add(subject)
+            add_issue(
+                issues,
+                subject,
+                "bids",
+                path=(
+                    project_root
+                    / "bids"
+                    / f"sub-{subject}"
+                    / "ses-*"
+                    / "anat"
+                    / f"sub-{subject}_ses-*_T1w.nii.gz"
+                ),
+                message="no BIDS T1w input available for fMRIPrep/FreeSurfer",
+            )
     return needs_repair
 
 
