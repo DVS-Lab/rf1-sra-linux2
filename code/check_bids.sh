@@ -53,6 +53,11 @@ source_has_dicoms() {
 }
 
 while IFS= read -r sub; do
+  subject_dir="${bidsroot}/sub-${sub}"
+  if ! find "$subject_dir" -type f -name '*_T1w.nii.gz' -print -quit 2>/dev/null | grep -q .; then
+    echo "MISSING ${subject_dir}/ses-*/anat/*_T1w.nii.gz (required by fMRIPrep/FreeSurfer)"
+    failed=1
+  fi
   for ses in 01 02; do
     folder_sub="$sub"
     [[ "$ses" == "02" ]] && folder_sub="${sub}-2"
