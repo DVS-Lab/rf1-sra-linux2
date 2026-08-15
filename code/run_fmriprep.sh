@@ -74,11 +74,23 @@ args=()
 ((overwrite)) && args+=(--overwrite)
 
 pids=()
+subjects=()
 while IFS= read -r sub; do
   rf1_wait_for_jobs "$max_jobs"
   echo "Launching fMRIPrep sub-${sub}"
   bash "${SCRIPT_DIR}/fmriprep.sh" "${args[@]}" "$sub" &
   pids+=("$!")
+  subjects+=("$sub")
 done < <(rf1_read_subjects "$sublist")
 
-rf1_wait_all "${pids[@]}"
+failed=0
+for i in "${!pids[@]}"; do
+  if wait "${pids[$i]}"; then
+    echo "fMRIPrep completed: sub-${subjects[$i]}"
+  else
+    status=$?
+    echo "fMRIPrep FAILED: sub-${subjects[$i]} (exit ${status})" >&2
+    failed=1
+  fi
+done
+exit "$failed"
