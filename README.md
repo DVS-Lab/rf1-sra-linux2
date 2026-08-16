@@ -2,18 +2,23 @@
 
 This repository contains the Smith Lab Linux2 preprocessing workflow for RF1-SRA
 multi-echo fMRI data from the UGR, Social Doors, Trust, and Shared Reward tasks.
-Behavioral task processing lives in separate repositories. This repository is
-for MRI data management, BIDS conversion, fieldmap preparation, fMRIPrep,
-FreeSurfer/CIFTI derivative generation, TEDANA, MRIQC, downstream confound
-generation, and cohort-level metric extraction helpers.
+This repository owns MRI data management, imaging and behavioral BIDS
+conversion, fieldmap preparation, fMRIPrep, FreeSurfer/CIFTI derivative
+generation, TEDANA, MRIQC, downstream confound generation, and cohort-level
+metric extraction helpers.
+
+`rf1-sra-linux2` owns the canonical RF1-SRA BIDS dataset, including behavioral
+`_events.tsv` files. Downstream scientific-analysis repositories consume these
+BIDS events and should not read raw behavioral logs directly.
 
 ## Scope And Privacy
 
-Raw DICOMs are not stored in GitHub. On Linux2 they live under the lab-controlled
-source-data area, normally `/ZPOOL/data/sourcedata/sourcedata/rf1-sra`. BIDS
-NIfTI images, fMRIPrep derivatives, TEDANA outputs, MRIQC reports, scheduler
-logs, temporary files, generated metrics, and the generated `bids/` tree are
-intentionally excluded from version control.
+Raw DICOMs and private behavioral logs are not stored in GitHub. On Linux2 the
+DICOMs live under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra`, and behavioral
+sources live under `/ZPOOL/data/projects/rf1-sra/stimuli`. BIDS NIfTI images,
+fMRIPrep derivatives, TEDANA outputs, MRIQC reports, scheduler logs, temporary
+files, generated metrics, and the generated `bids/` tree are intentionally
+excluded from version control.
 
 Production processing should occur on Smith Lab Linux2 from the production
 checkout:
@@ -68,7 +73,8 @@ The dependency order is:
 
 ```text
 Raw DICOMs / XNAT
-  -> rf1-sra-linux2 BIDS conversion
+  + private RF1-SRA behavioral logs
+  -> rf1-sra-linux2 imaging and behavioral BIDS conversion
   -> rf1-sra-linux2 Warpkit / IntendedFor
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
   -> rf1-sra-linux2 TEDANA / MRIQC / confounds
@@ -80,7 +86,8 @@ In this repository the modular stages are:
 
 ```mermaid
 flowchart TD
-  A["Download DICOMs from XNAT"] --> B["Convert to BIDS, deface, shift dates"]
+  A["Download DICOMs from XNAT"] --> B["Convert imaging and behavior to BIDS"]
+  K["Private task logs"] --> B
   B --> C["Generate Warpkit fieldmaps"]
   C --> D["Repair IntendedFor metadata"]
   D --> E["Run fMRIPrep"]
@@ -104,6 +111,7 @@ clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 | Production fMRIPrep derivatives | `/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep` |
 | Production FreeSurfer subjects | `/ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurfer` |
 | Source DICOMs | `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` |
+| Private behavioral source | `/ZPOOL/data/projects/rf1-sra/stimuli` |
 | Scratch | `/ZPOOL/data/scratch` |
 | Tool/container directory | `/ZPOOL/data/tools` |
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
@@ -248,6 +256,27 @@ Doors generally lack run 2, so the wrappers and checkers expect run 1 only.
 Some participants may intentionally lack a task or run; validation notes should
 say whether an absence is expected or requires investigation.
 
+Historical task logs use both zero-based and one-based run labels. The behavior
+converter resolves these conventions explicitly, treats untagged logs as
+`ses-01`, requires explicit session labels for `ses-02`, and stops when more
+than one source could map to the same BIDS run.
+
+Behavior conversion is intentionally fail-closed. Exact column counts are
+required, repeated headers, trial-number resets, and onset resets are treated
+as evidence of appended runs, and malformed rows that claim `ran=1` stop the
+conversion. Only explicit `ran=0` placeholder rows are omitted automatically.
+Standard trial counts are Shared Reward 54, Trust 42, UGR 48, and Social
+Doors/Doors 40.
+
+A coherent short run or behaviorally poor run requires independent review in
+`code/behavior_curation.tsv`. Each approval is tied to the exact source SHA-256
+and ordered trial fingerprint, so changing the source invalidates the approval.
+Structural corruption and multiple run segments cannot be approved away;
+repair or split the private source first. A lone Shared Reward raw `run-1`
+requires an `ambiguous_run_label` approval for a specific BIDS run after the
+team verifies scanner history and, when available, the OpenNeuro comparison.
+Other source ambiguities remain hard failures.
+
 For a small Linux2 validation list, prefer subjects that overlap with the
 `rf1-dwi` validation subjects, such as `10317` and `10953`, when they cover
 useful fMRI data. Because this repository must validate multi-session behavior,
@@ -260,13 +289,49 @@ not make it a production default unless David asks.
 ## Advanced: Logged Runs
 
 Use `--dry-run` first for pipeline stages that support it. `prepdata.sh` runs
-HeuDiConv into scratch first, validates that a new BIDS session exists there,
-and only then touches the live `bids/` tree. MRIQC is a separate restartable
-stage run by `run_mriqc.sh`; reconverting BIDS data is not required to rerun
-MRIQC. Replacing an existing BIDS session
-requires `--overwrite`; the old session is removed immediately before the
-validated staged session is moved into place, so `bids/` does not accumulate
-non-BIDS backup folders.
+HeuDiConv, behavioral conversion, defacing, date shifting, and events
+validation in scratch before it touches the live `bids/` tree. During an
+imaging overwrite, only existing events whose task/run stems match staged BOLD
+runs are preserved, then replaced when a validated behavioral source is
+available. MRIQC is a separate restartable stage run by `run_mriqc.sh`;
+reconverting BIDS data is not required to rerun MRIQC. Replacing an existing
+BIDS session requires `--overwrite`; the old session is removed immediately
+before the validated staged session is moved into place.
+
+To backfill events for imaging sessions that are already converted, run the
+standalone modular stage and then the checker:
+
+```bash
+bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --dry-run
+bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --overwrite
+python3 check_events.py --sublist "$SUBLIST" \
+  --review-tsv "../logs/reviews/events-$(date +%Y%m%d-%H%M%S).tsv"
+```
+
+`prepdata.sh` and `check_bids.sh` create the same kind of timestamped report
+under `logs/reviews/`. A report row is a request for independent review, not an
+exclusion decision. After review, copy only the approval fields into
+`code/behavior_curation.tsv` and record the reviewer and rationale. Never add
+trial-level behavioral data to Git.
+
+OpenNeuro `ds005123` version `1.1.3` can be used as a frozen historical
+cross-check after downloading it locally. It is not production input and has
+known UGR, Shared Reward, and Trust issues. The audit distinguishes a same-run
+match from a match to the other public run, which is a high-priority run-swap
+risk. It compares ordered trial identity only, never onset or duration. Doors
+and Social Doors therefore provide the strongest comparison. Trust ignores the
+known duration difference and tolerates the public export's omitted trials as
+an ordered partial match. Shared Reward compares partner/outcome order while
+treating private misses as wildcards because the public export retained the
+scheduled outcome. UGR uses only sociality/endowment order and is supporting
+evidence rather than a definitive match:
+
+```bash
+python3 audit_openneuro_events.py \
+  --sublist "$SUBLIST" \
+  --openneuro-root /path/to/ds005123-1.1.3 \
+  --report-tsv "../logs/reviews/openneuro-events-$(date +%Y%m%d-%H%M%S).tsv"
+```
 
 Run the matching `check_*.sh` script after each major stage. These scripts end
 with `CHECK PASSED` or `CHECK FAILED`, so a terminal transcript or ignored log
