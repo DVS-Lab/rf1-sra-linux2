@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import importlib.util
+import os
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
@@ -67,6 +69,35 @@ def test_read_subject_list_ignores_blank_lines_comments_and_prefixes(tmp_path: P
     sublist = tmp_path / "subjects.txt"
     sublist.write_text("\n# comment\nsub-10001\n10002  # inline\n\n")
     assert read_subject_list(sublist) == ["10001", "10002"]
+
+
+def test_shell_subject_reader_skips_source_exclusions_unless_overridden(tmp_path: Path) -> None:
+    sublist = tmp_path / "subjects.txt"
+    sublist.write_text("10001\n10002\n")
+    exclusions = tmp_path / "exclusions"
+    (exclusions / "Smith-SRA-10002").mkdir(parents=True)
+    command = (
+        f'source "{CODE_DIR / "pipeline_common.sh"}"; '
+        f'SCRIPT_DIR="{CODE_DIR}"; '
+        f'rf1_read_subjects "{sublist}"'
+    )
+    env = os.environ | {"SOURCEDATA_EXCLUSIONS_ROOT": str(exclusions)}
+
+    filtered = subprocess.run(
+        ["bash", "-c", command], env=env, text=True, capture_output=True, check=True
+    )
+    assert filtered.stdout == "10001\n"
+    assert "SKIP source-excluded sub-10002" in filtered.stderr
+
+    included = subprocess.run(
+        ["bash", "-c", command],
+        env=env | {"RF1_INCLUDE_SOURCE_EXCLUDED": "1"},
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert included.stdout == "10001\n10002\n"
+    assert included.stderr == ""
 
 
 def test_tedana_confound_sublist_filter_accepts_prefixed_and_plain_ids(tmp_path: Path) -> None:

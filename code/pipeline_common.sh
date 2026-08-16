@@ -80,7 +80,16 @@ rf1_require_dir() {
 
 rf1_read_subjects() {
   local sublist="$1"
-  python3 "${SCRIPT_DIR}/print_subjects.py" "$sublist"
+  local sub excluded_source
+
+  while IFS= read -r sub; do
+    excluded_source="${SOURCEDATA_EXCLUSIONS_ROOT}/Smith-SRA-${sub}"
+    if [[ "${RF1_INCLUDE_SOURCE_EXCLUDED:-0}" != "1" && -d "$excluded_source" ]]; then
+      printf 'SKIP source-excluded sub-%s: %s\n' "$sub" "$excluded_source" >&2
+      continue
+    fi
+    printf '%s\n' "$sub"
+  done < <(python3 "${SCRIPT_DIR}/print_subjects.py" "$sublist")
 }
 
 rf1_wait_for_jobs() {

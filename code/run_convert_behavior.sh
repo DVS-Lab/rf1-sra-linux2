@@ -87,12 +87,10 @@ args=(--tasks "$tasks" --behavior-root "$BEHAVIOR_ROOT" --bids-root "${PROJECT_R
 IFS=',' read -r -a session_values <<< "$sessions"
 pids=()
 launched=0
+if ((include_source_excluded)); then
+  RF1_INCLUDE_SOURCE_EXCLUDED=1
+fi
 while IFS= read -r sub; do
-  excluded_source="${SOURCEDATA_EXCLUSIONS_ROOT}/Smith-SRA-${sub}"
-  if ((!include_source_excluded)) && [[ -d "$excluded_source" ]]; then
-    echo "SKIP source-excluded sub-${sub}: $excluded_source"
-    continue
-  fi
   for ses in "${session_values[@]}"; do
     rf1_wait_for_jobs "$max_jobs"
     echo "Launching behavior conversion sub-${sub} ses-${ses}"
