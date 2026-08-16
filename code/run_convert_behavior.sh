@@ -69,7 +69,9 @@ done
 rf1_require_file "$sublist"
 rf1_require_file "${SCRIPT_DIR}/convert_behavior.py"
 rf1_require_file "$curation_file"
+rf1_require_dir "$BEHAVIOR_ROOT"
 echo "Using subject list: $sublist"
+echo "Using private behavior root: $BEHAVIOR_ROOT"
 echo "behavior conversion plan: up to ${max_jobs} subject/session job(s); sessions ${sessions}; tasks ${tasks}"
 
 args=(--tasks "$tasks" --behavior-root "$BEHAVIOR_ROOT" --bids-root "${PROJECT_ROOT}/bids" --curation-file "$curation_file")
