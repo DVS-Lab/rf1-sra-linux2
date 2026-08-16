@@ -176,7 +176,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Canonical BIDS events and task-level sidecars.
 - Typical command: preview existing BIDS data with `bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --dry-run --overwrite`, then remove `--dry-run` after review.
 - Checker: `python3 check_events.py --sublist "$SUBLIST"`.
-- Notes: This is a modular backfill stage, not a run-all wrapper. Use `--dry-run` before a cohort overwrite.
+- Notes: This is a modular backfill stage, not a run-all wrapper. Use `--dry-run` before a cohort overwrite. Subjects represented under the production source-exclusions root are skipped by default even if residual BIDS data exist; `--include-source-excluded` is an explicit forensic override.
 
 ### `check_events.py`
 - Status: Behavioral BIDS checker.

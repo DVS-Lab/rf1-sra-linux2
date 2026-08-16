@@ -6,6 +6,7 @@ usage() {
 Usage: bash run_convert_behavior.sh [--sublist FILE] [--jobs N] [--sessions 01,02]
                                     [--tasks LIST] [--curation-file FILE]
                                     [--dry-run] [--overwrite]
+                                    [--include-source-excluded]
 
 Backfills canonical BIDS events without rerunning HeuDiConv. LIST is a
 comma-separated subset of sharedreward,trust,ugr,socialdoors,doors.
@@ -23,6 +24,7 @@ sessions="01,02"
 tasks="sharedreward,trust,ugr,socialdoors,doors"
 dry_run=0
 overwrite=0
+include_source_excluded=0
 curation_file="$BEHAVIOR_CURATION_FILE"
 
 while (($#)); do
@@ -55,6 +57,10 @@ while (($#)); do
       overwrite=1
       shift
       ;;
+    --include-source-excluded)
+      include_source_excluded=1
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -80,14 +86,23 @@ args=(--tasks "$tasks" --behavior-root "$BEHAVIOR_ROOT" --bids-root "${PROJECT_R
 
 IFS=',' read -r -a session_values <<< "$sessions"
 pids=()
+launched=0
 while IFS= read -r sub; do
+  excluded_source="${SOURCEDATA_EXCLUSIONS_ROOT}/Smith-SRA-${sub}"
+  if ((!include_source_excluded)) && [[ -d "$excluded_source" ]]; then
+    echo "SKIP source-excluded sub-${sub}: $excluded_source"
+    continue
+  fi
   for ses in "${session_values[@]}"; do
     rf1_wait_for_jobs "$max_jobs"
     echo "Launching behavior conversion sub-${sub} ses-${ses}"
     python3 "${SCRIPT_DIR}/convert_behavior.py" \
       --subject "$sub" --session "$ses" "${args[@]}" &
     pids+=("$!")
+    launched=$((launched + 1))
   done
 done < <(rf1_read_subjects "$sublist")
 
-rf1_wait_all "${pids[@]}"
+if ((launched)); then
+  rf1_wait_all "${pids[@]}"
+fi

@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash prepdata.sh [--dry-run] [--overwrite] SUBJECT SESSION
+Usage: bash prepdata.sh [--dry-run] [--overwrite] [--include-source-excluded] SUBJECT SESSION
 
 Converts DICOMs and behavior to BIDS, defaces T1w data, shifts scans.tsv
 dates, validates the staged session, and stops. Run MRIQC separately.
@@ -17,6 +17,7 @@ rf1_load_config
 
 dry_run=0
 overwrite=0
+include_source_excluded=0
 while (($#)); do
   case "$1" in
     --dry-run)
@@ -25,6 +26,10 @@ while (($#)); do
       ;;
     --overwrite)
       overwrite=1
+      shift
+      ;;
+    --include-source-excluded)
+      include_source_excluded=1
       shift
       ;;
     -h|--help)
@@ -59,6 +64,12 @@ fi
 
 rf1_require_dir "$BEHAVIOR_ROOT"
 echo "Using private behavior root: $BEHAVIOR_ROOT"
+
+excluded_source="${SOURCEDATA_EXCLUSIONS_ROOT}/Smith-SRA-${sub}"
+if ((!include_source_excluded)) && [[ -d "$excluded_source" ]]; then
+  echo "SKIP source-excluded sub-${sub}: $excluded_source"
+  exit 0
+fi
 
 bidsroot="${PROJECT_ROOT}/bids"
 scratch_user="${SCRATCH_ROOT}/$(whoami)"
