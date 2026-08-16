@@ -302,7 +302,7 @@ To backfill events for imaging sessions that are already converted, run the
 standalone modular stage and then the checker:
 
 ```bash
-bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --dry-run
+bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --dry-run --overwrite
 bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --overwrite
 python3 check_events.py --sublist "$SUBLIST" \
   --review-tsv "../logs/reviews/events-$(date +%Y%m%d-%H%M%S).tsv"
@@ -312,7 +312,9 @@ python3 check_events.py --sublist "$SUBLIST" \
 under `logs/reviews/`. A report row is a request for independent review, not an
 exclusion decision. After review, copy only the approval fields into
 `code/behavior_curation.tsv` and record the reviewer and rationale. Never add
-trial-level behavioral data to Git.
+trial-level behavioral data to Git. For an existing BIDS tree, combine
+`--dry-run --overwrite`: dry-run prevents writes, while overwrite declares the
+replacement that the preview is meant to validate.
 
 OpenNeuro `ds005123` version `1.1.3` can be used as a frozen historical
 cross-check after downloading it locally. It is not production input and has
