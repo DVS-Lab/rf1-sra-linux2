@@ -57,6 +57,9 @@ if [[ ! "$ses" =~ ^0[12]$ ]]; then
   exit 2
 fi
 
+rf1_require_dir "$BEHAVIOR_ROOT"
+echo "Using private behavior root: $BEHAVIOR_ROOT"
+
 bidsroot="${PROJECT_ROOT}/bids"
 scratch_user="${SCRATCH_ROOT}/$(whoami)"
 
