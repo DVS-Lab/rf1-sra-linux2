@@ -93,6 +93,19 @@ while IFS= read -r sub; do
   done
 done < <(rf1_read_subjects "$sublist")
 
+review_report="${PROJECT_ROOT}/logs/reviews/check-bids-$(date +%Y%m%d-%H%M%S).tsv"
+mkdir -p "$(dirname "$review_report")"
+if ! python3 "${scriptdir}/check_events.py" \
+  --sublist "$sublist" \
+  --behavior-root "$BEHAVIOR_ROOT" \
+  --curation-file "$BEHAVIOR_CURATION_FILE" \
+  --bids-root "$bidsroot" \
+  --review-tsv "$review_report" \
+  --quiet-ok
+then
+  failed=1
+fi
+
 if ((failed)); then
   echo "CHECK FAILED: BIDS/prepdata outputs incomplete for one or more of ${checked} expected session(s)."
 else

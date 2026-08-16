@@ -7,16 +7,19 @@ stage commands below.
 ## Upstream/Downstream Boundary
 
 `rf1-sra-linux2` runs before `rf1-dwi`. This repository owns the shared RF1-SRA
-BIDS dataset plus fMRIPrep, FreeSurfer, CIFTI, TEDANA, MRIQC, confound
-derivatives, and cohort-level metric summaries. The DWI repository should
-consume those validated outputs for QSIPrep/QSIRecon instead of copying or
-regenerating them.
+BIDS dataset, including canonical behavioral `_events.tsv` files, plus
+fMRIPrep, FreeSurfer, CIFTI, TEDANA, MRIQC, confound derivatives, and
+cohort-level metric summaries. Downstream analysis repositories consume these
+BIDS events and should not read private raw behavioral logs directly. The DWI
+repository should consume validated upstream outputs for QSIPrep/QSIRecon
+instead of copying or regenerating them.
 
 The dependency map is:
 
 ```text
 Raw DICOMs / XNAT
-  -> rf1-sra-linux2 BIDS conversion
+  + private behavioral logs
+  -> rf1-sra-linux2 imaging and behavioral BIDS conversion
   -> rf1-sra-linux2 Warpkit / IntendedFor
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
   -> rf1-sra-linux2 TEDANA / MRIQC / confounds
@@ -36,7 +39,7 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 | Order | Entry point | Worker/helper | Inputs | Outputs | Side effects |
 |------:|-------------|---------------|--------|---------|--------------|
 | 1 | `downloadXNAT.py` | XNAT Python client | Temple XNAT credentials | Raw DICOM folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` | Downloads source data only. |
-| 2 | `run_prepdata.sh` | `prepdata.sh`, `heuristics_rf1.py`, `heuristics_XA30.py`, `shiftdates.py` | `sublist-new.txt`, DICOMs | BIDS session, defaced T1w, shifted `scans.tsv` | Stages conversion in scratch; raw DICOMs remain untouched. Check with `check_bids.sh`. |
+| 2 | `run_prepdata.sh` | `prepdata.sh`, imaging heuristics, `convert_behavior.py`, `shiftdates.py` | `sublist-new.txt`, DICOMs, private task logs | Complete BIDS session with imaging and canonical events | Stages conversion, defacing, date shifting, and events validation in scratch. Check with `check_bids.sh`. |
 | 3 | `run_warpkit.sh` | `warpkit.sh` | BIDS multi-echo mag/phase files and JSON | BIDS `fmap/` fieldmap and magnitude files | Removes only explicit generated fmap files when `--overwrite` is used. Check with `check_warpkit.sh`. |
 | 4 | `addIntendedFor.py` | `pipeline_utils.py` | BIDS `fmap/*.json`, existing BOLD files | Updated fieldmap JSON | Atomic writes; `--dry-run` available. |
 | 5 | `run_fmriprep.sh` | `fmriprep.sh`, `fmriprep_config.json` | BIDS data | `derivatives/fmriprep`, `derivatives/freesurfer` | Generates volumetric, fsLR CIFTI, and FreeSurfer outputs; skips only when practical completion outputs exist. |
@@ -49,6 +52,46 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 `make_repair_runlists.py` is the filesystem audit helper for recovery runs. It
 does not launch processing; it writes targeted runlists and a missing-path TSV
 under `logs/runlists/`.
+
+## Behavioral Provenance
+
+Production conversion has no runtime dependency on another Git repository.
+Private logs stay under `/ZPOOL/data/projects/rf1-sra/stimuli`, and only
+canonical BIDS events and aggregate, non-identifying audit counts belong in the
+Linux2 workflow. Historical repositories are reference material only:
+
+- `r01-soi` contains the corrected legacy Shared Reward outcome conversion.
+- `sharedreward-aging` contains a stale converter that started outcomes at the decision onset.
+- `rf1-sra-trust`, `rf1-betrayal`, and `r01-soi` contain legacy Trust implementations.
+- `rf1-sra-ugr` contains the legacy GLM-oriented UGR conversion.
+- `rf1-norms` and `rf1-betrayal` contain historical UGR model generation that reads private CSVs and will be migrated separately.
+- `rf1-wave2` is historical/side-project code and is not authoritative.
+- `rf1-sra-linux2` is the authoritative production implementation going forward.
+
+The converter follows executed task code and measured timestamps before legacy
+analysis conventions. An aggregate local audit found Trust outcomes centered
+at about 2.00 seconds rather than the legacy hard-coded 1 second. Across more
+than 30,000 usable historical UGR trials, stored `cue_Onset` was about 0.5
+seconds later than the true partner-cue onset, while `decision_onset - ISI`
+matched the logged endowment boundary within milliseconds. The production UGR
+derivation therefore reconstructs the partner-only cue from
+`decision_onset - ISI - 1.5` and documents that timing in the task sidecar.
+
+The development parity audit classifies the intentional differences this way:
+
+| Task | Classification | Canonical difference |
+| --- | --- | --- |
+| Shared Reward | Expected correction | Outcome rows retain the historical partner/outcome labels but use measured outcome boundaries; a miss becomes separate `missed_decision` and `missed_outcome` rows. |
+| Shared Reward | Expected schema change | Partner, feedback, and stable trial identifiers are explicit columns. |
+| Trust | Expected correction | Positive-investment outcomes use `outcome_offset - outcome_onset`; zero investments do not acquire invented outcomes. |
+| UGR | Expected correction | The true partner-cue onset and visible endowment interval are reconstructed from the executed task sequence. |
+| UGR | Expected schema change | Phase rows and trial attributes replace duplicated GLM labels such as condition and condition-plus-choice rows. |
+| Social Doors/Doors | Expected schema continuity | Existing decision, feedback, response, and stimulus columns are retained while source ambiguity becomes an error. |
+
+Partner identity, outcome category, trust value, reciprocation, sociality,
+endowment, offer, left/right response, and accept/reject choice are never
+treated as expected differences. A disagreement in those values requires
+investigation before backfill.
 
 ## Script Reference
 
@@ -92,21 +135,66 @@ Each entry uses the same fields so operators can scan quickly.
 
 ### `run_prepdata.sh`
 - Status: Production wrapper.
-- Purpose: Launch BIDS conversion for every listed subject and session.
-- Inputs: `sublist-new.txt`, raw DICOM source data, and `prepdata.sh`.
-- Outputs: BIDS sessions, defaced T1w images, and shifted `scans.tsv` files.
+- Purpose: Launch imaging and behavioral BIDS conversion for every listed subject and session.
+- Inputs: `sublist-new.txt`, raw DICOMs, private task logs, and `prepdata.sh`.
+- Outputs: BIDS sessions, canonical events, defaced T1w images, and shifted `scans.tsv` files.
 - Typical command: `bash run_prepdata.sh --sublist "$SUBLIST" --jobs 6`.
 - Checker: `bash check_bids.sh --sublist "$SUBLIST"`.
 - Notes: Prints the subject list and job plan before launching.
 
 ### `prepdata.sh`
 - Status: Production worker.
-- Purpose: Run one subject/session through HeuDiConv, defacing, and date shifting.
-- Inputs: One subject, one session, DICOMs, HeuDiConv image, heuristics, and `shiftdates.py`.
+- Purpose: Run one subject/session through staged imaging and behavioral BIDS conversion, defacing, date shifting, and validation.
+- Inputs: One subject/session, DICOMs, task logs, HeuDiConv, heuristics, `convert_behavior.py`, and `shiftdates.py`.
 - Outputs: One staged and then live BIDS subject/session tree.
 - Typical command: normally called by `run_prepdata.sh`.
 - Checker: `check_bids.sh`.
-- Notes: Stages in scratch before replacing live BIDS outputs; `--overwrite` is required for replacement. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. `sub-11891` session 01 uses its nested source-data path explicitly. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing because they are scanner-generated non-BIDS series that can trigger enhanced-DICOM parsing failures.
+- Notes: Stages all transformations and events validation before replacing live BIDS outputs; `--overwrite` is required for replacement. Matching existing events are preserved in the stage so missing private logs cannot silently erase curated behavior. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. `sub-11891` session 01 uses its nested source-data path explicitly. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing.
+
+### `convert_behavior.py`
+- Status: Canonical production converter.
+- Purpose: Convert Shared Reward, Trust, UGR, Social Doors, and Doors task logs into BOLD-matched BIDS events.
+- Inputs: One subject/session, private behavior root, staged or live BIDS root, selected tasks, and `behavior_curation.tsv`.
+- Outputs: Session `_events.tsv` files and inheritance-compatible task-level events JSON sidecars.
+- Typical command: `python3 convert_behavior.py --subject 10001 --session 01 --overwrite`.
+- Checker: `python3 check_events.py --subject 10001 --session 01`.
+- Notes: Raw `run-0/run-1` translation and explicit/implicit session resolution are deliberate; ambiguous mappings fail. Field-count mismatches, repeated headers, trial resets, onset resets, and malformed executed rows are hard failures. Only `ran=0` placeholders are omitted. Short or behaviorally poor runs require an exact fingerprint-bound approval. Shared Reward misses retain decision and feedback rows, Trust uses measured feedback offsets, and historical UGR cue timing is reconstructed from `decision_onset` and ISI after aggregate validation of the private logs.
+
+### `behavior_curation.tsv`
+- Status: Reviewed production exception registry.
+- Purpose: Record independent approval of coherent short runs or behaviorally poor runs.
+- Inputs: One row per approved issue with subject/session/task/run, source SHA-256, trial fingerprint, reviewer, and rationale.
+- Outputs: Fingerprint-bound approvals consumed by the converter and checker.
+- Typical command: edit only after reviewing a row from `check_events.py --review-tsv ...`.
+- Checker: `python3 check_events.py --sublist "$SUBLIST"` validates the schema and fingerprints.
+- Notes: An empty header-only file is normal. `unexpected_trial_count` and `behaviorally_poor` approve coherent exceptions. `ambiguous_run_label` is limited to a lone Shared Reward raw `run-1` after its target BIDS run is independently verified. Do not approve appended runs, malformed tables, or competing source files; repair the private source instead. Do not commit trial-level data.
+
+### `run_convert_behavior.sh`
+- Status: Production backfill wrapper.
+- Purpose: Generate canonical events for existing BIDS sessions without rerunning HeuDiConv.
+- Inputs: Subject list, selected sessions/tasks, private behavior root, and BIDS BOLD runs.
+- Outputs: Canonical BIDS events and task-level sidecars.
+- Typical command: `bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --overwrite`.
+- Checker: `python3 check_events.py --sublist "$SUBLIST"`.
+- Notes: This is a modular backfill stage, not a run-all wrapper. Use `--dry-run` before a cohort overwrite.
+
+### `check_events.py`
+- Status: Behavioral BIDS checker.
+- Purpose: Audit private source, BOLD, events, ambiguity, conversion validity, trial counts, and curation status as distinct states.
+- Inputs: Subject or subject list, sessions/tasks, private behavior root, and BIDS root.
+- Outputs: Per-run statuses, aggregate counts, optional machine-readable review TSV, and a final pass/fail result.
+- Typical command: `python3 check_events.py --sublist "$SUBLIST" --review-tsv ../logs/reviews/events-audit.tsv`.
+- Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
+- Notes: Source/BOLD absences are reported separately. Source absence, missing/malformed events, canonical-content disagreement, and unapproved review issues fail. Review reports contain identifiers, paths, hashes, and reasons but no trial-level values.
+
+### `audit_openneuro_events.py`
+- Status: Optional historical run-identity audit.
+- Purpose: Compare ordered private-source trial identity with a local snapshot of OpenNeuro `ds005123` version `1.1.3` and detect likely run swaps; onset and duration are intentionally excluded.
+- Inputs: Subject list, production BIDS run inventory, private behavior root, and local OpenNeuro snapshot.
+- Outputs: TSV statuses for same-run match, other-run match, partial/duplicated historical match, ambiguous-label evidence, mismatch, unavailable reference, and conversion failure.
+- Typical command: `python3 audit_openneuro_events.py --sublist "$SUBLIST" --openneuro-root /path/to/ds005123-1.1.3 --report-tsv ../logs/reviews/openneuro-events.tsv`.
+- Checker: Nonzero exit for mismatches and swap risks unless `--informational` is used.
+- Notes: OpenNeuro is a frozen historical witness, not production input or a full events validator. Doors/Social Doors provide the closest comparison. Trust allows ordered partial matches when the public export omitted trials; Shared Reward treats private misses as outcome wildcards; UGR compares only sociality/endowment order. Known public-data issues require human interpretation of mismatches.
 
 ### `heuristics_rf1.py`
 - Status: HeuDiConv configuration.
@@ -265,8 +353,8 @@ Each entry uses the same fields so operators can scan quickly.
 
 ### `check_bids.sh`
 - Status: Checker.
-- Purpose: Report missing BIDS/prepdata outputs and unshifted `scans.tsv` files.
-- Inputs: Subject list and BIDS tree.
+- Purpose: Report missing imaging/behavioral BIDS outputs, unshifted `scans.tsv` files, and events relationship failures.
+- Inputs: Subject list, BIDS tree, source DICOMs, and private behavior root.
 - Outputs: Terminal pass/fail summary.
 - Typical command: `bash check_bids.sh --sublist "$SUBLIST"`.
 - Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
@@ -363,13 +451,13 @@ Each entry uses the same fields so operators can scan quickly.
 - Notes: Accepts `10001` and `sub-10001` forms.
 
 ### `convert_SocialDoorsBids.m`
-- Status: Task helper.
-- Purpose: Convert Social Doors/Doors behavioral events into BIDS event files.
+- Status: Provenance-only legacy helper.
+- Purpose: Document the historical Social Doors/Doors source mapping and behavioral-validity logic ported to `convert_behavior.py`.
 - Inputs: Task event sources and `sublist-new.txt`.
 - Outputs: BIDS event TSV files.
-- Typical command: run in MATLAB when event conversion is needed.
-- Checker: Manual event-file review.
-- Notes: Handles both RF1-SRA sessions.
+- Typical command: do not use for new production conversion; use `run_convert_behavior.sh`.
+- Checker: `check_events.py` covers the production Python implementation.
+- Notes: Retained as provenance. It handles both sessions but silently chose the first source candidate; the production converter treats multiple candidates as an ambiguity error.
 
 ### `bet-flair.sh`
 - Status: Optional anatomical QC helper.
@@ -606,11 +694,11 @@ process. For example, `--jobs 3` gives each subject `--nprocs 32`,
 ## Overwrite Behavior
 
 Use `--overwrite` only when replacing valid existing outputs is intentional.
-`prepdata.sh` runs HeuDiConv in scratch first and checks that the staged BIDS
-session exists. Only after that check passes does it remove the existing live
-BIDS session and move the staged session into place. This keeps failed
-conversion attempts from destroying the last valid copy while also keeping the
-live `bids/` tree free of non-BIDS backup folders.
+`prepdata.sh` runs HeuDiConv, behavior conversion, defacing, date shifting, and
+events validation in scratch. Only after those checks pass does it remove the
+existing live BIDS session and move the staged session into place. Matching
+existing events are copied into the stage first and refreshed when source logs
+are available, so an imaging overwrite cannot silently erase curated events.
 
 `warpkit.sh` deletes only explicit generated fieldmap outputs when
 `--overwrite` is supplied.

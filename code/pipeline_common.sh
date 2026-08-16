@@ -14,6 +14,8 @@ rf1_load_config() {
   SCRIPT_DIR="$(rf1_script_dir)"
   PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
   SOURCEDATA_ROOT="/ZPOOL/data/sourcedata/sourcedata/rf1-sra"
+  BEHAVIOR_ROOT="${BEHAVIOR_ROOT:-/ZPOOL/data/projects/rf1-sra/stimuli}"
+  BEHAVIOR_CURATION_FILE="${BEHAVIOR_CURATION_FILE:-${SCRIPT_DIR}/behavior_curation.tsv}"
   TOOLS_ROOT="/ZPOOL/data/tools"
   SCRATCH_ROOT="/ZPOOL/data/scratch"
   TEMPLATEFLOW_HOME="${TOOLS_ROOT}/templateflow"

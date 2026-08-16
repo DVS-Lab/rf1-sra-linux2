@@ -5,8 +5,8 @@ usage() {
   cat >&2 <<'USAGE'
 Usage: bash prepdata.sh [--dry-run] [--overwrite] SUBJECT SESSION
 
-Converts DICOMs to BIDS with HeuDiConv, defaces T1w data, shifts scans.tsv
-dates, and stops. Run MRIQC separately with run_mriqc.sh.
+Converts DICOMs and behavior to BIDS, defaces T1w data, shifts scans.tsv
+dates, validates the staged session, and stops. Run MRIQC separately.
 USAGE
 }
 
@@ -169,19 +169,68 @@ staged_dataset_description="${stage_root}/bids/dataset_description.json"
 target_dataset_description="${bidsroot}/dataset_description.json"
 rf1_require_dir "$staged_session"
 
+behavior_cmd=(
+  python3 "${scriptdir}/convert_behavior.py"
+  --subject "$sub"
+  --session "$ses"
+  --behavior-root "$BEHAVIOR_ROOT"
+  --curation-file "$BEHAVIOR_CURATION_FILE"
+  --bids-root "${stage_root}/bids"
+  --preserve-existing-from "$bidsroot"
+  --overwrite
+)
+printf 'Behavior conversion command:'
+printf ' %q' "${behavior_cmd[@]}"
+printf '\n'
+"${behavior_cmd[@]}"
+
+t1="${staged_session}/anat/sub-${sub}_ses-${ses}_T1w.nii.gz"
+if [[ -f "$t1" ]]; then
+  if [[ "$PYDEFACE_CMD" == */* ]]; then
+    if [[ ! -x "$PYDEFACE_CMD" ]]; then
+      echo "Configured pydeface executable is not executable: $PYDEFACE_CMD" >&2
+      exit 1
+    fi
+  elif ! command -v "$PYDEFACE_CMD" >/dev/null 2>&1; then
+    echo "Configured pydeface command was not found on PATH: $PYDEFACE_CMD" >&2
+    exit 1
+  fi
+  echo "Defacing staged T1w: $t1"
+  "$PYDEFACE_CMD" "$t1"
+  def="${staged_session}/anat/sub-${sub}_ses-${ses}_T1w_defaced.nii.gz"
+  [[ -f "$def" ]] && mv -f "$def" "$t1"
+fi
+
+scans_tsv="${staged_session}/sub-${sub}_ses-${ses}_scans.tsv"
+[[ -f "$scans_tsv" ]] && python3 "${scriptdir}/shiftdates.py" "$scans_tsv"
+
+review_report="${PROJECT_ROOT}/logs/reviews/prepdata-sub-${sub}-ses-${ses}-$(date +%Y%m%d-%H%M%S).tsv"
+mkdir -p "$(dirname "$review_report")"
+python3 "${scriptdir}/check_events.py" \
+  --subject "$sub" \
+  --session "$ses" \
+  --behavior-root "$BEHAVIOR_ROOT" \
+  --curation-file "$BEHAVIOR_CURATION_FILE" \
+  --bids-root "${stage_root}/bids" \
+  --review-tsv "$review_report"
+
 if [[ ! -f "$target_dataset_description" ]]; then
   if [[ -f "$staged_dataset_description" ]]; then
     cp "$staged_dataset_description" "$target_dataset_description"
   else
-    cat > "$target_dataset_description" <<'JSON'
-{
-  "Name": "RF1-SRA Linux2 fMRI",
-  "BIDSVersion": "1.8.0",
-  "DatasetType": "raw"
-}
-JSON
+    printf '%s\n' \
+      '{' \
+      '  "Name": "RF1-SRA Linux2 fMRI",' \
+      '  "BIDSVersion": "1.8.0",' \
+      '  "DatasetType": "raw"' \
+      '}' > "$target_dataset_description"
   fi
 fi
+
+for staged_sidecar in "${stage_root}"/bids/task-*_events.json; do
+  [[ -f "$staged_sidecar" ]] || continue
+  cp "$staged_sidecar" "${bidsroot}/$(basename "$staged_sidecar")"
+done
 
 if [[ -e "$target_session" ]]; then
   echo "Removing existing BIDS session immediately before installing staged output: $target_session"
@@ -198,23 +247,3 @@ if [[ -d "$staged_heudiconv" ]]; then
   mkdir -p "$(dirname "$target_heudiconv")"
   mv "$staged_heudiconv" "$target_heudiconv"
 fi
-
-t1="${target_session}/anat/sub-${sub}_ses-${ses}_T1w.nii.gz"
-if [[ -f "$t1" ]]; then
-  if [[ "$PYDEFACE_CMD" == */* ]]; then
-    if [[ ! -x "$PYDEFACE_CMD" ]]; then
-      echo "Configured pydeface executable is not executable: $PYDEFACE_CMD" >&2
-      exit 1
-    fi
-  elif ! command -v "$PYDEFACE_CMD" >/dev/null 2>&1; then
-    echo "Configured pydeface command was not found on PATH: $PYDEFACE_CMD" >&2
-    exit 1
-  fi
-  echo "Defacing $t1"
-  "$PYDEFACE_CMD" "$t1"
-  def="${target_session}/anat/sub-${sub}_ses-${ses}_T1w_defaced.nii.gz"
-  [[ -f "$def" ]] && mv -f "$def" "$t1"
-fi
-
-scans_tsv="${target_session}/sub-${sub}_ses-${ses}_scans.tsv"
-[[ -f "$scans_tsv" ]] && python3 "${scriptdir}/shiftdates.py" "$scans_tsv"
