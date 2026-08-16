@@ -174,7 +174,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Purpose: Generate canonical events for existing BIDS sessions without rerunning HeuDiConv.
 - Inputs: Subject list, selected sessions/tasks, private behavior root, and BIDS BOLD runs.
 - Outputs: Canonical BIDS events and task-level sidecars.
-- Typical command: `bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --overwrite`.
+- Typical command: preview existing BIDS data with `bash run_convert_behavior.sh --sublist "$SUBLIST" --jobs 4 --dry-run --overwrite`, then remove `--dry-run` after review.
 - Checker: `python3 check_events.py --sublist "$SUBLIST"`.
 - Notes: This is a modular backfill stage, not a run-all wrapper. Use `--dry-run` before a cohort overwrite.
 
