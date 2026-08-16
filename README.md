@@ -314,12 +314,12 @@ exclusion decision. After review, copy only the approval fields into
 `code/behavior_curation.tsv` and record the reviewer and rationale. Never add
 trial-level behavioral data to Git. For an existing BIDS tree, combine
 `--dry-run --overwrite`: dry-run prevents writes, while overwrite declares the
-replacement that the preview is meant to validate. All stage wrappers and
-checkers skip IDs represented under
+replacement that the preview is meant to validate. All shell stage wrappers
+and shell checkers that consume standard subject lists skip IDs represented under
 `/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions` even when residual BIDS
 or production-source copies exist. This exclusion directory takes precedence
 over every other source or output location. `prepdata.sh` and
-`run_convert_behavior.sh` expose `--include-source-excluded`; for other scripts,
+`run_convert_behavior.sh` expose `--include-source-excluded`; for other shell scripts,
 `RF1_INCLUDE_SOURCE_EXCLUDED=1` is reserved for deliberate forensic audits.
 
 OpenNeuro `ds005123` version `1.1.3` can be used as a frozen historical
