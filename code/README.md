@@ -43,11 +43,12 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 | 3 | `run_warpkit.sh` | `warpkit.sh` | BIDS multi-echo mag/phase files and JSON | BIDS `fmap/` fieldmap and magnitude files | Removes only explicit generated fmap files when `--overwrite` is used. Check with `check_warpkit.sh`. |
 | 4 | `addIntendedFor.py` | `pipeline_utils.py` | BIDS `fmap/*.json`, existing BOLD files | Updated fieldmap JSON | Atomic writes; `--dry-run` available. |
 | 5 | `run_fmriprep.sh` | `fmriprep.sh`, `fmriprep_config.json` | BIDS data | `derivatives/fmriprep`, `derivatives/freesurfer` | Generates volumetric, fsLR CIFTI, and FreeSurfer outputs; skips only when practical completion outputs exist. |
-| 6 | `run_tedana.sh` | `tedana.sh` | fMRIPrep echo outputs, BIDS echo metadata | `derivatives/tedana` | Logs missing optional runs under `logs/`. |
-| 7 | `genTedanaConfounds.py` | pandas | fMRIPrep confounds, TEDANA mixing/metrics | `derivatives/fsl/confounds_tedana` | Atomic TSV writes; row-count validation. |
-| 8 | `run_mriqc.sh` | `mriqc.sh` | BIDS data | `derivatives/mriqc` | Container run only; no raw-source edits. |
-| 9 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
-| 10 | `extract-metrics.py` | MRIQC JSON outputs | Completed cohort MRIQC participant JSON | CSV metrics table | Cohort-level helper; atomic CSV write. |
+| 6 | `fmriprep_geometry.py` | nibabel, ANTs in the pinned fMRIPrep container | Every non-echo volumetric MNI fMRIPrep BOLD | Audit reports; reviewed in-place canonical repairs plus preserved originals/provenance | Audit is read-only. Repair requires `--apply`, never targets BIDS, and atomically replaces only audited fMRIPrep outliers. |
+| 7 | `run_tedana.sh` | `tedana.sh` | fMRIPrep echo outputs, BIDS echo metadata | `derivatives/tedana` | Logs missing optional runs under `logs/`. |
+| 8 | `genTedanaConfounds.py` | pandas | fMRIPrep confounds, TEDANA mixing/metrics | `derivatives/fsl/confounds_tedana` | Atomic TSV writes; row-count validation. |
+| 9 | `run_mriqc.sh` | `mriqc.sh` | BIDS data | `derivatives/mriqc` | Container run only; no raw-source edits. |
+| 10 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
+| 11 | `extract-metrics.py` | MRIQC JSON outputs | Completed cohort MRIQC participant JSON | CSV metrics table | Cohort-level helper; atomic CSV write. |
 
 `make_repair_runlists.py` is the filesystem audit helper for recovery runs. It
 does not launch processing; it writes targeted runlists and a missing-path TSV
@@ -315,6 +316,15 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: `check_fmriprep.sh` plus fMRIPrep reports.
 - Notes: Keeps functional inputs to magnitude images.
 
+### `fmriprep_geometry.py`
+- Status: Production post-fMRIPrep audit and reviewed repair gate.
+- Purpose: Audit every non-echo volumetric `MNI152NLin6Asym` preprocessed BOLD, derive the unique modal grid, preserve audited outliers, and repair canonical fMRIPrep geometry without downstream path exceptions.
+- Inputs: `derivatives/fmriprep`, a frozen audit JSON for repair/verification, nibabel/numpy from the shared TEDANA environment, Apptainer, and the pinned fMRIPrep image.
+- Outputs: `logs/geometry/*.json` and `*.tsv`; original NIfTI backups under `derivatives/fmriprep_geometry/originals/`; per-file and run-level provenance under `derivatives/fmriprep_geometry/repairs/`; corrected NIfTIs at their existing canonical fMRIPrep paths.
+- Typical command: `"$GEOMETRY_PYTHON" fmriprep_geometry.py audit --report-prefix ../logs/geometry/fmriprep-geometry-$(date +%Y%m%d-%H%M%S)`.
+- Checker: `"$GEOMETRY_PYTHON" fmriprep_geometry.py verify --audit-json "$AUDIT_JSON"`.
+- Notes: Audit has no subject filter and is read-only. It excludes `_echo-*` files and CIFTI outputs, reports every task/run, and fails closed on malformed images or a tied mode. Repair previews unless `--apply` is supplied, verifies that the complete inventory has not changed since audit, performs 4D identity resampling with ANTs/Lanczos interpolation, validates every output volume, and atomically replaces only canonical fMRIPrep derivatives. It never writes under `bids/`. Review every reported `sub-12013` task/run before applying the first production repair.
+
 ### `submit_fmriprep.sh`
 - Status: Compatibility helper.
 - Purpose: Preserve an older launcher name for fMRIPrep work.
@@ -579,12 +589,16 @@ MRIQC_JOBS=8
 WARPKIT_JOBS=8
 FMRIPREP_JOBS=2
 TEDANA_JOBS=8
+GEOMETRY_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+GEOMETRY_PREFIX=../logs/geometry/fmriprep-geometry-$(date +%Y%m%d-%H%M%S)
+AUDIT_JSON="${GEOMETRY_PREFIX}.json"
 
 bash run_prepdata.sh --sublist "$SUBLIST" --jobs "$PREP_JOBS" --dry-run
 bash run_mriqc.sh --sublist "$SUBLIST" --jobs "$MRIQC_JOBS" --dry-run
 bash run_warpkit.sh --sublist "$SUBLIST" --jobs "$WARPKIT_JOBS" --dry-run
 python3 addIntendedFor.py --sublist "$SUBLIST" --dry-run
 bash run_fmriprep.sh --sublist "$SUBLIST" --jobs "$FMRIPREP_JOBS" --dry-run
+"$GEOMETRY_PYTHON" fmriprep_geometry.py audit --report-prefix "$GEOMETRY_PREFIX"
 bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS" --dry-run
 python3 genTedanaConfounds.py --sublist "$SUBLIST" --dry-run
 ```
@@ -600,6 +614,7 @@ bash check_bids.sh --sublist "$SUBLIST"
 bash check_mriqc.sh --sublist "$SUBLIST"
 bash check_warpkit.sh --sublist "$SUBLIST"
 bash check_fmriprep.sh --sublist "$SUBLIST"
+"$GEOMETRY_PYTHON" fmriprep_geometry.py verify --audit-json "$AUDIT_JSON"
 bash check_tedana.sh --sublist "$SUBLIST"
 ```
 
@@ -744,6 +759,15 @@ has BOLD inputs. FreeSurfer/CIFTI generation makes fMRIPrep slower than the
 previous volume-only run, but creates derivatives that a separate DWI workflow
 can reuse later. TEDANA completion checks look for denoised BOLD, mixing matrix,
 and metrics files for task/runs that have BIDS echo inputs.
+
+The post-fMRIPrep geometry audit is a cohort-wide scientific-validity gate,
+not a subject-completion shortcut. It inventories every non-echo volumetric
+`MNI152NLin6Asym` preprocessed BOLD, so never replace it with a tiny validation
+or new-batch list. A reviewed repair preserves originals and provenance outside
+the fMRIPrep tree while placing validated corrected images back at their
+existing canonical fMRIPrep paths. Pristine BIDS data are not repair inputs and
+must remain unchanged.
+
 `genTedanaConfounds.py --sublist FILE` then builds FSL-ready confound TSVs only
 for TEDANA metric files matching that subject list. These checks and generated
 tables are operational completion products, not scientific validation.

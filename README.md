@@ -77,6 +77,7 @@ Raw DICOMs / XNAT
   -> rf1-sra-linux2 imaging and behavioral BIDS conversion
   -> rf1-sra-linux2 Warpkit / IntendedFor
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
+  -> rf1-sra-linux2 post-fMRIPrep geometry audit / reviewed repair
   -> rf1-sra-linux2 TEDANA / MRIQC / confounds
   -> rf1-sra-linux2 cohort-level MRIQC metrics and outlier review
   -> rf1-dwi QSIPrep / QSIRecon
@@ -91,7 +92,8 @@ flowchart TD
   B --> C["Generate Warpkit fieldmaps"]
   C --> D["Repair IntendedFor metadata"]
   D --> E["Run fMRIPrep"]
-  E --> F["Run TEDANA"]
+  E --> L["Audit non-echo MNI BOLD geometry"]
+  L --> F["Run TEDANA"]
   F --> G["Generate TEDANA/FSL confounds"]
   B --> H["Run MRIQC"]
   H --> I["Group MRIQC and cohort QC metrics"]
@@ -219,6 +221,10 @@ bash run_fmriprep.sh --sublist "$SUBLIST" --jobs "$FMRIPREP_JOBS" --dry-run
 bash run_fmriprep.sh --sublist "$SUBLIST" --jobs "$FMRIPREP_JOBS"
 bash check_fmriprep.sh --sublist "$SUBLIST"
 
+GEOMETRY_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+GEOMETRY_PREFIX=../logs/geometry/fmriprep-geometry-$(date +%Y%m%d-%H%M%S)
+"$GEOMETRY_PYTHON" fmriprep_geometry.py audit --report-prefix "$GEOMETRY_PREFIX"
+
 bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS" --dry-run
 bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS"
 bash check_tedana.sh --sublist "$SUBLIST"
@@ -232,6 +238,74 @@ stage. `--sublist FILE` points a wrapper or checker at a review-specific subject
 list instead of `code/sublist-new.txt`. `--jobs N` controls how many
 subject-level jobs run at once; fMRIPrep also divides its CPU and memory budget
 across those jobs.
+
+## Post-fMRIPrep Geometry Gate
+
+Run the cohort geometry audit after fMRIPrep and before constructing downstream
+analysis manifests. It intentionally has no subject-list option: every
+non-echo, 4D, `space-MNI152NLin6Asym_desc-preproc_bold.nii.gz` under the
+production fMRIPrep tree must participate. Echo-specific files, CIFTI files,
+and pristine `bids/` inputs are outside this repair's scope.
+
+The audit reads NIfTI headers, clusters spatial shape plus effective affine
+using a small numerical tolerance, and chooses a modal grid only when the mode
+is unique. It writes a detailed JSON repair contract and a human-readable TSV.
+It does not resample or replace anything. Invalid images and a tied mode are
+blocking findings.
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+GEOMETRY_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+STAMP=fmriprep-geometry-$(date +%Y%m%d-%H%M%S)
+PREFIX="../logs/geometry/${STAMP}"
+
+"$GEOMETRY_PYTHON" fmriprep_geometry.py audit \
+  --report-prefix "$PREFIX"
+
+AUDIT_JSON="${PREFIX}.json"
+AUDIT_TSV="${PREFIX}.tsv"
+
+awk -F '\t' 'NR == 1 || $1 != "modal"' "$AUDIT_TSV"
+awk -F '\t' 'NR == 1 || $2 == "12013"' "$AUDIT_TSV"
+```
+
+Before repair, independently confirm that the TSV contains every affected
+task/run, including every listed `sub-12013` outlier. Also ensure no downstream
+job is reading or writing the canonical fMRIPrep files. Preview is the default:
+
+```bash
+"$GEOMETRY_PYTHON" fmriprep_geometry.py repair \
+  --audit-json "$AUDIT_JSON"
+```
+
+After reviewing the complete plan and available storage, apply and verify:
+
+```bash
+"$GEOMETRY_PYTHON" fmriprep_geometry.py repair \
+  --audit-json "$AUDIT_JSON" \
+  --apply
+
+"$GEOMETRY_PYTHON" fmriprep_geometry.py verify \
+  --audit-json "$AUDIT_JSON"
+```
+
+Repair copies each original into
+`derivatives/fmriprep_geometry/originals/<audit-id>/`, records per-file JSON
+provenance under `derivatives/fmriprep_geometry/repairs/<audit-id>/`, and uses
+4D ANTs identity resampling with `LanczosWindowedSinc` interpolation from the
+pinned fMRIPrep container. It validates the target grid, volume count, finite
+values, and nonzero data before atomically replacing the original canonical
+fMRIPrep path. Existing JSON sidecars remain in place. Downstream repositories
+therefore continue to use ordinary fMRIPrep paths and need no outlier-specific
+resolution logic.
+
+The command refuses inventory drift, changed audit inputs, missing provenance,
+nonstandard derivative roots, and every path under `bids/`. A repair can be
+restarted after interruption: verified completed files are skipped, while
+unrepaired originals remain pending. Preserve the audit JSON/TSV, original
+backups, and repair provenance together. If downstream products were already
+derived from a repaired canonical non-echo image, regenerate those products;
+TEDANA's echo-specific inputs are not modified by this workflow.
 
 When changing Warpkit versions or backends, avoid mixing fieldmap provenance:
 test one representative run with `warpkit.sh --overwrite`, then rerun
