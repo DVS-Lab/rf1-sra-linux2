@@ -726,7 +726,9 @@ def run_repair(args: argparse.Namespace) -> int:
     affine_atol = float(report["affine_atol"])
     provenance_root.mkdir(parents=True, exist_ok=True)
     reference_image = provenance_root / "modal_grid_reference.nii.gz"
-    identity_transform = provenance_root / "identity_3d.mat"
+    # The suffix controls ITK transform reader selection. This is Insight text,
+    # so using .mat would incorrectly invoke MatlabTransformIO.
+    identity_transform = provenance_root / "identity_3d.txt"
     write_reference_image(reference_image, target_geometry)
     write_identity_transform(identity_transform)
 

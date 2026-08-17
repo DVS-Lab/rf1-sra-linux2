@@ -150,14 +150,14 @@ def test_ants_command_uses_4d_timeseries_mode_and_identity_transform(
         tmp_path / "project",
         tmp_path / "original.nii.gz",
         tmp_path / "reference.nii.gz",
-        tmp_path / "identity.mat",
+        tmp_path / "identity.txt",
         tmp_path / "corrected.nii.gz",
     )
 
     assert command[command.index("--input-image-type") + 1] == "3"
     assert command[command.index("--dimensionality") + 1] == "3"
     assert command[command.index("--interpolation") + 1] == "LanczosWindowedSinc"
-    assert command[command.index("--transform") + 1].endswith("identity.mat")
+    assert command[command.index("--transform") + 1].endswith("identity.txt")
 
 
 def test_apply_preserves_original_replaces_canonical_and_verifies(
@@ -225,6 +225,8 @@ def test_apply_preserves_original_replaces_canonical_and_verifies(
     assert provenance["state"] == "complete"
     assert provenance["original_sha256"] == original_sha
     assert provenance["corrected_sha256"] == geometry.sha256_file(outlier)
+    transform_index = provenance["command"].index("--transform") + 1
+    assert provenance["command"][transform_index].endswith("identity_3d.txt")
 
     verify_args = argparse.Namespace(
         audit_json=audit_json,
