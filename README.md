@@ -223,7 +223,17 @@ bash check_fmriprep.sh --sublist "$SUBLIST"
 
 GEOMETRY_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
 GEOMETRY_PREFIX=../logs/geometry/fmriprep-geometry-$(date +%Y%m%d-%H%M%S)
+AUDIT_JSON="${GEOMETRY_PREFIX}.json"
+AUDIT_TSV="${GEOMETRY_PREFIX}.tsv"
 "$GEOMETRY_PYTHON" fmriprep_geometry.py audit --report-prefix "$GEOMETRY_PREFIX"
+"$GEOMETRY_PYTHON" fmriprep_geometry.py repair --audit-json "$AUDIT_JSON"
+
+# Stop and review the complete audit TSV and repair preview. If outliers are
+# reported and approved, apply the reviewed plan before running the checker:
+"$GEOMETRY_PYTHON" fmriprep_geometry.py repair \
+  --audit-json "$AUDIT_JSON" \
+  --apply
+"$GEOMETRY_PYTHON" fmriprep_geometry.py verify --audit-json "$AUDIT_JSON"
 
 bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS" --dry-run
 bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS"
@@ -238,6 +248,12 @@ stage. `--sublist FILE` points a wrapper or checker at a review-specific subject
 list instead of `code/sublist-new.txt`. `--jobs N` controls how many
 subject-level jobs run at once; fMRIPrep also divides its CPU and memory budget
 across those jobs.
+
+The geometry commands are a required cohort-wide gate, including after a full
+from-scratch rerun. Do not continue past that block until `verify` prints
+`CHECK PASSED`. When the audit reports no outliers, omit the `--apply` command
+and run `verify` directly. When it reports outliers, review `AUDIT_TSV` and the
+repair preview before applying anything.
 
 ## Post-fMRIPrep Geometry Gate
 
@@ -484,6 +500,8 @@ Look for these signals:
 - `CHECK FAILED` means expected operational outputs are incomplete; inspect the
   newest Markdown record under `logs/records/`, then the matching raw log under
   `logs/runs/`.
+- The post-fMRIPrep geometry gate must end with `CHECK PASSED` for the complete
+  cohort inventory before downstream analysis manifests are constructed.
 
 ## Before Asking For Help
 

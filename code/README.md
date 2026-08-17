@@ -22,6 +22,7 @@ Raw DICOMs / XNAT
   -> rf1-sra-linux2 imaging and behavioral BIDS conversion
   -> rf1-sra-linux2 Warpkit / IntendedFor
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
+  -> rf1-sra-linux2 post-fMRIPrep geometry audit / reviewed repair
   -> rf1-sra-linux2 TEDANA / MRIQC / confounds
   -> rf1-sra-linux2 cohort-level MRIQC metrics and outlier review
   -> rf1-dwi QSIPrep / QSIRecon
@@ -592,6 +593,7 @@ TEDANA_JOBS=8
 GEOMETRY_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
 GEOMETRY_PREFIX=../logs/geometry/fmriprep-geometry-$(date +%Y%m%d-%H%M%S)
 AUDIT_JSON="${GEOMETRY_PREFIX}.json"
+AUDIT_TSV="${GEOMETRY_PREFIX}.tsv"
 
 bash run_prepdata.sh --sublist "$SUBLIST" --jobs "$PREP_JOBS" --dry-run
 bash run_mriqc.sh --sublist "$SUBLIST" --jobs "$MRIQC_JOBS" --dry-run
@@ -599,6 +601,7 @@ bash run_warpkit.sh --sublist "$SUBLIST" --jobs "$WARPKIT_JOBS" --dry-run
 python3 addIntendedFor.py --sublist "$SUBLIST" --dry-run
 bash run_fmriprep.sh --sublist "$SUBLIST" --jobs "$FMRIPREP_JOBS" --dry-run
 "$GEOMETRY_PYTHON" fmriprep_geometry.py audit --report-prefix "$GEOMETRY_PREFIX"
+"$GEOMETRY_PYTHON" fmriprep_geometry.py repair --audit-json "$AUDIT_JSON"
 bash run_tedana.sh --sublist "$SUBLIST" --jobs "$TEDANA_JOBS" --dry-run
 python3 genTedanaConfounds.py --sublist "$SUBLIST" --dry-run
 ```
@@ -606,6 +609,14 @@ python3 genTedanaConfounds.py --sublist "$SUBLIST" --dry-run
 Remove `--dry-run` after reviewing the planned commands. Use `--sublist FILE`
 only for an exceptional review, recovery run, or intentionally separate
 validation list.
+
+The geometry audit is always cohort-wide and is required after fMRIPrep,
+including for a from-scratch rerun. Review `AUDIT_TSV` and the repair preview.
+If there are reviewed outliers, apply the frozen plan with
+`"$GEOMETRY_PYTHON" fmriprep_geometry.py repair --audit-json "$AUDIT_JSON"
+--apply`; if there are no outliers, do not run `--apply`. In either case, do
+not advance to downstream analysis-manifest construction until the geometry
+checker below prints `CHECK PASSED`.
 
 After each real stage, run the corresponding completion check:
 
