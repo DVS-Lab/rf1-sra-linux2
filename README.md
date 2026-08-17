@@ -307,6 +307,10 @@ backups, and repair provenance together. If downstream products were already
 derived from a repaired canonical non-echo image, regenerate those products;
 TEDANA's echo-specific inputs are not modified by this workflow.
 
+The identity transform is stored as Insight transform text with a `.txt`
+suffix. Do not rename it to `.mat`: ITK uses the extension to choose its
+transform reader and would incorrectly treat the text file as MATLAB data.
+
 When changing Warpkit versions or backends, avoid mixing fieldmap provenance:
 test one representative run with `warpkit.sh --overwrite`, then rerun
 `run_warpkit.sh --overwrite`, `addIntendedFor.py`, and the Warpkit/IntendedFor
