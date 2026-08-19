@@ -24,7 +24,7 @@ Raw DICOMs / XNAT
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
   -> rf1-sra-linux2 post-fMRIPrep geometry audit / reviewed repair
   -> rf1-sra-linux2 TEDANA / MRIQC / confounds
-  -> rf1-sra-linux2 cohort-level MRIQC metrics and outlier review
+  -> rf1-sra-linux2 cohort-level run imaging QC
   -> rf1-dwi QSIPrep / QSIRecon
 ```
 
@@ -49,7 +49,7 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 | 8 | `genTedanaConfounds.py` | pandas | fMRIPrep confounds, TEDANA mixing/metrics | `derivatives/fsl/confounds_tedana` | Atomic TSV writes; row-count validation. |
 | 9 | `run_mriqc.sh` | `mriqc.sh` | BIDS data | `derivatives/mriqc` | Container run only; no raw-source edits. |
 | 10 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
-| 11 | `extract-metrics.py` | MRIQC JSON outputs | Completed cohort MRIQC participant JSON | CSV metrics table | Cohort-level helper; atomic CSV write. |
+| 11 | `build_run_qc.py` | BIDS, MRIQC, fMRIPrep, TEDANA, and `qc/qc_policy.json` | Tracked canonical TSV/JSON, four workbooks, four histograms, and fixed coverage target under `qc/` | Cohort-level builder/checker; source exclusions are omitted by default, missing metrics remain incomplete, and canonical replacement requires `--overwrite`. |
 
 `make_repair_runlists.py` is the filesystem audit helper for recovery runs. It
 does not launch processing; it writes targeted runlists and a missing-path TSV
@@ -279,14 +279,14 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: Inspect group report and cohort QC outputs.
 - Notes: Run with full-batch/cohort review, not during routine new-subject validation.
 
-### `extract-metrics.py`
-- Status: Cohort-level QC helper.
-- Purpose: Extract MRIQC `fd_mean` and `tsnr` values for run/subject review.
-- Inputs: Completed MRIQC participant JSON files and a full-batch subject list.
-- Outputs: CSV metric summaries.
-- Typical command: `python3 extract-metrics.py --sublist "$SUBLIST"`.
-- Checker: Review generated CSVs with group MRIQC.
-- Notes: Use after a full batch, not as a per-new-subject gate.
+### `build_run_qc.py`
+- Status: Canonical cohort-level production QC builder and checker.
+- Purpose: Inventory acquired functional runs, collect four run imaging metrics, calculate one-pass one-sided Tukey fences, and generate reproducible review artifacts.
+- Inputs: BIDS echo-2 part-mag BOLD inventory; MRIQC echo-2 part-mag JSON; TEDANA `desc-tedana_metrics.tsv`; non-echo fMRIPrep `MNI152NLin6Asym` run brain masks; `qc/qc_policy.json`; TemplateFlow resolution-02 brain mask; and the checksum-pinned historical cerebellum/brainstem exclusion mask.
+- Outputs: `qc/run_qc.tsv`, `qc/thresholds.tsv`, `qc/socialdoors_pair_qc.tsv`, `qc/provenance.json`, a fixed target mask, four XLSX workbooks, and four histogram PNGs.
+- Typical command: `"$QC_PYTHON" build_run_qc.py build --dry-run`, then `"$QC_PYTHON" build_run_qc.py build` after review.
+- Checker: `"$QC_PYTHON" build_run_qc.py check`.
+- Notes: `qc/run_qc.tsv` is authoritative; spreadsheets are generated views. Shared Reward, Trust, and UGR each use one paradigm distribution. Social Doors pools `task-socialdoors` and `task-doors` for thresholds while retaining separate run rows and a paired summary. Missing or ambiguous metrics produce `qc_status=incomplete`; no metric is silently zeroed. Existing canonical outputs require `build --overwrite`. Source-excluded subjects are omitted unless the forensic `--include-source-excluded` override is explicit. The retired MRIQC-only CSV extractor and legacy FEAT voxel counter must not be restored as competing production QC paths.
 
 ### `run_fmriprep.sh`
 - Status: Production wrapper.
@@ -551,15 +551,6 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: Visual/anatomical QC.
 - Notes: Not part of the routine fMRI preprocessing path.
 
-### `voxel-count-L1.sh`
-- Status: Optional anatomical QC helper.
-- Purpose: Count voxels for L1/anatomical masks.
-- Inputs: Mask files.
-- Outputs: Voxel-count summaries.
-- Typical command: run only for anatomical QC workflows.
-- Checker: Review generated summaries.
-- Notes: Not part of the routine fMRI preprocessing path.
-
 ### `README.md`
 - Status: Documentation.
 - Purpose: Explain this code directory and production workflow.
@@ -783,27 +774,29 @@ must remain unchanged.
 for TEDANA metric files matching that subject list. These checks and generated
 tables are operational completion products, not scientific validation.
 
-## Full-Cohort MRIQC And Outlier Review
+## Full-Cohort Imaging QC
 
-Run cohort-level MRIQC and metric/outlier summaries only after the full
-participant batch has completed participant-level MRIQC. This follows the R21
-resting-state workflow pattern: participant MRIQC first, the MRIQC group report
-afterward, then run/subject metric summaries and outlier review. Do not treat
-`extract-metrics.py` output as a routine new-subject validation requirement.
+Run group MRIQC only after the full participant batch completes participant
+MRIQC. Build run imaging QC only after MRIQC, TEDANA, and the post-fMRIPrep
+geometry gate are complete. This is a cohort-level scientific stage, not a
+routine new-subject validation requirement.
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 bash mriqc_group.sh --dry-run
 bash mriqc_group.sh
-python3 extract-metrics.py --sublist sublist-new.txt --dry-run
-python3 extract-metrics.py --sublist sublist-new.txt
+QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+"$QC_PYTHON" build_run_qc.py build --dry-run
+"$QC_PYTHON" build_run_qc.py build
+"$QC_PYTHON" build_run_qc.py check
 ```
 
-`extract-metrics.py` collects run-level `tsnr` and `fd_mean` from MRIQC JSON
-files; replace `sublist-new.txt` with the final cohort subject list if that
-list lives somewhere else. Any run or subject outlier decisions should be made
-and documented with the group MRIQC review, not as automatic per-batch
-exclusions.
+The builder discovers the complete acquired BIDS run inventory rather than
+accepting a mutable subject list. It writes all canonical outputs under
+`qc/`; use `build --overwrite` only after reviewing existing tracked results.
+The checker recomputes source metrics, inventory coverage, thresholds, flags,
+paired Social Doors rows, and workbook row sets. It exits nonzero for any
+incomplete run. Review the four histograms and Git diffs before committing.
 
 ## Failure Reports
 
@@ -857,8 +850,8 @@ Use this checklist for any future workflow change or separate validation clone:
 15. Confirm TEDANA denoised outputs, mixing matrices, and metrics files.
 16. Confirm confound row counts match the corresponding BOLD time series.
 17. Confirm MRIQC participant outputs exist for the validation subjects.
-18. Defer `mriqc_group.sh`, `extract-metrics.py`, and run/subject outlier
-   review until the full participant batch is complete.
+18. Defer `mriqc_group.sh`, `build_run_qc.py`, and run imaging-outlier review
+   until the full participant batch and required derivatives are complete.
 19. Run `make test`.
 20. Document the commit SHA tested, subjects/sessions tested, stages tested,
    pass/fail result, and discrepancies.

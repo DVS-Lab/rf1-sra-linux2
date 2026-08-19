@@ -5,7 +5,7 @@ multi-echo fMRI data from the UGR, Social Doors, Trust, and Shared Reward tasks.
 This repository owns MRI data management, imaging and behavioral BIDS
 conversion, fieldmap preparation, fMRIPrep, FreeSurfer/CIFTI derivative
 generation, TEDANA, MRIQC, downstream confound generation, and cohort-level
-metric extraction helpers.
+run imaging QC.
 
 `rf1-sra-linux2` owns the canonical RF1-SRA BIDS dataset, including behavioral
 `_events.tsv` files. Downstream scientific-analysis repositories consume these
@@ -17,8 +17,9 @@ Raw DICOMs and private behavioral logs are not stored in GitHub. On Linux2 the
 DICOMs live under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra`, and behavioral
 sources live under `/ZPOOL/data/projects/rf1-sra/stimuli`. BIDS NIfTI images,
 fMRIPrep derivatives, TEDANA outputs, MRIQC reports, scheduler logs, temporary
-files, generated metrics, and the generated `bids/` tree are intentionally
-excluded from version control.
+files, and the generated `bids/` tree are intentionally excluded from version
+control. Lightweight canonical QC tables, workbooks, policy, provenance, and
+aggregate figures under `qc/` are intentionally tracked.
 
 Production processing should occur on Smith Lab Linux2 from the production
 checkout:
@@ -63,6 +64,7 @@ production defaults.
 | `code/` | All production entry points, worker scripts, helpers, validation scripts, and the current batch subject list. |
 | `bids/` | Generated BIDS dataset on Linux2; ignored by Git. |
 | `derivatives/` | Generated outputs are ignored and should not contain repository code. |
+| `qc/` | Tracked cohort-level run imaging QC policy, canonical tables, workbooks, and figures. |
 | `tests/` | Synthetic pytest coverage for parsing, path generation, safety checks, and completion checks. |
 
 See `code/README.md` for the detailed implementation manual.
@@ -79,7 +81,7 @@ Raw DICOMs / XNAT
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
   -> rf1-sra-linux2 post-fMRIPrep geometry audit / reviewed repair
   -> rf1-sra-linux2 TEDANA / MRIQC / confounds
-  -> rf1-sra-linux2 cohort-level MRIQC metrics and outlier review
+  -> rf1-sra-linux2 cohort-level run imaging QC
   -> rf1-dwi QSIPrep / QSIRecon
 ```
 
@@ -96,7 +98,10 @@ flowchart TD
   L --> F["Run TEDANA"]
   F --> G["Generate TEDANA/FSL confounds"]
   B --> H["Run MRIQC"]
-  H --> I["Group MRIQC and cohort QC metrics"]
+  H --> I["Run group MRIQC"]
+  I --> M["Build canonical cohort run imaging QC"]
+  L --> M
+  F --> M
   E --> J["rf1-dwi consumes shared BIDS/fMRIPrep/FreeSurfer"]
 ```
 
@@ -461,30 +466,35 @@ those jobs before passing `--nprocs`, `--omp-nthreads`, and `--mem` into
 fMRIPrep. MRIQC, fMRIPrep, TEDANA, fieldmap metadata, and confound outputs
 still require visual and scientific review on Linux2.
 
-## Full-Cohort MRIQC
+## Full-Cohort Imaging QC
 
-Run cohort-level MRIQC and metric/outlier summaries only after the full
-participant batch has completed participant-level MRIQC. Do not use these
-summaries as part of routine new-subject validation, because outlier thresholds
-are only meaningful when the cohort is present.
+Run the group MRIQC report after the full participant batch completes
+participant MRIQC. Build canonical run imaging QC only after MRIQC, TEDANA,
+and the post-fMRIPrep geometry gate are complete. Do not use cohort Tukey
+thresholds as a routine new-subject validation gate.
 
-The group report follows the same pattern as the R21 resting-state workflow:
-participant MRIQC first, group MRIQC second, then run/subject metric summaries
-and outlier review.
+The run inventory comes from acquired BIDS echo-2 magnitude runs. The canonical
+table combines MRIQC echo-2 tSNR and mean FD, TEDANA final rejected-component
+counts, and fMRIPrep MNI brain coverage. `task-socialdoors` and `task-doors`
+remain separate run rows but share one pooled Social Doors threshold
+distribution.
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 bash mriqc_group.sh --dry-run
 bash mriqc_group.sh
-python3 extract-metrics.py --sublist sublist-new.txt --dry-run
-python3 extract-metrics.py --sublist sublist-new.txt
+QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+"$QC_PYTHON" build_run_qc.py build --dry-run
+"$QC_PYTHON" build_run_qc.py build
+"$QC_PYTHON" build_run_qc.py check
 ```
 
-Use `extract-metrics.py` at this stage to collect run-level `tsnr` and
-`fd_mean` from completed MRIQC JSON files; replace `sublist-new.txt` with the
-final cohort subject list if that list lives somewhere else. Any run or subject
-outlier decisions should be documented with the group MRIQC outputs and
-reviewed scientifically; they are not automatic per-batch exclusions.
+The builder writes tracked outputs under `qc/`; rerunning over existing outputs
+requires `build --overwrite`. The checker fails if any acquired run is missing
+a primary metric, if live upstream inputs disagree with the table, or if the
+recorded thresholds and flags cannot be reproduced. Imaging outliers are
+run-level facts, not automatic participant exclusions. See [the QC
+manual](qc/README.md) for exact definitions and provenance.
 
 ## How To Know Whether It Worked
 
@@ -502,6 +512,8 @@ Look for these signals:
   `logs/runs/`.
 - The post-fMRIPrep geometry gate must end with `CHECK PASSED` for the complete
   cohort inventory before downstream analysis manifests are constructed.
+- `build_run_qc.py check` must end with `CHECK PASSED`; `incomplete` is a
+  distinct state and never an implicit pass or outlier.
 
 ## Before Asking For Help
 
@@ -513,6 +525,7 @@ first `CHECK FAILED` or error line, and whether the case was expected to have
 ## More Details
 
 - [Code manual](code/README.md)
+- [Run imaging QC manual](qc/README.md)
 - [Validation history](docs/archive/validation-history.md)
 
 Repository-level checks do not require real imaging data or neuroimaging
