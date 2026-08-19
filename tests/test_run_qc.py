@@ -56,6 +56,18 @@ def save_mask(path: Path, data: np.ndarray, affine: np.ndarray | None = None) ->
     )
 
 
+@pytest.mark.parametrize(
+    "value",
+    [
+        1.366700923482122,
+        99.09264707198173,
+        np.nextafter(99.09264707198173, float("inf")),
+    ],
+)
+def test_float_output_round_trips_without_changing_boundaries(value: float) -> None:
+    assert float(qc.output_value(value)) == value
+
+
 def test_linear_quartiles_and_single_pass_threshold() -> None:
     assert qc.linear_quantile([0, 1, 2, 3], 0.25) == 0.75
     assert qc.linear_quantile([0, 1, 2, 3], 0.75) == 2.25

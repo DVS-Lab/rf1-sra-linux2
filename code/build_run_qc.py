@@ -661,7 +661,7 @@ def output_value(value: Any) -> Any:
     if isinstance(value, bool):
         return "TRUE" if value else "FALSE"
     if isinstance(value, float):
-        return f"{value:.10g}"
+        return f"{value:.17g}"
     return value
 
 
@@ -857,7 +857,15 @@ def generated_by(root: Path, project_root: Path) -> dict[str, Any]:
 
 def package_versions() -> dict[str, str]:
     versions: dict[str, str] = {}
-    for name in ("numpy", "pandas", "nibabel", "scipy", "matplotlib", "openpyxl"):
+    for name in (
+        "numpy",
+        "pandas",
+        "nibabel",
+        "scipy",
+        "matplotlib",
+        "openpyxl",
+        "tedana",
+    ):
         try:
             versions[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
