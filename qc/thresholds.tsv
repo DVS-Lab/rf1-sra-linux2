@@ -1,0 +1,17 @@
+paradigm	bids_tasks	metric	n	q1	q3	iqr	lower_fence	upper_fence	outlier_direction	n_outliers
+sharedreward	sharedreward	tsnr	663	23.76983295	38.70523554	14.93540258	1.366729076	61.10833941	lower	0
+sharedreward	sharedreward	fd_mean	663	0.1183975286	0.2393154477	0.1209179191	-0.06297935006	0.4206923264	upper	36
+sharedreward	sharedreward	tedana_rejected_components	661	9	20	11	-7.5	36.5	upper	63
+sharedreward	sharedreward	brain_coverage_pct	661	99.60412349	99.90435198	0.3002284925	99.15378075	100.3546947	lower	31
+trust	trust	tsnr	649	23.47671817	39.15460362	15.67788545	-0.04010999599	62.67143179	lower	0
+trust	trust	fd_mean	649	0.1236041403	0.2460278714	0.1224237311	-0.06003145633	0.429663468	upper	47
+trust	trust	tedana_rejected_components	648	9	21	12	-9	39	upper	65
+trust	trust	brain_coverage_pct	648	99.61707583	99.90833732	0.291261491	99.18018359	100.3452296	lower	27
+ugr	ugr	tsnr	701	25.78308626	39.7763683	13.99328205	4.793163183	60.76629138	lower	1
+ugr	ugr	fd_mean	701	0.1218044476	0.2444893546	0.122684907	-0.06222291291	0.4285167152	upper	35
+ugr	ugr	tedana_rejected_components	699	9	21	12	-9	39	upper	57
+ugr	ugr	brain_coverage_pct	699	99.58618949	99.89638132	0.3101918274	99.12090175	100.3616691	lower	33
+socialdoors	socialdoors;doors	tsnr	716	27.11428246	40.36458883	13.25030637	7.238822899	60.24004838	lower	4
+socialdoors	socialdoors;doors	fd_mean	716	0.1189383278	0.2271980107	0.1082596829	-0.04345119655	0.389587535	upper	44
+socialdoors	socialdoors;doors	tedana_rejected_components	714	9	20	11	-7.5	36.5	upper	58
+socialdoors	socialdoors;doors	brain_coverage_pct	714	99.57290504	99.89239598	0.31949094	99.09366863	100.3716324	lower	39
