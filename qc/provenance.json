@@ -36,7 +36,7 @@
       "metadata": "unavailable"
     }
   },
-  "generated_at": "2026-08-19T13:48:07+00:00",
+  "generated_at": "2026-08-19T14:01:27+00:00",
   "inventory": {
     "inventory_runs": 2729,
     "source_excluded_runs_omitted": 13,
@@ -78,7 +78,8 @@
     "numpy": "2.5.1",
     "openpyxl": "3.1.5",
     "pandas": "3.0.3",
-    "scipy": "1.18.0"
+    "scipy": "1.18.0",
+    "tedana": "26.0.3"
   },
   "schema_version": 1
 }
