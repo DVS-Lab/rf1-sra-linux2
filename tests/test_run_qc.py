@@ -8,6 +8,7 @@ from pathlib import Path
 
 import nibabel as nib
 import numpy as np
+import pytest
 
 
 CODE_DIR = Path(__file__).resolve().parents[1] / "code"
@@ -320,3 +321,37 @@ def test_missing_metric_is_incomplete_not_pass_or_outlier() -> None:
     assert row["qc_status"] == "incomplete"
     assert row["tsnr_outlier"] is None
     assert row["imaging_qc_outlier"] is False
+
+
+def test_summary_prints_incomplete_run_keys(capsys) -> None:
+    row = metric_row(
+        "10001",
+        "ugr",
+        missing=(
+            "brain_coverage_pct:missing_fmriprep_brain_mask;"
+            "tedana_rejected_components:missing_tedana_metrics"
+        ),
+    )
+    row["brain_coverage_pct"] = None
+    row["tedana_rejected_components"] = None
+    thresholds = qc.compute_thresholds([row], policy())
+    qc.apply_thresholds([row], thresholds, policy())
+    qc.print_summary([row], thresholds)
+    output = capsys.readouterr().out
+    assert "Incomplete run keys:" in output
+    assert "sub-10001 ses-01 task-ugr run-1" in output
+
+
+def test_dependency_preflight_names_missing_package(monkeypatch) -> None:
+    real_import = qc.importlib.import_module
+
+    def fake_import(name: str):
+        if name == "openpyxl":
+            raise ModuleNotFoundError(name)
+        return real_import(name)
+
+    qc.require_science_dependencies.cache_clear()
+    monkeypatch.setattr(qc.importlib, "import_module", fake_import)
+    with pytest.raises(RuntimeError, match="openpyxl"):
+        qc.require_science_dependencies()
+    qc.require_science_dependencies.cache_clear()

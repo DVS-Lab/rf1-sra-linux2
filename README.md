@@ -484,9 +484,12 @@ cd /ZPOOL/data/projects/rf1-sra-linux2/code
 bash mriqc_group.sh --dry-run
 bash mriqc_group.sh
 QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+"$QC_PYTHON" -c 'import numpy, pandas, nibabel, scipy, matplotlib, openpyxl'
 "$QC_PYTHON" build_run_qc.py build --dry-run
-"$QC_PYTHON" build_run_qc.py build
-"$QC_PYTHON" build_run_qc.py check
+STAMP=run-qc-$(date +%Y%m%d-%H%M%S)
+bash run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$QC_PYTHON" build_run_qc.py build \
+  --check "$QC_PYTHON" build_run_qc.py check
 ```
 
 The builder writes tracked outputs under `qc/`; rerunning over existing outputs

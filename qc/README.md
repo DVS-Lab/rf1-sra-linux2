@@ -65,15 +65,27 @@ matplotlib, and openpyxl:
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
 
+"$QC_PYTHON" -c 'import numpy, pandas, nibabel, scipy, matplotlib, openpyxl'
 "$QC_PYTHON" build_run_qc.py build --dry-run
-"$QC_PYTHON" build_run_qc.py build
-"$QC_PYTHON" build_run_qc.py check
+
+STAMP=run-qc-$(date +%Y%m%d-%H%M%S)
+bash run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$QC_PYTHON" build_run_qc.py build \
+  --check "$QC_PYTHON" build_run_qc.py check
 ```
+
+If the import check reports that `openpyxl` is missing from this dedicated
+environment, install it with
+`"$QC_PYTHON" -m pip install 'openpyxl>=3.1,<4'` before rerunning. The logged
+production command preserves the concise full cohort summary in a tracked
+`logs/records/*.md` file while keeping the duplicate raw log ignored under
+`logs/runs/`.
 
 Regenerating existing canonical outputs requires `build --overwrite`. Review
 the Git diff in all TSV/JSON files and the four figures before committing.
 Incomplete runs make the checker fail but do not prevent the builder from
-reporting and writing the rest of the cohort.
+reporting and writing the rest of the cohort. After review, add both `qc/` and
+the new `logs/records/*.md` file to the same Git commit.
 
 Do not edit the spreadsheets manually. Do not combine behavioral exclusions
 with this imaging table. Downstream code should join on

@@ -284,7 +284,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Purpose: Inventory acquired functional runs, collect four run imaging metrics, calculate one-pass one-sided Tukey fences, and generate reproducible review artifacts.
 - Inputs: BIDS echo-2 part-mag BOLD inventory; MRIQC echo-2 part-mag JSON; TEDANA `desc-tedana_metrics.tsv`; non-echo fMRIPrep `MNI152NLin6Asym` run brain masks; `qc/qc_policy.json`; TemplateFlow resolution-02 brain mask; and the checksum-pinned historical cerebellum/brainstem exclusion mask.
 - Outputs: `qc/run_qc.tsv`, `qc/thresholds.tsv`, `qc/socialdoors_pair_qc.tsv`, `qc/provenance.json`, a fixed target mask, four XLSX workbooks, and four histogram PNGs.
-- Typical command: `"$QC_PYTHON" build_run_qc.py build --dry-run`, then `"$QC_PYTHON" build_run_qc.py build` after review.
+- Typical command: `"$QC_PYTHON" build_run_qc.py build --dry-run`, then run the production build and checker through `run_logged.sh --include-full-log` after review.
 - Checker: `"$QC_PYTHON" build_run_qc.py check`.
 - Notes: `qc/run_qc.tsv` is authoritative; spreadsheets are generated views. Shared Reward, Trust, and UGR each use one paradigm distribution. Social Doors pools `task-socialdoors` and `task-doors` for thresholds while retaining separate run rows and a paired summary. Missing or ambiguous metrics produce `qc_status=incomplete`; no metric is silently zeroed. Existing canonical outputs require `build --overwrite`. Source-excluded subjects are omitted unless the forensic `--include-source-excluded` override is explicit. The retired MRIQC-only CSV extractor and legacy FEAT voxel counter must not be restored as competing production QC paths.
 
@@ -786,9 +786,12 @@ cd /ZPOOL/data/projects/rf1-sra-linux2/code
 bash mriqc_group.sh --dry-run
 bash mriqc_group.sh
 QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+"$QC_PYTHON" -c 'import numpy, pandas, nibabel, scipy, matplotlib, openpyxl'
 "$QC_PYTHON" build_run_qc.py build --dry-run
-"$QC_PYTHON" build_run_qc.py build
-"$QC_PYTHON" build_run_qc.py check
+STAMP=run-qc-$(date +%Y%m%d-%H%M%S)
+bash run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$QC_PYTHON" build_run_qc.py build \
+  --check "$QC_PYTHON" build_run_qc.py check
 ```
 
 The builder discovers the complete acquired BIDS run inventory rather than
@@ -797,6 +800,8 @@ accepting a mutable subject list. It writes all canonical outputs under
 The checker recomputes source metrics, inventory coverage, thresholds, flags,
 paired Social Doors rows, and workbook row sets. It exits nonzero for any
 incomplete run. Review the four histograms and Git diffs before committing.
+The full summary is small enough to retain in the tracked Markdown run record;
+the duplicate raw log remains ignored.
 
 ## Failure Reports
 
