@@ -4,13 +4,19 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import hashlib
 import json
 import re
 import subprocess
 from pathlib import Path
 
 
-SCRIPT_RE = re.compile(r"`([^`]+\.(?:sh|py|m|json|txt))`|(?:bash|python(?:3)?)\s+([A-Za-z0-9_./+-]+\.(?:sh|py))")
+SCRIPT_RE = re.compile(
+    r"`([^`]+\.(?:sh|py|m|json|txt))`|(?:bash|python(?:3)?)\s+([A-Za-z0-9_./+-]+\.(?:sh|py))"
+)
+QC_EXCLUSION_SHA256 = "1335b40c2ad94056cd54c1b41aea100f5063428045c63271f7909432f4e310ed"
+DOCUMENTED_GENERATED_PATHS = {"qc/provenance.json"}
 
 
 def git_ls_files(repo: Path, pattern: str | None = None) -> list[str]:
@@ -27,7 +33,9 @@ def validate_json(repo: Path) -> list[str]:
         path = repo / rel
         try:
             json.loads(path.read_text())
-        except Exception as exc:  # noqa: BLE001 - include parser message in validation output.
+        except (
+            Exception
+        ) as exc:  # noqa: BLE001 - include parser message in validation output.
             errors.append(f"{rel}: {exc}")
     return errors
 
@@ -52,9 +60,13 @@ def validate_readme_paths(repo: Path) -> list[str]:
             if token.startswith("/") or "*" in token:
                 continue
             rel = token.removeprefix("./")
+            if rel in DOCUMENTED_GENERATED_PATHS:
+                continue
             candidates = [repo / rel, repo / "code" / rel]
             if not any(candidate.exists() for candidate in candidates):
-                errors.append(f"{readme.relative_to(repo)} references missing path: {token}")
+                errors.append(
+                    f"{readme.relative_to(repo)} references missing path: {token}"
+                )
     return errors
 
 
@@ -65,13 +77,49 @@ def validate_clean_status(repo: Path) -> list[str]:
         text=True,
         capture_output=True,
     )
-    ignored = [line for line in result.stdout.splitlines() if line.startswith("?? .pytest_cache/")]
+    ignored = [
+        line
+        for line in result.stdout.splitlines()
+        if line.startswith("?? .pytest_cache/")
+    ]
     return [f"unexpected generated status line: {line}" for line in ignored]
+
+
+def validate_qc(repo: Path) -> list[str]:
+    errors: list[str] = []
+    policy = repo / "qc" / "qc_policy.json"
+    exclusion = repo / "qc" / "reference" / "source-cerebellum-brainstem_mask.nii.gz"
+    if not policy.is_file():
+        errors.append("missing canonical QC policy: qc/qc_policy.json")
+    if not exclusion.is_file():
+        errors.append("missing historical QC exclusion mask")
+    elif hashlib.sha256(exclusion.read_bytes()).hexdigest() != QC_EXCLUSION_SHA256:
+        errors.append("historical QC exclusion mask checksum mismatch")
+
+    run_qc = repo / "qc" / "run_qc.tsv"
+    if run_qc.is_file():
+        with run_qc.open(newline="") as handle:
+            reader = csv.DictReader(handle, delimiter="\t")
+            path_columns = (
+                "bids_bold",
+                "mriqc_json",
+                "tedana_metrics",
+                "fmriprep_brain_mask",
+            )
+            for line, row in enumerate(reader, start=2):
+                for column in path_columns:
+                    if str(row.get(column, "")).startswith("/"):
+                        errors.append(
+                            f"qc/run_qc.tsv:{line} contains an absolute {column} path"
+                        )
+    return errors
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument(
+        "--repo-root", type=Path, default=Path(__file__).resolve().parents[1]
+    )
     args = parser.parse_args()
     repo = args.repo_root.resolve()
 
@@ -79,6 +127,7 @@ def main() -> int:
     errors.extend(validate_no_tracked_bids(repo))
     errors.extend(validate_readme_paths(repo))
     errors.extend(validate_clean_status(repo))
+    errors.extend(validate_qc(repo))
     if errors:
         for error in errors:
             print(error)

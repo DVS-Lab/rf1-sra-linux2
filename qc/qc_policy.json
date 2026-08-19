@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "iqr_multiplier": 1.5,
+  "quartile_method": "linear",
+  "threshold_passes": 1,
+  "inventory": {
+    "source": "BIDS echo-2 part-mag BOLD runs",
+    "exclude_source_excluded_subjects": true
+  },
+  "paradigms": {
+    "sharedreward": [
+      "sharedreward"
+    ],
+    "trust": [
+      "trust"
+    ],
+    "ugr": [
+      "ugr"
+    ],
+    "socialdoors": [
+      "socialdoors",
+      "doors"
+    ]
+  },
+  "metrics": {
+    "tsnr": {
+      "direction": "lower",
+      "reason": "low_tsnr",
+      "source": "MRIQC echo-2 part-mag functional IQM"
+    },
+    "fd_mean": {
+      "direction": "upper",
+      "reason": "high_fd_mean",
+      "source": "MRIQC echo-2 part-mag functional IQM"
+    },
+    "tedana_rejected_components": {
+      "direction": "upper",
+      "reason": "high_tedana_rejected_components",
+      "source": "TEDANA ICA final classification"
+    },
+    "brain_coverage_pct": {
+      "direction": "lower",
+      "reason": "low_brain_coverage",
+      "source": "fMRIPrep MNI152NLin6Asym run mask intersection over fixed QC target"
+    }
+  },
+  "coverage": {
+    "space": "MNI152NLin6Asym",
+    "template_brain_mask": "TemplateFlow tpl-MNI152NLin6Asym res-02 desc-brain mask",
+    "exclusion_mask": "qc/reference/source-cerebellum-brainstem_mask.nii.gz",
+    "historical_source": "DVS-Lab/sharedreward-aging:masks/cerebellum-brainstem_mask.nii.gz",
+    "exclusion_mask_sha256": "1335b40c2ad94056cd54c1b41aea100f5063428045c63271f7909432f4e310ed",
+    "target_definition": "template brain mask minus historical cerebellum/brainstem mask",
+    "resampling": "nearest-neighbor",
+    "metric": "100 * intersection(target, run mask) / target voxels"
+  }
+}
