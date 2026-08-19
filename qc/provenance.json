@@ -1,0 +1,84 @@
+{
+  "coverage": {
+    "excluded_in_brain_voxels": 25072,
+    "exclusion_mask_name": "source-cerebellum-brainstem_mask.nii.gz",
+    "exclusion_mask_sha256": "1335b40c2ad94056cd54c1b41aea100f5063428045c63271f7909432f4e310ed",
+    "target_mask_sha256": "732d4b8ac8f13f1d6ad506dedbed267e5d799322f4c51cc4294c78698e2a7d9c",
+    "target_voxels": 203411,
+    "template_brain_mask_name": "tpl-MNI152NLin6Asym_res-02_desc-brain_mask.nii.gz",
+    "template_brain_mask_sha256": "e4e2b284170271afdafe26ac0997b2af5a0f5ddac35e28a7e796b52e8bc5adb1",
+    "template_voxels": 228483
+  },
+  "derivatives": {
+    "fmriprep": {
+      "generated_by": [
+        {
+          "CodeURL": "https://github.com/nipreps/fmriprep/archive/25.2.5.tar.gz",
+          "Name": "fMRIPrep",
+          "Version": "25.2.5"
+        }
+      ],
+      "metadata": "derivatives/fmriprep/dataset_description.json",
+      "name": "fMRIPrep - fMRI PREProcessing workflow"
+    },
+    "mriqc": {
+      "generated_by": [
+        {
+          "CodeURL": "https://github.com/nipreps/mriqc/archive/24.1.0.dev0+gd5b13cb5.d20240826.tar.gz",
+          "Name": "MRIQC",
+          "Version": "24.1.0.dev0+gd5b13cb5.d20240826"
+        }
+      ],
+      "metadata": "derivatives/mriqc/dataset_description.json",
+      "name": "MRIQC - TODO: name of the dataset"
+    },
+    "tedana": {
+      "metadata": "unavailable"
+    }
+  },
+  "generated_at": "2026-08-19T13:48:07+00:00",
+  "inventory": {
+    "inventory_runs": 2729,
+    "source_excluded_runs_omitted": 13,
+    "source_excluded_subjects": [
+      "10555",
+      "10659",
+      "10774",
+      "10849",
+      "11207",
+      "11217",
+      "11344",
+      "11381",
+      "11385",
+      "11603",
+      "11753",
+      "11836"
+    ]
+  },
+  "outputs": [
+    "run_qc.tsv",
+    "thresholds.tsv",
+    "socialdoors_pair_qc.tsv",
+    "provenance.json",
+    "reference/rf1-sra_MNI152NLin6Asym_desc-qctarget_mask.nii.gz",
+    "spreadsheets/sharedreward_qc.xlsx",
+    "spreadsheets/trust_qc.xlsx",
+    "spreadsheets/ugr_qc.xlsx",
+    "spreadsheets/socialdoors_qc.xlsx",
+    "figures/sharedreward_histograms.png",
+    "figures/trust_histograms.png",
+    "figures/ugr_histograms.png",
+    "figures/socialdoors_histograms.png"
+  ],
+  "policy": "qc/qc_policy.json",
+  "policy_sha256": "eb79a7901dd8dad1a43d59bc5881f7c09f1efe69cd442c0e3ed3891aa606fa51",
+  "python_packages": {
+    "matplotlib": "3.11.1",
+    "nibabel": "5.4.2",
+    "numpy": "2.5.1",
+    "openpyxl": "3.1.5",
+    "pandas": "3.0.3",
+    "scipy": "1.18.0"
+  },
+  "schema_version": 1
+}
