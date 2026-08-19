@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import importlib
 import importlib.metadata
 import json
 import math
@@ -15,6 +16,7 @@ import tempfile
 import zipfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -318,7 +320,32 @@ def extract_tedana(
     }, []
 
 
+@lru_cache(maxsize=1)
+def require_science_dependencies() -> None:
+    required = (
+        "numpy",
+        "pandas",
+        "nibabel",
+        "scipy",
+        "matplotlib",
+        "openpyxl",
+    )
+    missing: list[str] = []
+    for package in required:
+        try:
+            importlib.import_module(package)
+        except ImportError:
+            missing.append(package)
+    if missing:
+        raise RuntimeError(
+            "QC Python environment is missing required package(s): "
+            + ", ".join(missing)
+        )
+
+
+@lru_cache(maxsize=1)
 def science_modules() -> tuple[Any, Any, Any, Any, Any]:
+    require_science_dependencies()
     try:
         import nibabel as nib
         import numpy as np
@@ -327,8 +354,7 @@ def science_modules() -> tuple[Any, Any, Any, Any, Any]:
         from nibabel.processing import resample_from_to
     except ImportError as exc:
         raise RuntimeError(
-            "build_run_qc.py needs numpy, pandas, nibabel, scipy, and matplotlib; "
-            "use the shared TEDANA environment"
+            "could not import the required run-QC scientific Python stack"
         ) from exc
     return np, pd, nib, resample_from_to, plt
 
@@ -867,7 +893,18 @@ def print_summary(rows: list[dict[str, Any]], thresholds: list[dict[str, Any]]) 
     print(f"Run inventory: {len(rows)}")
     print(f"Complete QC rows: {sum(row['qc_complete'] for row in rows)}")
     print(f"Incomplete QC rows: {sum(not row['qc_complete'] for row in rows)}")
-    print(f"Any imaging-QC outlier: {sum(row['imaging_qc_outlier'] for row in rows)}")
+    print(
+        "Any imaging-QC criterion flagged: "
+        f"{sum(row['imaging_qc_outlier'] for row in rows)}"
+    )
+    print(
+        "Complete rows with imaging-QC outlier status: "
+        f"{sum(row['qc_status'] == 'outlier' for row in rows)}"
+    )
+    print(
+        "Incomplete rows with a known criterion flagged: "
+        f"{sum(not row['qc_complete'] and row['imaging_qc_outlier'] for row in rows)}"
+    )
     for task in sorted({row["task"] for row in rows}):
         group = [row for row in rows if row["task"] == task]
         print(
@@ -894,6 +931,14 @@ def print_summary(rows: list[dict[str, Any]], thresholds: list[dict[str, Any]]) 
         print("Missing/ambiguous inputs:")
         for issue, count in sorted(missing_counts.items()):
             print(f"  {issue}: {count}")
+        print("Incomplete run keys:")
+        for row in rows:
+            if row["qc_complete"]:
+                continue
+            print(
+                f"  sub-{row['subject']} ses-{row['session']} task-{row['task']} "
+                f"run-{row['run']}: {row['missing_metrics']}"
+            )
     if overlap_counts:
         print("Outlier-criterion overlap:")
         for combination, count in sorted(overlap_counts.items()):
@@ -949,6 +994,7 @@ def run_build(args: argparse.Namespace) -> int:
         raise ValueError(
             "historical cerebellum/brainstem exclusion mask checksum mismatch"
         )
+    require_science_dependencies()
     template_mask = discover_template_mask(args.template_brain_mask)
     if not args.dry_run:
         preflight_outputs(output_dir, args.overwrite)
@@ -1148,6 +1194,7 @@ def run_check(args: argparse.Namespace) -> int:
     project_root = args.project_root.expanduser().resolve()
     output_dir = args.output_dir.expanduser().resolve()
     policy = load_policy(args.policy.expanduser().resolve())
+    require_science_dependencies()
     errors: list[str] = []
     for relative in CANONICAL_OUTPUTS:
         if not (output_dir / relative).is_file():
