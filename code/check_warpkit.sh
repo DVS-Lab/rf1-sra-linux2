@@ -54,7 +54,31 @@ while IFS= read -r sub; do
           continue
         fi
         checked=$((checked + 1))
-        if ! python3 "${SCRIPT_DIR}/check_pipeline_state.py" warpkit-inputs "$indir" "$sub" "$ses" "$task" "$run"; then
+        reuse_source_run=""
+        if reuse_spec="$(rf1_warpkit_reuse_spec "$sub" "$ses" "$task" "$run")"; then
+          IFS=$'\t' read -r reuse_source_run reuse_reason <<< "$reuse_spec"
+        fi
+        if [[ -n "$reuse_source_run" ]]; then
+          reuse_inputs_ok=1
+          source_stem="sub-${sub}_ses-${ses}_task-${task}_run-${reuse_source_run}"
+          for echo in 1 2 3 4; do
+            [[ -f "${indir}/${stem}_echo-${echo}_part-mag_bold.nii.gz" ]] || reuse_inputs_ok=0
+          done
+          for input in \
+            "${indir}/${stem}_echo-1_part-mag_bold.json" \
+            "${PROJECT_ROOT}/derivatives/warpkit/sub-${sub}/ses-${ses}/${source_stem}.warpkit_done" \
+            "${session_dir}/fmap/sub-${sub}_ses-${ses}_acq-${task}_run-${reuse_source_run}_fieldmap.nii.gz" \
+            "${session_dir}/fmap/sub-${sub}_ses-${ses}_acq-${task}_run-${reuse_source_run}_fieldmap.json"
+          do
+            [[ -f "$input" ]] || reuse_inputs_ok=0
+          done
+          if ((reuse_inputs_ok == 0)); then
+            echo "sub-${sub} ses-${ses} task-${task} run-${run}: incomplete reviewed Warpkit reuse inputs"
+            failed=1
+            continue
+          fi
+          echo "REUSE sub-${sub} ses-${ses} task-${task} run-${run}: source run-${reuse_source_run} (${reuse_reason})"
+        elif ! python3 "${SCRIPT_DIR}/check_pipeline_state.py" warpkit-inputs "$indir" "$sub" "$ses" "$task" "$run"; then
           echo "sub-${sub} ses-${ses} task-${task} run-${run}: incomplete Warpkit inputs"
           failed=1
           continue
@@ -69,6 +93,9 @@ while IFS= read -r sub; do
           "${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_fieldmap.json"
           "${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_magnitude.json"
         )
+        if [[ -n "$reuse_source_run" ]]; then
+          expected+=("${outdir}/${stem}_fieldmap-reuse.json")
+        fi
         for output in "${expected[@]}"; do
           if [[ ! -f "$output" ]]; then
             echo "MISSING $output"

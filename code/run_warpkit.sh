@@ -62,33 +62,46 @@ args=()
 ((overwrite)) && args+=(--overwrite)
 
 pids=()
-while IFS= read -r sub; do
-  for ses in 01 02; do
-    if [[ "$ses" == "01" ]]; then
-      tasks=(ugr trust sharedreward doors socialdoors)
-    else
-      tasks=(ugr doors socialdoors)
-    fi
-    for task in "${tasks[@]}"; do
-      runs=(1 2)
-      [[ "$task" == "doors" || "$task" == "socialdoors" ]] && runs=(1)
-      for run in "${runs[@]}"; do
-        rf1_wait_for_jobs "$max_jobs"
-        echo "Launching warpkit sub-${sub} ses-${ses} task-${task} run-${run}"
-        APPTAINERENV_OMP_NUM_THREADS="$omp_threads" \
-        APPTAINERENV_OPENBLAS_NUM_THREADS=1 \
-        APPTAINERENV_NUMEXPR_NUM_THREADS=1 \
-        APPTAINERENV_MKL_NUM_THREADS=1 \
-        APPTAINERENV_JULIA_NUM_THREADS="$julia_threads" \
-        APPTAINERENV_JULIA_NUM_GC_THREADS="$julia_gc_threads" \
-        WARPKIT_BACKEND="$warpkit_backend" \
-        WARPKIT_CMD="$warpkit_cmd_name" \
-        WARPKIT_N_CPUS="$warpkit_n_cpus" \
-          bash "${SCRIPT_DIR}/warpkit.sh" "${args[@]}" "$sub" "$ses" "$task" "$run" &
-        pids+=("$!")
+for reuse_pass in normal reuse; do
+  echo "Starting WarpKit ${reuse_pass} pass."
+  while IFS= read -r sub; do
+    for ses in 01 02; do
+      if [[ "$ses" == "01" ]]; then
+        tasks=(ugr trust sharedreward doors socialdoors)
+      else
+        tasks=(ugr doors socialdoors)
+      fi
+      for task in "${tasks[@]}"; do
+        runs=(1 2)
+        [[ "$task" == "doors" || "$task" == "socialdoors" ]] && runs=(1)
+        for run in "${runs[@]}"; do
+          is_reuse=0
+          if rf1_warpkit_reuse_spec "$sub" "$ses" "$task" "$run" >/dev/null; then
+            is_reuse=1
+          fi
+          if [[ "$reuse_pass" == "normal" && "$is_reuse" -eq 1 ]] || \
+             [[ "$reuse_pass" == "reuse" && "$is_reuse" -eq 0 ]]; then
+            continue
+          fi
+
+          rf1_wait_for_jobs "$max_jobs"
+          echo "Launching warpkit sub-${sub} ses-${ses} task-${task} run-${run}"
+          APPTAINERENV_OMP_NUM_THREADS="$omp_threads" \
+          APPTAINERENV_OPENBLAS_NUM_THREADS=1 \
+          APPTAINERENV_NUMEXPR_NUM_THREADS=1 \
+          APPTAINERENV_MKL_NUM_THREADS=1 \
+          APPTAINERENV_JULIA_NUM_THREADS="$julia_threads" \
+          APPTAINERENV_JULIA_NUM_GC_THREADS="$julia_gc_threads" \
+          WARPKIT_BACKEND="$warpkit_backend" \
+          WARPKIT_CMD="$warpkit_cmd_name" \
+          WARPKIT_N_CPUS="$warpkit_n_cpus" \
+            bash "${SCRIPT_DIR}/warpkit.sh" "${args[@]}" "$sub" "$ses" "$task" "$run" &
+          pids+=("$!")
+        done
       done
     done
-  done
-done < <(rf1_read_subjects "$sublist")
+  done < <(rf1_read_subjects "$sublist")
 
-rf1_wait_all "${pids[@]}"
+  rf1_wait_all "${pids[@]}"
+  pids=()
+done

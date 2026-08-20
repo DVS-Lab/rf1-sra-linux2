@@ -45,6 +45,8 @@ source_has_dicoms() {
   local subdir
   if [[ "$folder_sub" == "11891" ]]; then
     subdir="${SOURCEDATA_ROOT}/11891/Smith-SRA-11891/Smith-SRA-11891"
+  elif [[ "$folder_sub" == "12018" ]]; then
+    subdir="${SOURCEDATA_ROOT}/Smith-SRA-12018/Smith-SRA-"
   else
     subdir="${SOURCEDATA_ROOT}/Smith-SRA-${folder_sub}/Smith-SRA-${folder_sub}"
   fi

@@ -51,6 +51,11 @@ stem="sub-${sub}_ses-${ses}_task-${task}_run-${run}"
 warpkit_backend="${WARPKIT_BACKEND:-native}"
 warpkit_cmd_name="${WARPKIT_CMD:-wk-medic}"
 warpkit_n_cpus="${WARPKIT_N_CPUS:-1}"
+reuse_source_run=""
+reuse_reason=""
+if reuse_spec="$(rf1_warpkit_reuse_spec "$sub" "$ses" "$task" "$run")"; then
+  IFS=$'\t' read -r reuse_source_run reuse_reason <<< "$reuse_spec"
+fi
 
 logdir="${PROJECT_ROOT}/logs"
 mkdir -p "$logdir"
@@ -66,12 +71,6 @@ if [[ ! -d "$indir" ]]; then
   exit 0
 fi
 
-if ! python3 "${scriptdir}/check_pipeline_state.py" warpkit-inputs "$indir" "$sub" "$ses" "$task" "$run"; then
-  echo "Missing Warpkit input(s) for sub-${sub} ses-${ses} task-${task} run-${run}" \
-    >> "${logdir}/missingFiles-warpkit.log"
-  exit 0
-fi
-
 outdir="${PROJECT_ROOT}/derivatives/warpkit/sub-${sub}/ses-${ses}"
 fmapdir="${PROJECT_ROOT}/bids/sub-${sub}/ses-${ses}/fmap"
 doneflag="${outdir}/${stem}.warpkit_done"
@@ -79,15 +78,60 @@ fmap_out="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_fieldmap.nii.g
 mag_out="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_magnitude.nii.gz"
 fmap_json="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_fieldmap.json"
 mag_json="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${run}_magnitude.json"
+reuse_provenance="${outdir}/${stem}_fieldmap-reuse.json"
 
-if [[ -e "$doneflag" && -e "$fmap_out" && "$overwrite" -ne 1 ]]; then
+if [[ -n "$reuse_source_run" ]]; then
+  source_stem="sub-${sub}_ses-${ses}_task-${task}_run-${reuse_source_run}"
+  source_doneflag="${outdir}/${source_stem}.warpkit_done"
+  source_fmap="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${reuse_source_run}_fieldmap.nii.gz"
+  source_fmap_json="${fmapdir}/sub-${sub}_ses-${ses}_acq-${task}_run-${reuse_source_run}_fieldmap.json"
+  reuse_missing=0
+  for echo in 1 2 3 4; do
+    input="${indir}/${stem}_echo-${echo}_part-mag_bold.nii.gz"
+    if [[ ! -f "$input" ]]; then
+      echo "MISSING $input"
+      reuse_missing=1
+    fi
+  done
+  for input in \
+    "${indir}/${stem}_echo-1_part-mag_bold.json" \
+    "$source_doneflag" "$source_fmap" "$source_fmap_json"
+  do
+    if [[ ! -f "$input" ]]; then
+      echo "MISSING $input"
+      reuse_missing=1
+    fi
+  done
+  if ((reuse_missing)); then
+    echo "Missing reviewed WarpKit reuse input(s) for sub-${sub} ses-${ses} task-${task} run-${run}" \
+      >> "${logdir}/missingFiles-warpkit.log"
+    exit 0
+  fi
+  echo "Reviewed WarpKit reuse: ${stem} uses ${source_stem} (${reuse_reason})"
+elif ! python3 "${scriptdir}/check_pipeline_state.py" warpkit-inputs "$indir" "$sub" "$ses" "$task" "$run"; then
+  echo "Missing Warpkit input(s) for sub-${sub} ses-${ses} task-${task} run-${run}" \
+    >> "${logdir}/missingFiles-warpkit.log"
+  exit 0
+fi
+
+complete_outputs=("$doneflag" "$fmap_out" "$mag_out" "$fmap_json" "$mag_json")
+[[ -n "$reuse_source_run" ]] && complete_outputs+=("$reuse_provenance")
+run_complete=1
+for output in "${complete_outputs[@]}"; do
+  [[ -f "$output" ]] || run_complete=0
+done
+if ((run_complete)) && ((overwrite == 0)); then
   echo "EXISTS (skipping): warpkit complete for sub-${sub} ses-${ses} ${task} run-${run}"
   exit 0
 fi
 
-if [[ -e "$fmap_out" && "$overwrite" -ne 1 ]]; then
-  echo "Refusing to overwrite existing fieldmap without --overwrite: $fmap_out" >&2
-  exit 1
+if ((overwrite == 0)); then
+  for output in "${complete_outputs[@]}"; do
+    if [[ -e "$output" ]]; then
+      echo "Refusing to overwrite partial WarpKit outputs without --overwrite: $output" >&2
+      exit 1
+    fi
+  done
 fi
 
 mkdir -p "$outdir" "$fmapdir"
@@ -102,6 +146,7 @@ cleanup_warpkit_derivatives=(
   "${outdir}/${stem}_fieldmaps.nii"
   "${outdir}/${stem}_fieldmaps_native.nii"
   "${outdir}/${stem}_displacementmaps.nii"
+  "$reuse_provenance"
 )
 
 export APPTAINERENV_OMP_NUM_THREADS="${APPTAINERENV_OMP_NUM_THREADS:-1}"
@@ -121,7 +166,10 @@ for echo in 1 2 3 4; do
 done
 
 warpkit_cmd=()
-case "$warpkit_backend" in
+if [[ -n "$reuse_source_run" ]]; then
+  echo "Warpkit command: reviewed reuse of $source_fmap"
+else
+  case "$warpkit_backend" in
   apptainer)
     container_magnitude_paths=()
     container_phase_paths=()
@@ -153,30 +201,33 @@ case "$warpkit_backend" in
       --out-prefix "${outdir}/${stem}"
     )
     ;;
-  *)
-    echo "Unsupported WARPKIT_BACKEND: $warpkit_backend (expected apptainer or native)" >&2
-    exit 2
-    ;;
-esac
+    *)
+      echo "Unsupported WARPKIT_BACKEND: $warpkit_backend (expected apptainer or native)" >&2
+      exit 2
+      ;;
+  esac
 
-printf 'Warpkit command:'
-printf ' %q' "${warpkit_cmd[@]}"
-printf '\n'
-echo "Warpkit thread plan: backend=${warpkit_backend}; command=${warpkit_cmd_name}; WarpKit n_cpus=${warpkit_n_cpus}; OMP=${APPTAINERENV_OMP_NUM_THREADS}; OpenBLAS=${APPTAINERENV_OPENBLAS_NUM_THREADS}; NumExpr=${APPTAINERENV_NUMEXPR_NUM_THREADS}; MKL=${APPTAINERENV_MKL_NUM_THREADS}; Julia=${APPTAINERENV_JULIA_NUM_THREADS}; Julia GC=${APPTAINERENV_JULIA_NUM_GC_THREADS}"
+  printf 'Warpkit command:'
+  printf ' %q' "${warpkit_cmd[@]}"
+  printf '\n'
+  echo "Warpkit thread plan: backend=${warpkit_backend}; command=${warpkit_cmd_name}; WarpKit n_cpus=${warpkit_n_cpus}; OMP=${APPTAINERENV_OMP_NUM_THREADS}; OpenBLAS=${APPTAINERENV_OPENBLAS_NUM_THREADS}; NumExpr=${APPTAINERENV_NUMEXPR_NUM_THREADS}; MKL=${APPTAINERENV_MKL_NUM_THREADS}; Julia=${APPTAINERENV_JULIA_NUM_THREADS}; Julia GC=${APPTAINERENV_JULIA_NUM_GC_THREADS}"
+fi
 if ((dry_run)); then
   echo "Dry run: not running Warpkit or writing fmap outputs."
   exit 0
 fi
 
-case "$warpkit_backend" in
-  apptainer)
-    rf1_require_file "$WARPKIT_IMAGE"
-    command -v apptainer >/dev/null 2>&1 || { echo "Required command not found: apptainer" >&2; exit 1; }
-    ;;
-  native)
-    command -v "$warpkit_cmd_name" >/dev/null 2>&1 || { echo "Required command not found: $warpkit_cmd_name" >&2; exit 1; }
-    ;;
-esac
+if [[ -z "$reuse_source_run" ]]; then
+  case "$warpkit_backend" in
+    apptainer)
+      rf1_require_file "$WARPKIT_IMAGE"
+      command -v apptainer >/dev/null 2>&1 || { echo "Required command not found: apptainer" >&2; exit 1; }
+      ;;
+    native)
+      command -v "$warpkit_cmd_name" >/dev/null 2>&1 || { echo "Required command not found: $warpkit_cmd_name" >&2; exit 1; }
+      ;;
+  esac
+fi
 command -v fslroi >/dev/null 2>&1 || { echo "Required command not found: fslroi" >&2; exit 1; }
 
 if ((overwrite)); then
@@ -199,12 +250,15 @@ if ((overwrite)); then
   fi
 fi
 
-"${warpkit_cmd[@]}"
-
-fieldmaps_4d="${outdir}/${stem}_fieldmaps.nii"
-rf1_require_file "$fieldmaps_4d"
-
-fslroi "$fieldmaps_4d" "${fmap_out%.nii.gz}" 0 1
+if [[ -n "$reuse_source_run" ]]; then
+  cp "$source_fmap" "${fmap_out}.tmp"
+  mv -f "${fmap_out}.tmp" "$fmap_out"
+else
+  "${warpkit_cmd[@]}"
+  fieldmaps_4d="${outdir}/${stem}_fieldmaps.nii"
+  rf1_require_file "$fieldmaps_4d"
+  fslroi "$fieldmaps_4d" "${fmap_out%.nii.gz}" 0 1
+fi
 fslroi \
   "${indir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-mag_bold.nii.gz" \
   "${mag_out%.nii.gz}" \
@@ -213,11 +267,28 @@ fslroi \
 cp \
   "${indir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-mag_bold.json" \
   "$mag_json"
-cp \
-  "${indir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-phase_bold.json" \
-  "$fmap_json"
+if [[ -n "$reuse_source_run" ]]; then
+  python3 "${scriptdir}/record_warpkit_reuse.py" \
+    --project-root "$PROJECT_ROOT" \
+    --source-json "$source_fmap_json" \
+    --target-json "$fmap_json" \
+    --source-fieldmap "$source_fmap" \
+    --target-fieldmap "$fmap_out" \
+    --provenance-json "$reuse_provenance" \
+    --subject "$sub" --session "$ses" --task "$task" --run "$run" \
+    --source-run "$reuse_source_run" --reason "$reuse_reason"
+else
+  cp \
+    "${indir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-1_part-phase_bold.json" \
+    "$fmap_json"
+fi
 
 for output in "$fmap_out" "$mag_out" "$fmap_json" "$mag_json"; do
   rf1_require_file "$output"
 done
-touch "$doneflag"
+if [[ -n "$reuse_source_run" ]]; then
+  rf1_require_file "$reuse_provenance"
+  printf 'source_run=%s\nreason=%s\n' "$reuse_source_run" "$reuse_reason" > "$doneflag"
+else
+  touch "$doneflag"
+fi

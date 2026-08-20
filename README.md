@@ -254,6 +254,29 @@ list instead of `code/sublist-new.txt`. `--jobs N` controls how many
 subject-level jobs run at once; fMRIPrep also divides its CPU and memory budget
 across those jobs.
 
+### Reviewed Production Exceptions
+
+Three historical exceptions are intentionally narrow and provenance-visible:
+
+- `sub-12018` session 1 retains its downloaded DICOMs under the malformed inner
+  folder `Smith-SRA-12018/Smith-SRA-/scans`. `prepdata.sh`, `check_bids.sh`, and
+  `make_repair_runlists.py` recognize that source layout without moving or
+  rewriting raw DICOMs.
+- `sub-10929` session 1 UGR run 2 has complete magnitude data but an incomplete
+  phase acquisition. The reviewed decision in `warpkit_reuse.tsv` reuses the
+  UGR run-1 WarpKit fieldmap for run 2. Normal WarpKit jobs finish before reuse
+  jobs; the run-2 magnitude reference remains run-specific, and the reused
+  fieldmap receives explicit BIDS-side metadata plus derivative provenance.
+- The private `sub-10617` Shared Reward run-1 source is restored from the
+  rectangular 25-column parent version of the damaged historical edit, with
+  only the leading `?TrialNumber` header corrected to `TrialNumber`. That source
+  repair does not itself decide whether the lone raw run maps to imaging run 1
+  or run 2; any such mapping still requires fingerprint-bound review.
+
+These exceptions do not authorize a whole-subject exclusion, do not modify raw
+DICOM content, and must not be generalized to other subjects without a new
+reviewed manifest row.
+
 The geometry commands are a required cohort-wide gate, including after a full
 from-scratch rerun. Do not continue past that block until `verify` prints
 `CHECK PASSED`. When the audit reports no outliers, omit the `--apply` command

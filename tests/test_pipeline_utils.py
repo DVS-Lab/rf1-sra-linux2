@@ -21,6 +21,7 @@ from pipeline_utils import (  # noqa: E402
     fmriprep_expected_outputs,
     is_fmriprep_complete,
     is_tedana_complete,
+    load_warpkit_reuse,
     missing_paths,
     read_subject_list,
     runs_for_task,
@@ -100,6 +101,37 @@ def test_shell_subject_reader_skips_source_exclusions_unless_overridden(tmp_path
     assert included.stderr == ""
 
 
+def test_warpkit_reuse_manifest_and_shell_lookup(tmp_path: Path) -> None:
+    manifest = tmp_path / "warpkit_reuse.tsv"
+    manifest.write_text(
+        "subject\tsession\ttask\trun\tsource_run\treason\n"
+        "10929\t01\tugr\t2\t1\tincomplete_phase_acquisition\n"
+    )
+    specs = load_warpkit_reuse(manifest)
+    assert specs[("10929", "01", "ugr", "2")].source_run == "1"
+
+    command = (
+        f'source "{CODE_DIR / "pipeline_common.sh"}"; '
+        f'SCRIPT_DIR="{CODE_DIR}"; '
+        f'WARPKIT_REUSE_FILE="{manifest}"; '
+        'rf1_warpkit_reuse_spec 10929 01 ugr 2'
+    )
+    result = subprocess.run(
+        ["bash", "-c", command], text=True, capture_output=True, check=True
+    )
+    assert result.stdout == "1\tincomplete_phase_acquisition\n"
+
+
+def test_warpkit_reuse_manifest_rejects_same_source_and_target(tmp_path: Path) -> None:
+    manifest = tmp_path / "warpkit_reuse.tsv"
+    manifest.write_text(
+        "subject\tsession\ttask\trun\tsource_run\treason\n"
+        "10929\t01\tugr\t2\t2\tincomplete_phase_acquisition\n"
+    )
+    with pytest.raises(ValueError, match="source equals target"):
+        load_warpkit_reuse(manifest)
+
+
 def test_tedana_confound_sublist_filter_accepts_prefixed_and_plain_ids(tmp_path: Path) -> None:
     module = load_gen_tedana_confounds()
     sublist = tmp_path / "subjects.txt"
@@ -138,6 +170,25 @@ def test_repair_runlists_accept_11891_nested_source_layout(tmp_path: Path) -> No
 
     assert module.source_has_dicoms(tmp_path, "11891")
     assert module.missing_required_sources(tmp_path, ["11891"]) == set()
+
+
+def test_repair_runlists_accept_12018_malformed_source_layout(tmp_path: Path) -> None:
+    module = load_make_repair_runlists()
+    scans = (
+        tmp_path
+        / "Smith-SRA-12018"
+        / "Smith-SRA-"
+        / "scans"
+        / "1-T1w"
+        / "resources"
+        / "DICOM"
+        / "files"
+    )
+    scans.mkdir(parents=True)
+    (scans / "image.dcm").write_text("dicom")
+
+    assert module.source_has_dicoms(tmp_path, "12018")
+    assert module.missing_required_sources(tmp_path, ["12018"]) == set()
 
 
 def test_repair_runlists_report_excluded_sources(tmp_path: Path) -> None:
@@ -191,8 +242,8 @@ def test_heuristic_filter_files_skips_only_scanner_generated_scan_dirs(heuristic
 def make_bids_run(root: Path, sub: str, ses: str, task: str, run: str, echoes: int = 4) -> None:
     func = root / sub / ses / "func"
     fmap = root / sub / ses / "fmap"
-    func.mkdir(parents=True)
-    fmap.mkdir(parents=True)
+    func.mkdir(parents=True, exist_ok=True)
+    fmap.mkdir(parents=True, exist_ok=True)
     for echo in range(1, echoes + 1):
         (func / f"{sub}_{ses}_task-{task}_run-{run}_echo-{echo}_part-mag_bold.nii.gz").write_text("nii")
         (func / f"{sub}_{ses}_task-{task}_run-{run}_echo-{echo}_part-phase_bold.nii.gz").write_text("nii")
@@ -201,6 +252,43 @@ def make_bids_run(root: Path, sub: str, ses: str, task: str, run: str, echoes: i
     (fmap / f"{sub}_{ses}_acq-{task}_run-{run}_fieldmap.json").write_text(
         json.dumps({"TaskName": task, "IntendedFor": ["missing.nii.gz"]})
     )
+
+
+def test_repair_audit_accepts_completed_reviewed_warpkit_reuse(tmp_path: Path) -> None:
+    module = load_make_repair_runlists()
+    project = tmp_path / "project"
+    bids = project / "bids"
+    make_bids_run(bids, "sub-10929", "ses-01", "ugr", "1")
+    make_bids_run(bids, "sub-10929", "ses-01", "ugr", "2")
+    func = bids / "sub-10929" / "ses-01" / "func"
+    fmap = bids / "sub-10929" / "ses-01" / "fmap"
+    outdir = project / "derivatives" / "warpkit" / "sub-10929" / "ses-01"
+    outdir.mkdir(parents=True)
+
+    for echo in range(1, 5):
+        (func / f"sub-10929_ses-01_task-ugr_run-2_echo-{echo}_part-phase_bold.nii.gz").unlink()
+        (func / f"sub-10929_ses-01_task-ugr_run-2_echo-{echo}_part-phase_bold.json").unlink()
+
+    for run in ("1", "2"):
+        stem = f"sub-10929_ses-01_task-ugr_run-{run}"
+        (outdir / f"{stem}.warpkit_done").write_text("done")
+        (fmap / f"sub-10929_ses-01_acq-ugr_run-{run}_fieldmap.nii.gz").write_text("nii")
+        (fmap / f"sub-10929_ses-01_acq-ugr_run-{run}_magnitude.nii.gz").write_text("nii")
+        (fmap / f"sub-10929_ses-01_acq-ugr_run-{run}_magnitude.json").write_text("{}")
+    (outdir / "sub-10929_ses-01_task-ugr_run-2_fieldmap-reuse.json").write_text("{}")
+
+    manifest = tmp_path / "warpkit_reuse.tsv"
+    manifest.write_text(
+        "subject\tsession\ttask\trun\tsource_run\treason\n"
+        "10929\t01\tugr\t2\t1\tincomplete_phase_acquisition\n"
+    )
+    issues = []
+    needs_repair = module.add_warpkit_issues(
+        issues, project, ["10929"], load_warpkit_reuse(manifest)
+    )
+
+    assert needs_repair == set()
+    assert issues == []
 
 
 def test_intended_for_generation_filters_missing_runs(tmp_path: Path) -> None:
@@ -297,6 +385,65 @@ def test_warpkit_manifest_detects_missing_echo(tmp_path: Path) -> None:
     for path in required[:-1]:
         path.write_text("x")
     assert missing_paths(required) == [required[-1]]
+
+
+def test_record_warpkit_reuse_preserves_source_and_writes_provenance(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    source_fieldmap = project / "bids/source_fieldmap.nii.gz"
+    target_fieldmap = project / "bids/target_fieldmap.nii.gz"
+    source_json = project / "bids/source_fieldmap.json"
+    target_json = project / "bids/target_fieldmap.json"
+    provenance = project / "derivatives/target_fieldmap-reuse.json"
+    source_fieldmap.parent.mkdir(parents=True)
+    provenance.parent.mkdir(parents=True)
+    source_fieldmap.write_bytes(b"fieldmap")
+    target_fieldmap.write_bytes(b"fieldmap")
+    source_json.write_text(
+        json.dumps({"Units": "Hz", "IntendedFor": ["ses-01/func/run-1.nii.gz"]})
+    )
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(CODE_DIR / "record_warpkit_reuse.py"),
+            "--project-root",
+            str(project),
+            "--source-json",
+            str(source_json),
+            "--target-json",
+            str(target_json),
+            "--source-fieldmap",
+            str(source_fieldmap),
+            "--target-fieldmap",
+            str(target_fieldmap),
+            "--provenance-json",
+            str(provenance),
+            "--subject",
+            "10929",
+            "--session",
+            "01",
+            "--task",
+            "ugr",
+            "--run",
+            "2",
+            "--source-run",
+            "1",
+            "--reason",
+            "incomplete_phase_acquisition",
+        ],
+        check=True,
+    )
+
+    metadata = json.loads(target_json.read_text())
+    assert metadata["Units"] == "Hz"
+    assert "IntendedFor" not in metadata
+    assert metadata["RF1SRAFieldmapReuse"]["SourceRun"] == "1"
+    assert metadata["RF1SRAFieldmapReuse"]["TargetRun"] == "2"
+    recorded = json.loads(provenance.read_text())
+    assert recorded["Reason"] == "incomplete_phase_acquisition"
+    assert recorded["SourceFieldmap"] == "bids/source_fieldmap.nii.gz"
 
 
 def test_subject_t1w_inputs_accepts_session_and_subject_anat(tmp_path: Path) -> None:
