@@ -10,8 +10,10 @@ from datetime import datetime
 from pathlib import Path
 
 from pipeline_utils import (
+    WarpkitReuseSpec,
     collect_intended_for_updates,
     fmriprep_missing_outputs,
+    load_warpkit_reuse,
     missing_paths,
     read_subject_list,
     runs_for_task,
@@ -24,6 +26,7 @@ from pipeline_utils import (
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUBLIST = Path(__file__).resolve().parent / "sublist-new.txt"
 DEFAULT_EXCLUSIONS_ROOT = Path("/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions")
+DEFAULT_WARPKIT_REUSE_FILE = Path(__file__).resolve().parent / "warpkit_reuse.tsv"
 
 
 @dataclass
@@ -68,6 +71,8 @@ def write_subject_list(path: Path, subjects: set[str]) -> None:
 def source_scan_dir(source_root: Path, folder_sub: str) -> Path:
     if folder_sub == "11891":
         return source_root / "11891" / "Smith-SRA-11891" / "Smith-SRA-11891" / "scans"
+    if folder_sub == "12018":
+        return source_root / "Smith-SRA-12018" / "Smith-SRA-" / "scans"
     return source_root / f"Smith-SRA-{folder_sub}" / f"Smith-SRA-{folder_sub}" / "scans"
 
 
@@ -203,8 +208,14 @@ def add_mriqc_issues(issues: list[Issue], project_root: Path, subjects: list[str
     return needs_repair
 
 
-def add_warpkit_issues(issues: list[Issue], project_root: Path, subjects: list[str]) -> set[str]:
+def add_warpkit_issues(
+    issues: list[Issue],
+    project_root: Path,
+    subjects: list[str],
+    reuse_specs: dict[tuple[str, str, str, str], WarpkitReuseSpec] | None = None,
+) -> set[str]:
     needs_repair: set[str] = set()
+    reuse_specs = reuse_specs or {}
     bids_root = project_root / "bids"
     for subject in subjects:
         for session in ("01", "02"):
@@ -217,7 +228,40 @@ def add_warpkit_issues(issues: list[Issue], project_root: Path, subjects: list[s
                     func_dir = session_dir / "func"
                     if not (func_dir / f"{stem}_echo-1_part-mag_bold.nii.gz").is_file():
                         continue
-                    required_inputs = warpkit_required_inputs(func_dir, subject, session, task, run)
+                    reuse = reuse_specs.get((subject, session, task, run))
+                    if reuse:
+                        source_stem = (
+                            f"sub-{subject}_ses-{session}_task-{task}_run-{reuse.source_run}"
+                        )
+                        required_inputs = [
+                            *[
+                                func_dir / f"{stem}_echo-{echo}_part-mag_bold.nii.gz"
+                                for echo in range(1, 5)
+                            ],
+                            func_dir / f"{stem}_echo-1_part-mag_bold.json",
+                            project_root
+                            / "derivatives"
+                            / "warpkit"
+                            / f"sub-{subject}"
+                            / f"ses-{session}"
+                            / f"{source_stem}.warpkit_done",
+                            session_dir
+                            / "fmap"
+                            / (
+                                f"sub-{subject}_ses-{session}_acq-{task}_"
+                                f"run-{reuse.source_run}_fieldmap.nii.gz"
+                            ),
+                            session_dir
+                            / "fmap"
+                            / (
+                                f"sub-{subject}_ses-{session}_acq-{task}_"
+                                f"run-{reuse.source_run}_fieldmap.json"
+                            ),
+                        ]
+                    else:
+                        required_inputs = warpkit_required_inputs(
+                            func_dir, subject, session, task, run
+                        )
                     missing_inputs = missing_paths(required_inputs)
                     if missing_inputs:
                         needs_repair.add(subject)
@@ -225,12 +269,16 @@ def add_warpkit_issues(issues: list[Issue], project_root: Path, subjects: list[s
                             add_issue(
                                 issues,
                                 subject,
-                                "warpkit-input",
+                                "warpkit-reuse-input" if reuse else "warpkit-input",
                                 session=session,
                                 task=task,
                                 run=run,
                                 path=path,
-                                message="WarpKit input missing",
+                                message=(
+                                    "reviewed WarpKit reuse input missing"
+                                    if reuse
+                                    else "WarpKit input missing"
+                                ),
                             )
                         continue
                     outdir = project_root / "derivatives" / "warpkit" / f"sub-{subject}" / f"ses-{session}"
@@ -242,6 +290,8 @@ def add_warpkit_issues(issues: list[Issue], project_root: Path, subjects: list[s
                         fmapdir / f"sub-{subject}_ses-{session}_acq-{task}_run-{run}_fieldmap.json",
                         fmapdir / f"sub-{subject}_ses-{session}_acq-{task}_run-{run}_magnitude.json",
                     ]
+                    if reuse:
+                        expected.append(outdir / f"{stem}_fieldmap-reuse.json")
                     missing_outputs = missing_paths(expected)
                     if missing_outputs:
                         needs_repair.add(subject)
@@ -337,6 +387,12 @@ def main() -> int:
         help="Root containing intentionally excluded Smith-SRA source folders.",
     )
     parser.add_argument(
+        "--warpkit-reuse-file",
+        type=Path,
+        default=DEFAULT_WARPKIT_REUSE_FILE,
+        help="Reviewed run-level fieldmap reuse decisions.",
+    )
+    parser.add_argument(
         "--outdir",
         type=Path,
         default=PROJECT_ROOT / "logs" / "runlists",
@@ -356,12 +412,13 @@ def main() -> int:
     all_subjects = read_subject_list(args.sublist)
     source_excluded = excluded_sources(args.exclusions_root, all_subjects)
     subjects = [subject for subject in all_subjects if subject not in source_excluded]
+    reuse_specs = load_warpkit_reuse(args.warpkit_reuse_file)
     issues: list[Issue] = []
 
     source_missing = missing_required_sources(args.source_root, subjects)
     bids = add_bids_issues(issues, project_root, args.source_root, subjects)
     mriqc = add_mriqc_issues(issues, project_root, subjects)
-    warpkit = add_warpkit_issues(issues, project_root, subjects)
+    warpkit = add_warpkit_issues(issues, project_root, subjects, reuse_specs)
     intendedfor = add_intendedfor_issues(issues, project_root, subjects)
     fmriprep = add_fmriprep_issues(issues, project_root, subjects)
 

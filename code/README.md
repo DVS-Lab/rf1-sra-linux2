@@ -41,7 +41,7 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 |------:|-------------|---------------|--------|---------|--------------|
 | 1 | `downloadXNAT.py` | XNAT Python client | Temple XNAT credentials | Raw DICOM folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra` | Downloads source data only. |
 | 2 | `run_prepdata.sh` | `prepdata.sh`, imaging heuristics, `convert_behavior.py`, `shiftdates.py` | `sublist-new.txt`, DICOMs, private task logs | Complete BIDS session with imaging and canonical events | Stages conversion, defacing, date shifting, and events validation in scratch. Check with `check_bids.sh`. |
-| 3 | `run_warpkit.sh` | `warpkit.sh` | BIDS multi-echo mag/phase files and JSON | BIDS `fmap/` fieldmap and magnitude files | Removes only explicit generated fmap files when `--overwrite` is used. Check with `check_warpkit.sh`. |
+| 3 | `run_warpkit.sh` | `warpkit.sh`, `record_warpkit_reuse.py` | BIDS multi-echo mag/phase files and JSON; reviewed `warpkit_reuse.tsv` exceptions | BIDS `fmap/` fieldmap and magnitude files | Removes only explicit generated fmap files when `--overwrite` is used. Normal estimates finish before reviewed reuse jobs. Check with `check_warpkit.sh`. |
 | 4 | `addIntendedFor.py` | `pipeline_utils.py` | BIDS `fmap/*.json`, existing BOLD files | Updated fieldmap JSON | Atomic writes; `--dry-run` available. |
 | 5 | `run_fmriprep.sh` | `fmriprep.sh`, `fmriprep_config.json` | BIDS data | `derivatives/fmriprep`, `derivatives/freesurfer` | Generates volumetric, fsLR CIFTI, and FreeSurfer outputs; skips only when practical completion outputs exist. |
 | 6 | `fmriprep_geometry.py` | nibabel, ANTs in the pinned fMRIPrep container | Every non-echo volumetric MNI fMRIPrep BOLD | Audit reports; reviewed in-place canonical repairs plus preserved originals/provenance | Audit is read-only. Repair requires `--apply`, never targets BIDS, and atomically replaces only audited fMRIPrep outliers. |
@@ -124,7 +124,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: `logs/runlists/*_*-repair.txt`, `*_source-excluded.txt`, `*_source-missing.txt`, `*_fmriprep-ready.txt`, `*_fmriprep-incomplete.txt`, and `*_missing-paths.tsv`.
 - Typical command: `python3 make_repair_runlists.py --sublist "$SUBLIST" --prefix repair-$(date +%Y%m%d)`.
 - Checker: Review the missing-path TSV and rerun the relevant stage checkers after repair runs.
-- Notes: Subjects with source folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions` are written to `source-excluded` and omitted from repair/ready counts. `source-missing` subjects need source DICOM download/triage before `prepdata.sh` can repair them. `sub-11891` has a documented nested source layout under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra/11891/Smith-SRA-11891/Smith-SRA-11891/scans`. `fmriprep-ready` excludes subjects with BIDS/WarpKit/IntendedFor prerequisite issues; MRIQC is tracked separately because it is QC, not an fMRIPrep prerequisite.
+- Notes: Subjects with source folders under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions` are written to `source-excluded` and omitted from repair/ready counts. `source-missing` subjects need source DICOM download/triage before `prepdata.sh` can repair them. `sub-11891` has a documented nested source layout under `/ZPOOL/data/sourcedata/sourcedata/rf1-sra/11891/Smith-SRA-11891/Smith-SRA-11891/scans`; `sub-12018` retains the malformed downloaded inner path `/ZPOOL/data/sourcedata/sourcedata/rf1-sra/Smith-SRA-12018/Smith-SRA-/scans`. `fmriprep-ready` excludes subjects with BIDS/WarpKit/IntendedFor prerequisite issues; MRIQC is tracked separately because it is QC, not an fMRIPrep prerequisite.
 
 ### `downloadXNAT.py`
 - Status: Production input helper.
@@ -232,7 +232,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS `fmap/` products plus Warpkit completion markers.
 - Typical command: `bash run_warpkit.sh --sublist "$SUBLIST" --jobs 8`.
 - Checker: `bash check_warpkit.sh --sublist "$SUBLIST"`.
-- Notes: Uses the shared native `wk-medic` executable at `/ZPOOL/data/tools/anaconda/tug87422/envs/warpkit-1.4.0/bin/wk-medic` by default. This path is shared lab tooling despite the username in the path. Override `WARPKIT_CMD` only for a tested alternate executable. Set `WARPKIT_BACKEND=apptainer` only to use the legacy container fallback. Set `WARPKIT_N_CPUS`, `OMP_THREADS`, `JULIA_NUM_THREADS`, or `JULIA_NUM_GC_THREADS` to tune per-run concurrency.
+- Notes: Uses the shared native `wk-medic` executable at `/ZPOOL/data/tools/anaconda/tug87422/envs/warpkit-1.4.0/bin/wk-medic` by default. This path is shared lab tooling despite the username in the path. Override `WARPKIT_CMD` only for a tested alternate executable. Set `WARPKIT_BACKEND=apptainer` only to use the legacy container fallback. Set `WARPKIT_N_CPUS`, `OMP_THREADS`, `JULIA_NUM_THREADS`, or `JULIA_NUM_GC_THREADS` to tune per-run concurrency. Runs ordinary WarpKit estimates first and reviewed `warpkit_reuse.tsv` entries second so source fieldmaps exist before reuse.
 
 ### `warpkit.sh`
 - Status: Production worker.
@@ -241,7 +241,25 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS `fmap/*` NIfTI/JSON files and `derivatives/warpkit` markers.
 - Typical command: normally called by `run_warpkit.sh`.
 - Checker: `check_warpkit.sh`.
-- Notes: `--overwrite` deletes only explicit generated fieldmap and Warpkit derivative products. The worker supports default `WARPKIT_BACKEND=native` and fallback `WARPKIT_BACKEND=apptainer`, passes `WARPKIT_N_CPUS` through to WarpKit, and logs the backend/thread plan.
+- Notes: `--overwrite` deletes only explicit generated fieldmap and Warpkit derivative products. The worker supports default `WARPKIT_BACKEND=native` and fallback `WARPKIT_BACKEND=apptainer`, passes `WARPKIT_N_CPUS` through to WarpKit, and logs the backend/thread plan. A reviewed reuse copies only the source fieldmap, creates the target run's magnitude reference from its own echo-1 BOLD, and writes reuse metadata and provenance before marking completion.
+
+### `warpkit_reuse.tsv`
+- Status: Reviewed production exception manifest.
+- Purpose: Declare exact target runs allowed to reuse an already generated same-task WarpKit fieldmap.
+- Inputs: Subject, session, task, target run, source run, and neutral reason code.
+- Outputs: Decisions consumed by WarpKit wrappers, workers, checkers, and repair audits.
+- Typical command: do not execute; edit only after scientific review.
+- Checker: `bash check_warpkit.sh --sublist "$SUBLIST"` and `make_repair_runlists.py`.
+- Notes: The sole current entry is `sub-10929 ses-01 task-ugr run-2`, which reuses run 1 because its phase acquisition is incomplete. Adding a row is a scientific decision, not a convenience for ordinary missing files.
+
+### `record_warpkit_reuse.py`
+- Status: Production provenance helper.
+- Purpose: Verify that a copied fieldmap exactly matches its reviewed source and record reuse metadata.
+- Inputs: Source/target fieldmap paths, source JSON, exact run identifiers, and reason code.
+- Outputs: Target fieldmap JSON metadata plus `derivatives/warpkit/*_fieldmap-reuse.json` provenance.
+- Typical command: normally called by `warpkit.sh` for a manifest-approved reuse.
+- Checker: `check_warpkit.sh` requires the provenance JSON for reviewed reuse runs.
+- Notes: Removes stale source `IntendedFor`; `addIntendedFor.py` then assigns only the target run's existing magnitude BOLD echoes.
 
 ### `addIntendedFor.py`
 - Status: Production metadata helper.
@@ -746,9 +764,12 @@ subject without any BIDS T1w is reported as blocked before fMRIPrep/FreeSurfer;
 inspect the source scan and heuristic before rerunning conversion. Predata must
 not alter raw DICOM source data.
 
-Warpkit requires all four magnitude NIfTIs, phase NIfTIs, and phase JSON files
-before launch. It writes fieldmap/magnitude NIfTIs and JSON files under the BIDS
-session `fmap/` directory and a completion marker under `derivatives/warpkit`.
+Warpkit normally requires all four magnitude NIfTIs, phase NIfTIs, and phase
+JSON files before launch. A target listed in `warpkit_reuse.tsv` instead
+requires all four target magnitude echoes plus the completed source-run
+fieldmap. It writes a run-specific magnitude reference, copied fieldmap with
+explicit reuse metadata, provenance JSON, and completion marker. No unlisted
+run may bypass the normal phase-input requirement.
 
 `addIntendedFor.py` updates only fieldmap/magnitude JSONs, keeps targets within
 the same subject/session, includes only existing magnitude BOLD files, writes

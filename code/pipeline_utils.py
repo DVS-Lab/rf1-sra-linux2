@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import os
 import re
@@ -79,6 +80,37 @@ class IntendedForUpdate:
     intended_for: list[str]
     changed: bool
     reason: str = ""
+
+
+@dataclass(frozen=True)
+class WarpkitReuseSpec:
+    subject: str
+    session: str
+    task: str
+    run: str
+    source_run: str
+    reason: str
+
+
+def load_warpkit_reuse(path: Path) -> dict[tuple[str, str, str, str], WarpkitReuseSpec]:
+    """Load reviewed run-level fieldmap reuse decisions."""
+    specs: dict[tuple[str, str, str, str], WarpkitReuseSpec] = {}
+    with path.open(newline="") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        expected = {"subject", "session", "task", "run", "source_run", "reason"}
+        if reader.fieldnames is None or set(reader.fieldnames) != expected:
+            raise ValueError(f"invalid WarpKit reuse header: {path}")
+        for line_number, row in enumerate(reader, start=2):
+            spec = WarpkitReuseSpec(**{key: row[key].strip() for key in expected})
+            key = (spec.subject, spec.session, spec.task, spec.run)
+            if not all(key) or not spec.source_run or not spec.reason:
+                raise ValueError(f"incomplete WarpKit reuse row at {path}:{line_number}")
+            if spec.run == spec.source_run:
+                raise ValueError(f"WarpKit reuse source equals target at {path}:{line_number}")
+            if key in specs:
+                raise ValueError(f"duplicate WarpKit reuse row at {path}:{line_number}")
+            specs[key] = spec
+    return specs
 
 
 def parse_task_run(filename: str, metadata: dict) -> tuple[str | None, str | None]:

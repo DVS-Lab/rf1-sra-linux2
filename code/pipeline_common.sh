@@ -33,6 +33,7 @@ rf1_load_config() {
   WARPKIT_IMAGE="${TOOLS_ROOT}/warpkit.sif"
   WARPKIT_BACKEND="${WARPKIT_BACKEND:-native}"
   WARPKIT_CMD="${WARPKIT_CMD:-${TOOLS_ROOT}/anaconda/tug87422/envs/warpkit-1.4.0/bin/wk-medic}"
+  WARPKIT_REUSE_FILE="${WARPKIT_REUSE_FILE:-${SCRIPT_DIR}/warpkit_reuse.tsv}"
   FMRIPREP_OUTPUT_SPACES="MNI152NLin6Asym fsLR"
   FMRIPREP_CIFTI_DENSITY="91k"
   FMRIPREP_TOTAL_NPROCS="${FMRIPREP_TOTAL_NPROCS:-96}"
@@ -41,6 +42,25 @@ rf1_load_config() {
   FMRIPREP_NPROCS="${FMRIPREP_NPROCS:-}"
   FMRIPREP_MEM_MB="${FMRIPREP_MEM_MB:-}"
   BATCH_SUBLIST="${SCRIPT_DIR}/sublist-new.txt"
+}
+
+rf1_warpkit_reuse_spec() {
+  local subject="$1"
+  local ses="$2"
+  local task="$3"
+  local run="$4"
+  local reuse_file="${WARPKIT_REUSE_FILE:-${SCRIPT_DIR}/warpkit_reuse.tsv}"
+
+  [[ -f "$reuse_file" ]] || return 1
+  awk -F '\t' \
+    -v subject="$subject" -v ses="$ses" -v task="$task" -v run="$run" '
+      NR > 1 && $1 == subject && $2 == ses && $3 == task && $4 == run {
+        print $5 "\t" $6
+        found = 1
+        exit
+      }
+      END { if (!found) exit 1 }
+    ' "$reuse_file"
 }
 
 rf1_remove_tree_under() {
