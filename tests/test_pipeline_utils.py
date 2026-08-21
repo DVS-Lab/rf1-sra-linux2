@@ -101,6 +101,29 @@ def test_shell_subject_reader_skips_source_exclusions_unless_overridden(tmp_path
     assert included.stderr == ""
 
 
+def test_tedana_command_has_shared_default_and_environment_override() -> None:
+    command = (
+        f'source "{CODE_DIR / "pipeline_common.sh"}"; '
+        "rf1_load_config; "
+        "printf '%s\\n' \"$TEDANA_CMD\""
+    )
+    expected = "/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/tedana\n"
+
+    default = subprocess.run(
+        ["bash", "-c", command], text=True, capture_output=True, check=True
+    )
+    assert default.stdout == expected
+
+    overridden = subprocess.run(
+        ["bash", "-c", command],
+        env=os.environ | {"TEDANA_CMD": "/tmp/test-tedana"},
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert overridden.stdout == "/tmp/test-tedana\n"
+
+
 def test_warpkit_reuse_manifest_and_shell_lookup(tmp_path: Path) -> None:
     manifest = tmp_path / "warpkit_reuse.tsv"
     manifest.write_text(

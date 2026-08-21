@@ -49,7 +49,15 @@ derivativesdir="${PROJECT_ROOT}/derivatives"
 logdir="${PROJECT_ROOT}/logs"
 missinglog="${logdir}/missing-tedanaInput.log"
 logfile="${logdir}/tedana_output.log"
-mkdir -p "$logdir"
+runlogdir="${logdir}/runs/tedana"
+mkdir -p "$logdir" "$runlogdir"
+
+if ! command -v "$TEDANA_CMD" >/dev/null 2>&1; then
+  echo "Required TEDANA executable not found: $TEDANA_CMD" >&2
+  exit 1
+fi
+echo "TEDANA executable: $(command -v "$TEDANA_CMD")"
+"$TEDANA_CMD" --version
 
 get_echo_time() {
   python3 - "$1" <<'PY'
@@ -106,7 +114,7 @@ for ses in 01 02; do
       ((missing)) && continue
 
       cmd=(
-        tedana
+        "$TEDANA_CMD"
         -d "${echoes[@]}"
         -e "${echo_times[@]}"
         --out-dir "$outdir"
@@ -123,8 +131,14 @@ for ses in 01 02; do
         continue
       fi
 
-      if ! "${cmd[@]}" >> "$logfile" 2>&1; then
-        echo "TEDANA failed for sub-${sub} ses-${ses} task-${task} run-${run}" >&2
+      runlog="${runlogdir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}.log"
+      if "${cmd[@]}" > "$runlog" 2>&1; then
+        cat "$runlog" >> "$logfile"
+      else
+        status=$?
+        cat "$runlog" >> "$logfile"
+        echo "TEDANA failed for sub-${sub} ses-${ses} task-${task} run-${run} (exit ${status}); see ${runlog}" >&2
+        tail -40 "$runlog" >&2
         failures=1
         continue
       fi

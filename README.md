@@ -131,6 +131,7 @@ clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 | MRIQC | `/ZPOOL/data/tools/mriqc-24.0.2.simg` |
 | fMRIPrep | `/ZPOOL/data/tools/fmriprep-25.2.5.simg` |
 | Warpkit | `/ZPOOL/data/tools/anaconda/tug87422/envs/warpkit-1.4.0/bin/wk-medic`; legacy fallback: `/ZPOOL/data/tools/warpkit.sif` with `WARPKIT_BACKEND=apptainer` |
+| TEDANA | `/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/tedana` |
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
 
