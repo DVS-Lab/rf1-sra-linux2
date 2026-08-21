@@ -360,16 +360,16 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: `derivatives/tedana`.
 - Typical command: `bash run_tedana.sh --sublist "$SUBLIST" --jobs 8`.
 - Checker: `bash check_tedana.sh --sublist "$SUBLIST"`.
-- Notes: Prints the subject list and job plan before launching.
+- Notes: Prints the subject list, job plan, and pinned executable before launching. The default shared executable is `/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/tedana`; override `TEDANA_CMD` only for a tested alternate installation.
 
 ### `tedana.sh`
 - Status: Production worker.
 - Purpose: Run TEDANA for available task/runs for one subject.
 - Inputs: fMRIPrep echo outputs and BIDS echo metadata.
-- Outputs: Denoised BOLD, mixing matrix, and component metrics.
+- Outputs: Denoised BOLD, mixing matrix, component metrics, and per-run raw logs under `logs/runs/tedana/`.
 - Typical command: normally called by `run_tedana.sh`.
 - Checker: `check_tedana.sh`.
-- Notes: Missing optional runs are logged and skipped when no BIDS echo input exists.
+- Notes: Missing optional runs are logged and skipped when no BIDS echo input exists. The worker preflights `TEDANA_CMD` before entering the run loop, so a detached job cannot fail every run merely because its shell `PATH` differs from an interactive session. Failed per-run logs are tailed into the parent run record for remote diagnosis.
 
 ### `genTedanaConfounds.py`
 - Status: Production helper.

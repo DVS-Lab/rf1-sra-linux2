@@ -34,6 +34,7 @@ rf1_load_config() {
   WARPKIT_BACKEND="${WARPKIT_BACKEND:-native}"
   WARPKIT_CMD="${WARPKIT_CMD:-${TOOLS_ROOT}/anaconda/tug87422/envs/warpkit-1.4.0/bin/wk-medic}"
   WARPKIT_REUSE_FILE="${WARPKIT_REUSE_FILE:-${SCRIPT_DIR}/warpkit_reuse.tsv}"
+  TEDANA_CMD="${TEDANA_CMD:-${TOOLS_ROOT}/anaconda/tug87422/envs/tedana-26.0.3/bin/tedana}"
   FMRIPREP_OUTPUT_SPACES="MNI152NLin6Asym fsLR"
   FMRIPREP_CIFTI_DENSITY="91k"
   FMRIPREP_TOTAL_NPROCS="${FMRIPREP_TOTAL_NPROCS:-96}"
