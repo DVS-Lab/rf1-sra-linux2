@@ -162,6 +162,51 @@ def _add_review(
     )
 
 
+def _report_review_issues(
+    key: RunKey,
+    converted: ConvertedRun,
+    source: Path | None,
+    approvals: dict[CurationKey, CurationApproval],
+    counts: Counter[str],
+    review_findings: list[dict[str, str]] | None,
+) -> bool:
+    unapproved = False
+    for issue in converted.review_issues:
+        if issue_is_approved(key, issue, converted, approvals):
+            print(f"APPROVED REVIEW {key.event_name}: {issue}")
+            counts["approved human review"] += 1
+            continue
+        detail = issue
+        if issue == "unexpected_trial_count":
+            detail = (
+                f"trial count {converted.trial_count}/"
+                f"{converted.expected_trial_count}"
+            )
+            counts["unexpected trial count"] += 1
+        elif issue == "behaviorally_poor":
+            counts["behaviorally poor"] += 1
+        print(
+            f"REVIEW REQUIRED {key.event_name}: {detail}; "
+            f"source_sha256={converted.source_sha256}; "
+            f"trial_fingerprint={converted.trial_fingerprint}"
+        )
+        counts["review required"] += 1
+        unapproved = True
+        _add_review(
+            review_findings,
+            key,
+            issue,
+            detail,
+            source,
+            converted.source_sha256,
+            converted.trial_fingerprint,
+        )
+    for note in converted.notes:
+        print(f"SOURCE NOTE {key.event_name}: {note}")
+        counts["source note"] += 1
+    return unapproved
+
+
 def audit_subject_session(
     bids_root: Path,
     behavior_root: Path,
@@ -253,7 +298,34 @@ def audit_subject_session(
                 if not has_events:
                     continue
 
+            converted = None
+            if source.status == "available" and source.path is not None:
+                try:
+                    converted = convert_source(task, source.path)
+                except (ConversionError, OSError, csv.Error) as exc:
+                    print(f"CONVERSION FAILED {key.event_name}: {exc}")
+                    counts["conversion failed"] += 1
+                    failed = 1
+                    _add_review(
+                        review_findings,
+                        key,
+                        "conversion_failed",
+                        str(exc),
+                        source.path,
+                    )
+                    continue
+
             if not has_events:
+                if converted is not None and _report_review_issues(
+                    key,
+                    converted,
+                    source.path,
+                    approvals,
+                    counts,
+                    review_findings,
+                ):
+                    failed = 1
+                    continue
                 print(f"EVENTS MISSING {key.event_name}")
                 counts["events missing"] += 1
                 failed = 1
@@ -270,11 +342,6 @@ def audit_subject_session(
             try:
                 event_rows, observed_rows, observed_columns = _validate_event_file(
                     destination
-                )
-                converted = (
-                    convert_source(task, source.path)
-                    if source.status == "available" and source.path is not None
-                    else None
                 )
                 if converted is not None and not _matches_canonical_events(
                     observed_rows, observed_columns, converted
@@ -297,40 +364,15 @@ def audit_subject_session(
 
             if converted is None:
                 continue
-            if converted is not None:
-                for issue in converted.review_issues:
-                    if issue_is_approved(key, issue, converted, approvals):
-                        print(f"APPROVED REVIEW {key.event_name}: {issue}")
-                        counts["approved human review"] += 1
-                    else:
-                        detail = issue
-                        if issue == "unexpected_trial_count":
-                            detail = (
-                                f"trial count {converted.trial_count}/"
-                                f"{converted.expected_trial_count}"
-                            )
-                            counts["unexpected trial count"] += 1
-                        elif issue == "behaviorally_poor":
-                            counts["behaviorally poor"] += 1
-                        print(
-                            f"REVIEW REQUIRED {key.event_name}: {detail}; "
-                            f"source_sha256={converted.source_sha256}; "
-                            f"trial_fingerprint={converted.trial_fingerprint}"
-                        )
-                        counts["review required"] += 1
-                        failed = 1
-                        _add_review(
-                            review_findings,
-                            key,
-                            issue,
-                            detail,
-                            source.path,
-                            converted.source_sha256,
-                            converted.trial_fingerprint,
-                        )
-                for note in converted.notes:
-                    print(f"SOURCE NOTE {key.event_name}: {note}")
-                    counts["source note"] += 1
+            if _report_review_issues(
+                key,
+                converted,
+                source.path,
+                approvals,
+                counts,
+                review_findings,
+            ):
+                failed = 1
             if not quiet_ok:
                 print(f"OK {key.event_name}: {event_rows} event row(s)")
             counts["OK"] += 1
