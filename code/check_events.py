@@ -255,8 +255,8 @@ def audit_subject_session(
             if source.status == "available":
                 counts["behavioral source runs found"] += 1
                 if source.detail:
-                    print(f"APPROVED REVIEW {key.event_name}: {source.detail}")
-                    counts["approved human review"] += 1
+                    print(f"SOURCE NOTE {key.event_name}: {source.detail}")
+                    counts["source note"] += 1
 
             if source.status == "ambiguous":
                 print(f"BEHAVIOR SOURCE AMBIGUOUS {key.event_name}: {source.detail}")

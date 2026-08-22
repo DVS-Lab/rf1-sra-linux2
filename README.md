@@ -379,7 +379,9 @@ Doors generally lack run 2, so the wrappers and checkers expect run 1 only.
 Some participants may intentionally lack a task or run; validation notes should
 say whether an absence is expected or requires investigation.
 
-Historical task logs use both zero-based and one-based run labels. The behavior
+Historical task logs use task-specific run labels. Trust and UGR use raw
+`run-0/run-1` for BIDS runs 1/2; Shared Reward has explicitly prompted for
+one-based `run-1/run-2` labels since its first repository version. The behavior
 converter resolves these conventions explicitly, treats untagged logs as
 `ses-01`, requires explicit session labels for `ses-02`, and stops when more
 than one source could map to the same BIDS run.
@@ -387,7 +389,10 @@ than one source could map to the same BIDS run.
 Behavior conversion is intentionally fail-closed. Exact column counts are
 required, repeated headers, trial-number resets, and onset resets are treated
 as evidence of appended runs, and malformed rows that claim `ran=1` stop the
-conversion. Only explicit `ran=0` placeholder rows are omitted automatically.
+conversion. Explicit `ran=0` placeholders are omitted automatically. A final
+interrupted trial is also omitted when its required timing is incomplete and
+every later row is explicitly `ran=0`; the omission is logged and makes the
+run a short-run curation case rather than silently inventing an event duration.
 Standard trial counts are Shared Reward 54, Trust 42, UGR 48, and Social
 Doors/Doors 40.
 
@@ -396,9 +401,9 @@ A coherent short run or behaviorally poor run requires independent review in
 and ordered trial fingerprint, so changing the source invalidates the approval.
 Structural corruption and multiple run segments cannot be approved away;
 repair or split the private source first. A lone Shared Reward raw `run-1`
-requires an `ambiguous_run_label` approval for a specific BIDS run after the
-team verifies scanner history and, when available, the OpenNeuro comparison.
-Other source ambiguities remain hard failures.
+maps to BIDS run 1 by the task's documented one-based convention. Other source
+ambiguities remain hard failures. Historical repairs and the remaining genuine
+source gaps are recorded in `docs/behavior-source-repairs.md`.
 
 For a small Linux2 validation list, prefer subjects that overlap with the
 `rf1-dwi` validation subjects, such as `10317` and `10953`, when they cover

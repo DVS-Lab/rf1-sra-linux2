@@ -160,7 +160,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Session `_events.tsv` files and inheritance-compatible task-level events JSON sidecars.
 - Typical command: `python3 convert_behavior.py --subject 10001 --session 01 --overwrite`; add `--tasks sharedreward --run 1` for an exact reviewed run.
 - Checker: `python3 check_events.py --subject 10001 --session 01`.
-- Notes: Raw `run-0/run-1` translation and explicit/implicit session resolution are deliberate; ambiguous mappings fail. `--run` limits conversion to an exact BIDS run after review. Field-count mismatches, repeated headers, trial resets, onset resets, and malformed executed rows are hard failures. Only `ran=0` placeholders are omitted. Short or behaviorally poor runs require an exact fingerprint-bound approval. Shared Reward misses retain decision and feedback rows, Trust uses measured feedback offsets, and historical UGR cue timing is reconstructed from `decision_onset` and ISI after aggregate validation of the private logs.
+- Notes: Trust/UGR raw `run-0/run-1` translation, Shared Reward one-based `run-1/run-2`, and explicit/implicit session resolution are deliberate; ambiguous mappings fail. `--run` limits conversion to an exact BIDS run after review. Field-count mismatches, repeated headers, trial resets, onset resets, and internal malformed executed rows are hard failures. Explicit `ran=0` placeholders are omitted. A final interrupted trial may be omitted only when all later rows are explicit placeholders; the omission is reported and the resulting short run still needs exact fingerprint-bound approval. Shared Reward misses retain decision and feedback rows, Trust uses measured feedback offsets, and historical UGR cue timing is reconstructed from `decision_onset` and ISI after aggregate validation of the private logs.
 
 ### `behavior_curation.tsv`
 - Status: Reviewed production exception registry.
@@ -169,7 +169,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Fingerprint-bound approvals consumed by the converter and checker.
 - Typical command: edit only after reviewing a row from `check_events.py --review-tsv ...`.
 - Checker: `python3 check_events.py --sublist "$SUBLIST"` validates the schema and fingerprints.
-- Notes: An empty header-only file is normal. `unexpected_trial_count` and `behaviorally_poor` approve coherent exceptions. `ambiguous_run_label` is limited to a lone Shared Reward raw `run-1` after its target BIDS run is independently verified. Do not approve appended runs, malformed tables, or competing source files; repair the private source instead. Do not commit trial-level data.
+- Notes: `unexpected_trial_count` and `behaviorally_poor` approve coherent exceptions without clearing their downstream run-QC flags. `ambiguous_run_label` remains available for exceptional fingerprint-bound mappings, but ordinary Shared Reward `run-1` is one-based and needs no ambiguity approval. Do not approve appended runs, malformed tables, or competing source files; repair the private source instead. Do not commit trial-level data.
 
 ### `run_convert_behavior.sh`
 - Status: Production backfill wrapper.
