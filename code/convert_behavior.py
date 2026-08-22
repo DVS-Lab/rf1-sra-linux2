@@ -115,6 +115,16 @@ def normalize_session(value: str) -> str:
     return session
 
 
+def normalize_run(value: str) -> int:
+    try:
+        run = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"invalid run: {value}") from exc
+    if run < 1:
+        raise argparse.ArgumentTypeError(f"run must be positive: {value}")
+    return run
+
+
 def parse_tasks(value: str | Sequence[str] | None) -> tuple[str, ...]:
     if value is None:
         return TASKS
@@ -1320,6 +1330,7 @@ def convert_behavior(
     dry_run: bool = False,
     preserve_from: Path | None = None,
     curation_file: Path | None = None,
+    runs: Sequence[int] | None = None,
 ) -> int:
     try:
         approvals = load_curation_approvals(curation_file)
@@ -1327,11 +1338,14 @@ def convert_behavior(
         print(f"CONVERSION FAILED curation file: {exc}")
         return 1
     keys = discover_bold_runs(bids_root, subject, session, tasks)
+    if runs is not None:
+        selected_runs = set(runs)
+        keys = [key for key in keys if key.run in selected_runs]
     if preserve_from is not None:
         preserve_existing_events(bids_root, preserve_from, keys, dry_run)
     if not keys:
         print(f"BOLD MISSING sub-{subject} ses-{session}: no selected task runs")
-        return 0
+        return 1 if runs is not None else 0
 
     failed = 0
     for task in tasks:
@@ -1419,6 +1433,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--session", required=True, type=normalize_session)
     parser.add_argument("--tasks", nargs="+", default=list(TASKS))
     parser.add_argument(
+        "--run",
+        action="append",
+        type=normalize_run,
+        dest="runs",
+        help="process only this BIDS run number; repeat to select multiple runs",
+    )
+    parser.add_argument(
         "--behavior-root",
         type=Path,
         default=Path(
@@ -1463,6 +1484,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             else None
         ),
         curation_file=args.curation_file.resolve() if args.curation_file else None,
+        runs=args.runs,
     )
 
 

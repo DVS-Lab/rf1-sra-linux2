@@ -158,9 +158,9 @@ Each entry uses the same fields so operators can scan quickly.
 - Purpose: Convert Shared Reward, Trust, UGR, Social Doors, and Doors task logs into BOLD-matched BIDS events.
 - Inputs: One subject/session, private behavior root, staged or live BIDS root, selected tasks, and `behavior_curation.tsv`.
 - Outputs: Session `_events.tsv` files and inheritance-compatible task-level events JSON sidecars.
-- Typical command: `python3 convert_behavior.py --subject 10001 --session 01 --overwrite`.
+- Typical command: `python3 convert_behavior.py --subject 10001 --session 01 --overwrite`; add `--tasks sharedreward --run 1` for an exact reviewed run.
 - Checker: `python3 check_events.py --subject 10001 --session 01`.
-- Notes: Raw `run-0/run-1` translation and explicit/implicit session resolution are deliberate; ambiguous mappings fail. Field-count mismatches, repeated headers, trial resets, onset resets, and malformed executed rows are hard failures. Only `ran=0` placeholders are omitted. Short or behaviorally poor runs require an exact fingerprint-bound approval. Shared Reward misses retain decision and feedback rows, Trust uses measured feedback offsets, and historical UGR cue timing is reconstructed from `decision_onset` and ISI after aggregate validation of the private logs.
+- Notes: Raw `run-0/run-1` translation and explicit/implicit session resolution are deliberate; ambiguous mappings fail. `--run` limits conversion to an exact BIDS run after review. Field-count mismatches, repeated headers, trial resets, onset resets, and malformed executed rows are hard failures. Only `ran=0` placeholders are omitted. Short or behaviorally poor runs require an exact fingerprint-bound approval. Shared Reward misses retain decision and feedback rows, Trust uses measured feedback offsets, and historical UGR cue timing is reconstructed from `decision_onset` and ISI after aggregate validation of the private logs.
 
 ### `behavior_curation.tsv`
 - Status: Reviewed production exception registry.
@@ -187,7 +187,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Per-run statuses, aggregate counts, optional machine-readable review TSV, and a final pass/fail result.
 - Typical command: `python3 check_events.py --sublist "$SUBLIST" --review-tsv ../logs/reviews/events-audit.tsv`.
 - Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
-- Notes: Source/BOLD absences are reported separately. Source absence, missing/malformed events, canonical-content disagreement, and unapproved review issues fail. Review reports contain identifiers, paths, hashes, and reasons but no trial-level values.
+- Notes: Source/BOLD absences are reported separately. When an events file is absent but its source exists, the checker parses that source first so malformed data and fingerprint-bound review issues are reported as their actual blockers instead of generic missing output. Source absence, missing/malformed events, canonical-content disagreement, and unapproved review issues fail. Review reports contain identifiers, paths, hashes, and reasons but no trial-level values.
 
 ### `audit_openneuro_events.py`
 - Status: Optional historical run-identity audit.

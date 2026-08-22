@@ -431,6 +431,14 @@ python3 check_events.py --sublist "$SUBLIST" \
   --review-tsv "../logs/reviews/events-$(date +%Y%m%d-%H%M%S).tsv"
 ```
 
+After repairing or approving one reviewed source, retry only that exact run so
+an unresolved sibling run is neither rewritten nor allowed to block it:
+
+```bash
+python3 convert_behavior.py --subject 10617 --session 01 \
+  --tasks sharedreward --run 1 --overwrite
+```
+
 `prepdata.sh` and `check_bids.sh` create the same kind of timestamped report
 under `logs/reviews/`. A report row is a request for independent review, not an
 exclusion decision. After review, copy only the approval fields into
