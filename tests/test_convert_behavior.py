@@ -161,7 +161,7 @@ def test_sharedreward_supports_historical_and_newer_run_numbering(
     assert newer[2].path.name.endswith("run-2_raw.csv")
 
 
-def test_lone_sharedreward_run_one_requires_fingerprint_bound_mapping(
+def test_lone_sharedreward_run_one_is_one_based(
     tmp_path: Path,
 ) -> None:
     behavior = tmp_path / "behavior"
@@ -169,42 +169,13 @@ def test_lone_sharedreward_run_one_requires_fingerprint_bound_mapping(
     raw = source / "sub-10001_task-sharedreward_run-1_raw.csv"
     write_delimited(raw, [shared_row()])
 
-    unresolved = resolve_sources(behavior, "10001", "01", "sharedreward", [1, 2])
-    assert unresolved[1].status == "ambiguous"
-    assert unresolved[2].status == "ambiguous"
-
-    converted = convert_source("sharedreward", raw)
-    curation = tmp_path / "curation.tsv"
-    write_delimited(
-        curation,
-        [
-            {
-                "subject": "10001",
-                "session": "01",
-                "task": "sharedreward",
-                "run": 2,
-                "issue": "ambiguous_run_label",
-                "source_sha256": converted.source_sha256,
-                "trial_fingerprint": converted.trial_fingerprint,
-                "reviewer": "reviewer@example.edu",
-                "note": "Matched to scanner run 2 and historical reference.",
-            }
-        ],
-        delimiter="\t",
-    )
-
     resolved = resolve_sources(
-        behavior,
-        "10001",
-        "01",
-        "sharedreward",
-        [1, 2],
-        load_curation_approvals(curation),
+        behavior, "10001", "01", "sharedreward", [1, 2]
     )
 
-    assert resolved[1].status == "missing"
-    assert resolved[2].path == raw
-    assert "fingerprint-bound approval" in resolved[2].detail
+    assert resolved[1].path == raw
+    assert "one-based" in resolved[1].detail
+    assert resolved[2].status == "missing"
 
 
 def test_explicit_and_implicit_session_sources_are_ambiguous(tmp_path: Path) -> None:
@@ -284,11 +255,72 @@ def test_malformed_executed_source_row_is_a_hard_failure(tmp_path: Path) -> None
     source = tmp_path / "shared.csv"
     write_delimited(
         source,
-        [shared_row(), shared_row(TrialNumber=2, outcome_onset="", outcome_offset="")],
+        [
+            shared_row(),
+            shared_row(TrialNumber=2, outcome_onset="", outcome_offset=""),
+            shared_row(TrialNumber=3),
+        ],
     )
 
     with pytest.raises(ConversionError, match="source row 3.*outcome_onset"):
         convert_source("sharedreward", source)
+
+
+def test_terminal_interrupted_sharedreward_trial_is_omitted(tmp_path: Path) -> None:
+    source = tmp_path / "shared.csv"
+    write_delimited(
+        source,
+        [
+            shared_row(ran=1),
+            shared_row(
+                TrialNumber=2,
+                ran=1,
+                outcome_onset="--",
+                outcome_offset="--",
+                resp="--",
+            ),
+            shared_row(
+                TrialNumber=3,
+                ran=0,
+                decision_onset="--",
+                outcome_onset="--",
+                outcome_offset="--",
+            ),
+        ],
+    )
+
+    converted = convert_source("sharedreward", source)
+
+    assert converted.trial_count == 1
+    assert "omitted 1 terminal interrupted trial row(s)" in converted.notes
+
+
+def test_terminal_interrupted_trust_trial_is_omitted(tmp_path: Path) -> None:
+    source = tmp_path / "trust.csv"
+    write_delimited(
+        source,
+        [
+            trust_row(ran=1),
+            trust_row(TrialNumber=2, onset="--", ran=1),
+            trust_row(TrialNumber=3, onset="--", ran=0),
+        ],
+    )
+
+    converted = convert_source("trust", source)
+
+    assert converted.trial_count == 1
+    assert "omitted 1 terminal interrupted trial row(s)" in converted.notes
+
+
+def test_unmarked_malformed_terminal_row_is_a_hard_failure(tmp_path: Path) -> None:
+    source = tmp_path / "trust.csv"
+    write_delimited(
+        source,
+        [trust_row(), trust_row(TrialNumber=2, onset="--")],
+    )
+
+    with pytest.raises(ConversionError, match="claims to have run but lacks onset"):
+        convert_source("trust", source)
 
 
 def test_explicit_unrun_placeholder_is_the_only_skipped_raw_row(tmp_path: Path) -> None:
@@ -474,6 +506,26 @@ def test_socialdoors_source_mapping_supports_session_two_and_rejects_ambiguity(
         resolve_sources(behavior, "10001", "02", "socialdoors", [1])[1].status
         == "ambiguous"
     )
+
+
+def test_competing_doors_source_uses_unique_historical_fingerprint(
+    tmp_path: Path,
+) -> None:
+    behavior = tmp_path / "behavior"
+    source = behavior / "Scan-Social_Doors" / "data" / "10001"
+    first = source / "sub-10001_ses-1_task-socialReward_doorsA2_events.tsv"
+    second = source / "sub-10001_ses-1_task-socialReward_doorsA4_events.tsv"
+    historical = source / "sub-10001_task-doors_run-1_events.tsv"
+    write_delimited(first, social_rows(), delimiter="\t")
+    different = social_rows()
+    different[0]["resp"] = "right"
+    write_delimited(second, different, delimiter="\t")
+    write_delimited(historical, different, delimiter="\t")
+
+    resolution = resolve_sources(behavior, "10001", "01", "doors", [1])[1]
+
+    assert resolution.path == second
+    assert "historical canonical events fingerprint" in resolution.detail
 
 
 def test_conversion_is_idempotent_with_explicit_overwrite(tmp_path: Path) -> None:

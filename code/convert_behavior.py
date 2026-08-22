@@ -259,42 +259,11 @@ def _resolve_numbered_sources(
         elif 2 in raw_runs:
             mapping = {1: 1, 2: 2}
         elif raw_runs == {1}:
-            path = by_raw_run[1][0]
-            try:
-                converted = convert_source(task, path)
-            except (ConversionError, OSError, csv.Error) as exc:
-                detail = (
-                    f"lone raw run-1 is ambiguous and cannot be fingerprinted: {exc}"
-                )
-                return {
-                    run: SourceResolution("ambiguous", path=path, detail=detail)
-                    for run in expected_runs
-                }
-            approved_runs = [
-                run
-                for run in expected_runs
-                if issue_is_approved(
-                    RunKey(subject, session, task, run),
-                    "ambiguous_run_label",
-                    converted,
-                    approvals or {},
-                )
-            ]
-            if len(approved_runs) == 1:
-                mapping = {1: approved_runs[0]}
-                mapping_note = (
-                    "fingerprint-bound approval for ambiguous raw run-1 label"
-                )
-            else:
-                detail = (
-                    "lone raw run-1 could be historical BIDS run-2 or newer BIDS run-1; "
-                    f"source_sha256={converted.source_sha256}; "
-                    f"trial_fingerprint={converted.trial_fingerprint}"
-                )
-                return {
-                    run: SourceResolution("ambiguous", path=path, detail=detail)
-                    for run in expected_runs
-                }
+            # Shared Reward has explicitly prompted for one-based run labels
+            # since its first repository version. A lone raw run-1 therefore
+            # belongs to BIDS run-1; it is not evidence for run-2.
+            mapping = {1: 1}
+            mapping_note = "one-based Shared Reward source label"
         else:
             mapping = {1: 1, 2: 2}
     else:
@@ -336,9 +305,32 @@ def _resolve_socialdoors_sources(
     if len(matches) == 1:
         resolutions[1] = SourceResolution("available", matches[0])
     elif len(matches) > 1:
-        resolutions[1] = SourceResolution(
-            "ambiguous", detail=", ".join(path.name for path in matches)
+        session_entity = "" if session == "01" else f"_ses-{session}"
+        historical = (
+            source_dir
+            / f"sub-{subject}{session_entity}_task-{task}_run-1_events.tsv"
         )
+        matching: list[Path] = []
+        if historical.is_file():
+            try:
+                fingerprint = convert_source(task, historical).trial_fingerprint
+                matching = [
+                    path
+                    for path in matches
+                    if convert_source(task, path).trial_fingerprint == fingerprint
+                ]
+            except (ConversionError, OSError, csv.Error):
+                matching = []
+        if len(matching) == 1:
+            resolutions[1] = SourceResolution(
+                "available",
+                matching[0],
+                "matched historical canonical events fingerprint",
+            )
+        else:
+            resolutions[1] = SourceResolution(
+                "ambiguous", detail=", ".join(path.name for path in matches)
+            )
     return resolutions
 
 
@@ -452,23 +444,44 @@ def _is_unrun_placeholder(row: dict[str, str]) -> bool:
     return value in {"0", "0.0", "false", "no"}
 
 
+def _explicitly_started(row: dict[str, str]) -> bool:
+    value = row.get("ran", "").strip().lower()
+    return value in {"1", "1.0", "true", "yes"}
+
+
 def _trial_rows(
     source_rows: Sequence[dict[str, str]], marker_column: str, task_label: str
-) -> tuple[list[dict[str, str]], int]:
+) -> tuple[list[dict[str, str]], int, int]:
     trials: list[dict[str, str]] = []
     placeholders = 0
+    incomplete_terminal = 0
     for index, row in enumerate(source_rows, start=1):
         marker = row.get(marker_column, "").strip().lower()
         if _is_unrun_placeholder(row):
             placeholders += 1
             continue
         if not marker or marker in {marker_column.lower(), "nan", "n/a", "--", "none"}:
+            if _explicitly_started(row) and all(
+                _is_unrun_placeholder(later) for later in source_rows[index:]
+            ):
+                incomplete_terminal += 1
+                continue
             raise ConversionError(
                 f"{task_label} source row {_source_line(row, index)} claims to have run "
                 f"but lacks {marker_column}"
             )
         trials.append(row)
-    return trials, placeholders
+    return trials, placeholders, incomplete_terminal
+
+
+def _missing_number(row: dict[str, str], name: str) -> bool:
+    value = row.get(name, "").strip().lower()
+    if not value or value in {"nan", "n/a", "--", "none"}:
+        return True
+    try:
+        return not math.isfinite(float(value))
+    except ValueError:
+        return True
 
 
 def source_sha256(path: Path) -> str:
@@ -638,7 +651,7 @@ def _trial_id(row: dict[str, str], fallback: int) -> str:
 
 
 def _convert_sharedreward(path: Path) -> ConvertedRun:
-    source_rows, placeholders = _trial_rows(
+    source_rows, placeholders, incomplete_terminal = _trial_rows(
         _read_delimited(path, ","), "decision_onset", "Shared Reward"
     )
     output: list[dict[str, object]] = []
@@ -647,6 +660,16 @@ def _convert_sharedreward(path: Path) -> ConvertedRun:
     feedback_map = {1: "punish", 2: "neutral", 3: "reward"}
     face_map = {1: "computer_non-face", 2: "stranger_face", 3: "friend_face"}
     for index, row in enumerate(source_rows, start=1):
+        if (
+            index == len(source_rows)
+            and _explicitly_started(row)
+            and any(
+                _missing_number(row, name)
+                for name in ("resp", "outcome_onset", "outcome_offset")
+            )
+        ):
+            incomplete_terminal += 1
+            continue
         checkpoint = len(output)
         try:
             decision_onset = _number(row.get("decision_onset"), "decision_onset")
@@ -722,11 +745,13 @@ def _convert_sharedreward(path: Path) -> ConvertedRun:
         trial_count += 1
     if not output:
         raise ConversionError("no usable Shared Reward trials")
-    notes = (
-        [f"omitted {placeholders} explicit ran=0 placeholder row(s)"]
-        if placeholders
-        else []
-    )
+    notes: list[str] = []
+    if placeholders:
+        notes.append(f"omitted {placeholders} explicit ran=0 placeholder row(s)")
+    if incomplete_terminal:
+        notes.append(
+            f"omitted {incomplete_terminal} terminal interrupted trial row(s)"
+        )
     return ConvertedRun(
         output,
         (
@@ -745,7 +770,7 @@ def _convert_sharedreward(path: Path) -> ConvertedRun:
 
 
 def _convert_trust(path: Path) -> ConvertedRun:
-    source_rows, placeholders = _trial_rows(
+    source_rows, placeholders, incomplete_terminal = _trial_rows(
         _read_delimited(path, ","), "onset", "Trust"
     )
     output: list[dict[str, object]] = []
@@ -840,11 +865,13 @@ def _convert_trust(path: Path) -> ConvertedRun:
         trial_count += 1
     if not output:
         raise ConversionError("no usable Trust trials")
-    notes = (
-        [f"omitted {placeholders} explicit ran=0 placeholder row(s)"]
-        if placeholders
-        else []
-    )
+    notes: list[str] = []
+    if placeholders:
+        notes.append(f"omitted {placeholders} explicit ran=0 placeholder row(s)")
+    if incomplete_terminal:
+        notes.append(
+            f"omitted {incomplete_terminal} terminal interrupted trial row(s)"
+        )
     return ConvertedRun(
         output,
         (
@@ -875,7 +902,7 @@ def _ugr_decision(response: int, left: int, right: int) -> str:
 
 
 def _convert_ugr(path: Path) -> ConvertedRun:
-    source_rows, placeholders = _trial_rows(
+    source_rows, placeholders, incomplete_terminal = _trial_rows(
         _read_delimited(path, ","), "decision_onset", "UGR"
     )
     output: list[dict[str, object]] = []
@@ -1029,6 +1056,13 @@ def _convert_ugr(path: Path) -> ConvertedRun:
             + (
                 [f"omitted {placeholders} explicit ran=0 placeholder row(s)"]
                 if placeholders
+                else []
+            )
+            + (
+                [
+                    f"omitted {incomplete_terminal} terminal interrupted trial row(s)"
+                ]
+                if incomplete_terminal
                 else []
             )
         ),
@@ -1401,7 +1435,7 @@ def convert_behavior(
                 f"{len(converted.rows)} event row(s)"
             )
             if resolution.detail:
-                print(f"APPROVED REVIEW {key.event_name}: {resolution.detail}")
+                print(f"SOURCE NOTE {key.event_name}: {resolution.detail}")
             if converted.unexpected_trial_count:
                 approval = approvals[(key, "unexpected_trial_count")]
                 print(
