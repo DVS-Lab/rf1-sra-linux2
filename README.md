@@ -437,6 +437,8 @@ an unresolved sibling run is neither rewritten nor allowed to block it:
 ```bash
 python3 convert_behavior.py --subject 10617 --session 01 \
   --tasks sharedreward --run 1 --overwrite
+python3 check_events.py --subject 10617 --session 01 \
+  --tasks sharedreward --run 1
 ```
 
 `prepdata.sh` and `check_bids.sh` create the same kind of timestamped report
