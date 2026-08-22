@@ -833,3 +833,41 @@ def test_events_audit_rejects_event_file_without_matching_bold(tmp_path: Path) -
 
     assert failed == 1
     assert counts["BOLD missing"] == 1
+
+
+def test_events_audit_can_target_one_exact_run(tmp_path: Path) -> None:
+    behavior = tmp_path / "behavior"
+    bids = tmp_path / "bids"
+    run_one = RunKey("10001", "01", "trust", 1)
+    run_two = RunKey("10001", "01", "trust", 2)
+    write_bold(bids, run_one)
+    write_bold(bids, run_two)
+    source = behavior / "Scan-Investment_Game" / "logs" / "10001"
+    for raw_run in (0, 1):
+        rows = [
+            trust_row(
+                TrialNumber=index,
+                onset=index * 20,
+                ISI_onset=index * 20 + 3,
+                outcome_onset=index * 20 + 5,
+                outcome_offset=index * 20 + 7,
+            )
+            for index in range(1, 43)
+        ]
+        write_delimited(source / f"sub-10001_task-trust_run-{raw_run}_raw.csv", rows)
+    assert convert_behavior("10001", "01", ("trust",), behavior, bids) == 0
+    event_path(bids, run_one).unlink()
+
+    failed, counts = audit_subject_session(
+        bids,
+        behavior,
+        "10001",
+        "01",
+        ("trust",),
+        quiet_ok=True,
+        runs=(2,),
+    )
+
+    assert failed == 0
+    assert counts["OK"] == 1
+    assert counts["events missing"] == 0

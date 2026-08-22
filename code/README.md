@@ -185,7 +185,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Purpose: Audit private source, BOLD, events, ambiguity, conversion validity, trial counts, and curation status as distinct states.
 - Inputs: Subject or subject list, sessions/tasks, private behavior root, and BIDS root.
 - Outputs: Per-run statuses, aggregate counts, optional machine-readable review TSV, and a final pass/fail result.
-- Typical command: `python3 check_events.py --sublist "$SUBLIST" --review-tsv ../logs/reviews/events-audit.tsv`.
+- Typical command: `python3 check_events.py --sublist "$SUBLIST" --review-tsv ../logs/reviews/events-audit.tsv`; use `--subject 10617 --session 01 --tasks sharedreward --run 1` for an exact-run repair check.
 - Checker: Ends with `CHECK PASSED` or `CHECK FAILED`.
 - Notes: Source/BOLD absences are reported separately. When an events file is absent but its source exists, the checker parses that source first so malformed data and fingerprint-bound review issues are reported as their actual blockers instead of generic missing output. Source absence, missing/malformed events, canonical-content disagreement, and unapproved review issues fail. Review reports contain identifiers, paths, hashes, and reasons but no trial-level values.
 

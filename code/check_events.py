@@ -24,6 +24,7 @@ from convert_behavior import (
     event_path,
     issue_is_approved,
     load_curation_approvals,
+    normalize_run,
     normalize_session,
     normalize_subject,
     parse_tasks,
@@ -216,10 +217,15 @@ def audit_subject_session(
     quiet_ok: bool = False,
     approvals: dict[CurationKey, CurationApproval] | None = None,
     review_findings: list[dict[str, str]] | None = None,
+    runs: Sequence[int] | None = None,
 ) -> tuple[int, Counter[str]]:
     approvals = approvals or {}
     bold_keys = set(discover_bold_runs(bids_root, subject, session, tasks))
     events_keys = _event_runs(bids_root, subject, session, tasks)
+    if runs is not None:
+        selected_runs = set(runs)
+        bold_keys = {key for key in bold_keys if key.run in selected_runs}
+        events_keys = {key for key in events_keys if key.run in selected_runs}
     failed = 0
     counts: Counter[str] = Counter()
 
@@ -227,7 +233,11 @@ def audit_subject_session(
         bold_runs = {key.run for key in bold_keys if key.task == task}
         event_runs = {key.run for key in events_keys if key.task == task}
         observed_runs = bold_runs | event_runs
-        candidate_runs = sorted(observed_runs or set(STANDARD_RUNS[task]))
+        candidate_runs = (
+            sorted(set(runs))
+            if runs is not None
+            else sorted(observed_runs or set(STANDARD_RUNS[task]))
+        )
         resolutions = resolve_sources(
             behavior_root, subject, session, task, candidate_runs, approvals
         )
@@ -406,6 +416,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--tasks", nargs="+", default=list(TASKS))
     parser.add_argument(
+        "--run",
+        action="append",
+        type=normalize_run,
+        dest="runs",
+        help="check only this BIDS run number; repeat to select multiple runs",
+    )
+    parser.add_argument(
         "--behavior-root",
         type=Path,
         default=Path(
@@ -465,6 +482,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     quiet_ok=args.quiet_ok,
                     approvals=approvals,
                     review_findings=review_findings,
+                    runs=args.runs,
                 )
                 failed = max(failed, session_failed)
                 subtotal.update(counts)
