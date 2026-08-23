@@ -379,6 +379,33 @@ The identity transform is stored as Insight transform text with a `.txt`
 suffix. Do not rename it to `.mat`: ITK uses the extension to choose its
 transform reader and would incorrectly treat the text file as MATLAB data.
 
+The BOLD repair does not implicitly alter other fMRIPrep derivatives. After
+the BOLD audit/repair/metadata gate passes, independently audit every canonical
+BOLD against its companion `desc-brain_mask`. Preview and apply only the
+reported mask mismatches. Spatial-grid mismatches are resampled with
+nearest-neighbor interpolation and forced binary; metadata-only mismatches copy
+qform/sform information without changing voxels. Originals are preserved with
+checksums and masks are atomically replaced at their ordinary fMRIPrep paths:
+
+```bash
+MASK_STAMP=fmriprep-mask-$(date +%Y%m%d-%H%M%S)
+MASK_PREFIX="../logs/geometry/${MASK_STAMP}"
+
+"$GEOMETRY_PYTHON" fmriprep_mask_geometry.py audit \
+  --report-prefix "$MASK_PREFIX"
+
+MASK_AUDIT_JSON="${MASK_PREFIX}.json"
+"$GEOMETRY_PYTHON" fmriprep_mask_geometry.py repair \
+  --audit-json "$MASK_AUDIT_JSON"
+"$GEOMETRY_PYTHON" fmriprep_mask_geometry.py repair \
+  --audit-json "$MASK_AUDIT_JSON" --apply
+"$GEOMETRY_PYTHON" fmriprep_mask_geometry.py verify \
+  --audit-json "$MASK_AUDIT_JSON"
+```
+
+This companion-mask gate is cohort-wide and fail-closed. A changed BOLD
+inventory or checksum requires a fresh audit. It never writes under `bids/`.
+
 When changing Warpkit versions or backends, avoid mixing fieldmap provenance:
 test one representative run with `warpkit.sh --overwrite`, then rerun
 `run_warpkit.sh --overwrite`, `addIntendedFor.py`, and the Warpkit/IntendedFor

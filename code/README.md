@@ -344,6 +344,15 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: `"$GEOMETRY_PYTHON" fmriprep_geometry.py verify --audit-json "$AUDIT_JSON"`.
 - Notes: Audit has no subject filter and is read-only. It excludes `_echo-*` files and CIFTI outputs, reports every task/run, clusters spatial shape/effective affine with tolerance, and separately audits modal qform/sform matrices and intent codes. It fails closed on malformed images or a tied mode. Repair previews unless `--apply` is supplied, verifies that the complete inventory has not changed since audit, performs 4D identity resampling with ANTs/Lanczos interpolation, copies the modal transform metadata, validates every output volume, and atomically replaces only canonical fMRIPrep derivatives. Legacy repaired outputs with the correct lattice but ANTs' generic `1/1` codes receive a metadata-only repair and are not interpolated again. It never writes under `bids/`. The generated Insight-text identity transform must retain its `.txt` suffix so ITK does not select its MATLAB transform reader. Review every reported `sub-12013` task/run before applying the first production repair.
 
+### `fmriprep_mask_geometry.py`
+- Status: Production companion-derivative geometry gate.
+- Purpose: Audit every canonical non-echo MNI BOLD against its corresponding fMRIPrep `desc-brain_mask`, then repair only reviewed mismatches without downstream path exceptions.
+- Inputs: `derivatives/fmriprep`, a frozen companion-mask audit JSON, and nibabel/numpy/scipy from the shared imaging environment.
+- Outputs: `logs/geometry/fmriprep-mask-*.json` and `.tsv`; preserved originals under `derivatives/fmriprep_geometry/mask_originals/`; provenance under `derivatives/fmriprep_geometry/mask_repairs/`; corrected masks at their canonical fMRIPrep paths.
+- Typical command: `"$GEOMETRY_PYTHON" fmriprep_mask_geometry.py audit --report-prefix ../logs/geometry/fmriprep-mask-$(date +%Y%m%d-%H%M%S)`; preview `repair --audit-json "$MASK_AUDIT_JSON"`, then add `--apply` only after reviewing every mismatch.
+- Checker: `"$GEOMETRY_PYTHON" fmriprep_mask_geometry.py verify --audit-json "$MASK_AUDIT_JSON"`.
+- Notes: Uses nearest-neighbor resampling and binary output for spatial-grid mismatches; metadata-only mismatches copy qform/sform information without interpolation or voxel changes. It preserves the original with a checksum, atomically replaces only the mask, rejects inventory/checksum drift, and never writes under `bids/`.
+
 ### `submit_fmriprep.sh`
 - Status: Compatibility helper.
 - Purpose: Preserve an older launcher name for fMRIPrep work.
