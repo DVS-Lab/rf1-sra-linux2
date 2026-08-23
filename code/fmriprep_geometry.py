@@ -310,7 +310,7 @@ def inspect_inventory(fmriprep_root: Path, affine_atol: float) -> dict[str, Any]
     # Hash only repair inputs and the modal witness. Reading every 4D image in a
     # large cohort would turn this header audit into an unnecessary data scan.
     modal_reference.sha256 = sha256_file(fmriprep_root / modal_reference.relative_path)
-    for record in outliers:
+    for record in [*outliers, *xform_mismatches]:
         record.sha256 = sha256_file(fmriprep_root / record.relative_path)
 
     return {
@@ -397,7 +397,6 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fields = [
         "status",
-        "xform_status",
         "subject",
         "session",
         "task",
@@ -410,6 +409,7 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
         "affine",
         "sha256",
         "reason",
+        "xform_status",
         "xform_reason",
     ]
     with tempfile.NamedTemporaryFile(
@@ -427,7 +427,6 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
             writer.writerow(
                 {
                     "status": record["status"],
-                    "xform_status": record.get("xform_status", "unchecked"),
                     "subject": record["subject"],
                     "session": record["session"],
                     "task": record["task"],
@@ -440,6 +439,7 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
                     "affine": json.dumps(geometry.get("affine", [])),
                     "sha256": record.get("sha256", ""),
                     "reason": record.get("reason", ""),
+                    "xform_status": record.get("xform_status", "unchecked"),
                     "xform_reason": record.get("xform_reason", ""),
                 }
             )
@@ -515,6 +515,14 @@ def default_repair_roots(report: dict[str, Any], audit_json: Path) -> tuple[Path
     audit_id = re.sub(r"[^A-Za-z0-9_.-]+", "-", audit_json.stem)
     base = project_root / "derivatives" / "fmriprep_geometry"
     return base / "originals" / audit_id, base / "repairs" / audit_id
+
+
+def default_xform_roots(report: dict[str, Any], audit_json: Path) -> tuple[Path, Path]:
+    fmriprep_root = ensure_standard_fmriprep_root(Path(report["fmriprep_root"]))
+    project_root = fmriprep_root.parent.parent
+    audit_id = re.sub(r"[^A-Za-z0-9_.-]+", "-", audit_json.stem)
+    base = project_root / "derivatives" / "fmriprep_geometry"
+    return base / "xform_originals" / audit_id, base / "xform_repairs" / audit_id
 
 
 def copy_original(source: Path, backup: Path, expected_sha256: str) -> None:
@@ -687,6 +695,14 @@ def outlier_records(report: dict[str, Any]) -> list[dict[str, Any]]:
     return [record for record in report["files"] if record["status"] == "outlier"]
 
 
+def xform_mismatch_records(report: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        record
+        for record in report["files"]
+        if record.get("xform_status") == "mismatch"
+    ]
+
+
 def invalid_records(report: dict[str, Any]) -> list[dict[str, Any]]:
     return [record for record in report["files"] if record["status"] == "invalid"]
 
@@ -694,6 +710,28 @@ def invalid_records(report: dict[str, Any]) -> list[dict[str, Any]]:
 def per_file_provenance_path(provenance_root: Path, relative: Path) -> Path:
     name = relative.name.removesuffix(".nii.gz") + "_geometry-repair.json"
     return provenance_root / "files" / relative.parent / name
+
+
+def xform_provenance_path(provenance_root: Path, relative: Path) -> Path:
+    name = relative.name.removesuffix(".nii.gz") + "_xform-normalization.json"
+    return provenance_root / "files" / relative.parent / name
+
+
+def voxel_data_equal(left: Path, right: Path) -> bool:
+    """Compare stored image values volume-by-volume without loading both 4D files."""
+    nib, np = imaging_modules()
+    left_image = nib.load(str(left), mmap=True)
+    right_image = nib.load(str(right), mmap=True)
+    if left_image.shape != right_image.shape:
+        return False
+    for volume_index in range(left_image.shape[3]):
+        if not np.array_equal(
+            np.asanyarray(left_image.dataobj[..., volume_index]),
+            np.asanyarray(right_image.dataobj[..., volume_index]),
+            equal_nan=True,
+        ):
+            return False
+    return True
 
 
 def existing_repair_state(
@@ -796,6 +834,237 @@ def preflight_repair(
         )
         plan.append((record, canonical, backup, provenance, state))
     return plan
+
+
+def preflight_xform_normalization(
+    report: dict[str, Any], audit_json: Path, backup_root: Path, provenance_root: Path
+) -> list[tuple[dict[str, Any], Path, Path, Path, str]]:
+    summary = report["summary"]
+    if "xform_metadata_mismatch_count" not in summary:
+        raise ValueError(
+            "xform normalization requires a fresh audit written by the current code"
+        )
+    if invalid_records(report) or outlier_records(report):
+        raise ValueError(
+            "resolve invalid images and spatial-grid outliers before xform normalization"
+        )
+
+    fmriprep_root = ensure_standard_fmriprep_root(Path(report["fmriprep_root"]))
+    target_geometry = geometry_from_dict(report["modal_grid"])
+    affine_atol = float(report["affine_atol"])
+    audit_sha256 = sha256_file(audit_json)
+    audited_by_path = {record["relative_path"]: record for record in report["files"]}
+    current_relative = {
+        str(safe_relative(fmriprep_root, path))
+        for path in discover_target_bolds(fmriprep_root)
+    }
+    audited_relative = set(audited_by_path)
+    if current_relative != audited_relative:
+        added = sorted(current_relative - audited_relative)
+        removed = sorted(audited_relative - current_relative)
+        raise ValueError(
+            "fMRIPrep inventory changed since audit; run a new audit before "
+            f"xform normalization (added={added[:5]}, removed={removed[:5]})"
+        )
+
+    reference = fmriprep_root / report["modal_reference"]["relative_path"]
+    if sha256_file(reference) != report["modal_reference"]["sha256"]:
+        raise ValueError(f"modal reference changed since audit: {reference}")
+
+    for relative, record in audited_by_path.items():
+        current_geometry = inspect_geometry(fmriprep_root / relative)
+        if not geometries_match(current_geometry, target_geometry, affine_atol):
+            raise ValueError(
+                f"audited spatial grid changed; run a new audit: {relative}"
+            )
+
+    plan = []
+    for record in xform_mismatch_records(report):
+        if not record.get("sha256"):
+            raise ValueError(
+                "xform mismatch lacks a frozen checksum; run a new audit: "
+                f"{record['relative_path']}"
+            )
+        relative = Path(record["relative_path"])
+        canonical = fmriprep_root / relative
+        backup = backup_root / relative
+        provenance_path = xform_provenance_path(provenance_root, relative)
+        expected_original = record["sha256"]
+        current_sha = sha256_file(canonical)
+        if current_sha == expected_original:
+            if backup.exists() and sha256_file(backup) != expected_original:
+                raise ValueError(f"xform backup checksum mismatch: {backup}")
+            state = "pending"
+        else:
+            if not backup.exists() or sha256_file(backup) != expected_original:
+                raise ValueError(
+                    "canonical file changed and no verified xform backup exists: "
+                    f"{canonical}"
+                )
+            if not provenance_path.exists():
+                raise ValueError(
+                    f"normalized xform metadata lacks provenance: {provenance_path}"
+                )
+            provenance = json.loads(provenance_path.read_text())
+            current_geometry = inspect_geometry(canonical)
+            if provenance.get("audit_sha256") != audit_sha256:
+                raise ValueError(
+                    f"xform provenance does not match frozen audit: {canonical}"
+                )
+            if provenance.get("corrected_sha256") != current_sha:
+                raise ValueError(
+                    f"normalized-file checksum does not match provenance: {canonical}"
+                )
+            if not xform_metadata_match(
+                current_geometry, target_geometry, affine_atol
+            ):
+                raise ValueError(
+                    f"changed canonical file still has nonmodal xforms: {canonical}"
+                )
+            state = "complete"
+        plan.append((record, canonical, backup, provenance_path, state))
+    return plan
+
+
+def run_normalize_xforms(args: argparse.Namespace) -> int:
+    audit_json = args.audit_json.expanduser().resolve()
+    report = load_audit(audit_json)
+    default_backup, default_provenance = default_xform_roots(report, audit_json)
+    backup_root = (args.backup_root or default_backup).expanduser().resolve()
+    provenance_root = (
+        (args.provenance_root or default_provenance).expanduser().resolve()
+    )
+    fmriprep_root = ensure_standard_fmriprep_root(Path(report["fmriprep_root"]))
+    project_root = fmriprep_root.parent.parent
+    for root in (backup_root, provenance_root):
+        safe_relative(project_root, root)
+        refuse_bids_path(project_root, root)
+        if root == fmriprep_root or fmriprep_root in root.parents:
+            raise ValueError(
+                f"backup/provenance root cannot be inside fMRIPrep outputs: {root}"
+            )
+
+    plan = preflight_xform_normalization(
+        report, audit_json, backup_root, provenance_root
+    )
+    pending = [item for item in plan if item[-1] == "pending"]
+    complete = [item for item in plan if item[-1] == "complete"]
+    print(f"Audit xform mismatches: {len(plan)}")
+    print(f"Pending metadata normalization: {len(pending)}")
+    print(f"Already normalized and verified: {len(complete)}")
+    print(f"Xform backup root: {backup_root}")
+    print(f"Xform provenance root: {provenance_root}")
+    for record, canonical, _, _, state in plan:
+        print(f"{state.upper()} sub-{record['subject']}: {canonical}")
+
+    if not args.apply:
+        print(
+            "DRY RUN: no files were copied or changed. Add --apply after review."
+        )
+        return 0
+
+    target_geometry = geometry_from_dict(report["modal_grid"])
+    affine_atol = float(report["affine_atol"])
+    audit_sha256 = sha256_file(audit_json)
+    provenance_root.mkdir(parents=True, exist_ok=True)
+    completed_count = len(complete)
+    for record, canonical, backup, provenance_path, state in plan:
+        if state == "complete":
+            continue
+        copy_original(canonical, backup, record["sha256"])
+        before_geometry = inspect_geometry(canonical)
+        fd, temp_name = tempfile.mkstemp(
+            dir=canonical.parent,
+            prefix=f".{canonical.name}.xform-normalization.",
+            suffix=".nii.gz",
+        )
+        os.close(fd)
+        temp_output = Path(temp_name)
+        temp_output.unlink(missing_ok=True)
+        try:
+            shutil.copy2(canonical, temp_output)
+            normalization = normalize_xform_metadata(
+                temp_output, target_geometry, affine_atol
+            )
+            after_geometry = inspect_geometry(temp_output)
+            if not geometries_match(
+                after_geometry, target_geometry, affine_atol
+            ) or not xform_metadata_match(
+                after_geometry, target_geometry, affine_atol
+            ):
+                raise ValueError(
+                    f"normalized file does not match modal metadata: {canonical}"
+                )
+            if before_geometry.full_shape != after_geometry.full_shape:
+                raise ValueError(f"xform normalization changed image shape: {canonical}")
+            if abs(
+                before_geometry.temporal_spacing - after_geometry.temporal_spacing
+            ) > 1e-6:
+                raise ValueError(f"xform normalization changed TR: {canonical}")
+            if not voxel_data_equal(backup, temp_output):
+                raise ValueError(f"xform normalization changed voxel values: {canonical}")
+            os.chmod(temp_output, stat.S_IMODE(canonical.stat().st_mode))
+            corrected_sha = sha256_file(temp_output)
+            provenance = {
+                "schema_version": SCHEMA_VERSION,
+                "state": "prepared",
+                "prepared_at": utc_now(),
+                "audit_json": str(audit_json),
+                "audit_sha256": audit_sha256,
+                "canonical_path": str(canonical),
+                "backup_path": str(backup),
+                "original_sha256": record["sha256"],
+                "corrected_sha256": corrected_sha,
+                "original_geometry": asdict(before_geometry),
+                "corrected_geometry": asdict(after_geometry),
+                "modal_grid": report["modal_grid"],
+                "method": "nibabel qform/sform copy from frozen modal grid",
+                "voxel_data_equal": True,
+                "normalization": normalization,
+            }
+            atomic_write_json(provenance_path, provenance)
+            fsync_file(temp_output)
+            os.replace(temp_output, canonical)
+            fsync_directory(canonical.parent)
+            provenance["state"] = "complete"
+            provenance["completed_at"] = utc_now()
+            atomic_write_json(provenance_path, provenance)
+            completed_count += 1
+            print(f"NORMALIZED XFORMS {canonical}")
+        finally:
+            temp_output.unlink(missing_ok=True)
+
+    manifest = {
+        "schema_version": SCHEMA_VERSION,
+        "completed_at": utc_now(),
+        "audit_json": str(audit_json),
+        "audit_sha256": audit_sha256,
+        "fmriprep_root": str(fmriprep_root),
+        "backup_root": str(backup_root),
+        "provenance_root": str(provenance_root),
+        "mismatch_count": len(plan),
+        "completed_count": completed_count,
+    }
+    atomic_write_json(provenance_root / "normalization-manifest.json", manifest)
+
+    current = inspect_inventory(fmriprep_root, affine_atol)
+    summary = current["summary"]
+    if (
+        summary["outlier_count"]
+        or summary["invalid_count"]
+        or summary["xform_metadata_mismatch_count"]
+    ):
+        raise ValueError(
+            "post-normalization cohort audit still contains spatial, image, or "
+            "xform metadata failures"
+        )
+    print(
+        "CHECK PASSED: "
+        f"{summary['candidate_count']} non-echo {TARGET_SPACE} BOLD file(s) share "
+        "the modal spatial grid and qform/sform metadata; voxel values were "
+        f"preserved for {len(plan)} normalized file(s)."
+    )
+    return 0
 
 
 def run_repair(args: argparse.Namespace) -> int:
@@ -1093,6 +1362,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Copy originals, resample, validate, and atomically replace canonical files",
     )
     repair.set_defaults(func=run_repair)
+
+    normalize_xforms = subparsers.add_parser(
+        "normalize-xforms",
+        help="Plan or apply metadata-only qform/sform normalization from a fresh audit",
+    )
+    normalize_xforms.add_argument("--audit-json", type=Path, required=True)
+    normalize_xforms.add_argument("--backup-root", type=Path)
+    normalize_xforms.add_argument("--provenance-root", type=Path)
+    normalize_xforms.add_argument(
+        "--apply",
+        action="store_true",
+        help="Preserve each current file, normalize xforms, validate, and replace",
+    )
+    normalize_xforms.set_defaults(func=run_normalize_xforms)
 
     verify = subparsers.add_parser(
         "verify",

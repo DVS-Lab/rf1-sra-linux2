@@ -313,8 +313,26 @@ AUDIT_JSON="${PREFIX}.json"
 AUDIT_TSV="${PREFIX}.tsv"
 
 awk -F '\t' 'NR == 1 || $1 != "modal"' "$AUDIT_TSV"
+awk -F '\t' 'NR == 1 || $14 == "mismatch"' "$AUDIT_TSV"
 awk -F '\t' 'NR == 1 || $2 == "12013"' "$AUDIT_TSV"
 ```
+
+If a fresh audit reports no spatial outliers but reports qform/sform metadata
+mismatches, use the dedicated metadata-only path. It freezes checksums for the
+current inventory, preserves each affected derivative, verifies identical voxel
+values, and never invokes ANTs:
+
+```bash
+"$GEOMETRY_PYTHON" fmriprep_geometry.py normalize-xforms \
+  --audit-json "$AUDIT_JSON"
+
+"$GEOMETRY_PYTHON" fmriprep_geometry.py normalize-xforms \
+  --audit-json "$AUDIT_JSON" \
+  --apply
+```
+
+Do not apply an older frozen audit after the fMRIPrep inventory changes. Create
+a fresh audit and use `normalize-xforms` for metadata-only findings.
 
 Before repair, independently confirm that the TSV contains every affected
 task/run, including every listed `sub-12013` outlier. Also ensure no downstream

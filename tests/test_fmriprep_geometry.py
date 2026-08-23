@@ -132,6 +132,60 @@ def test_audit_separates_spatial_grid_from_xform_metadata(tmp_path: Path) -> Non
     )
     assert row["status"] == "modal"
     assert row["xform_status"] == "mismatch"
+    assert row["sha256"] == geometry.sha256_file(legacy)
+
+
+def test_fresh_audit_normalizes_xforms_without_changing_voxels(tmp_path: Path) -> None:
+    root = make_standard_root(tmp_path)
+    affine = np.diag([2.0, 2.0, 2.0, 1.0])
+    save_bold(root, "11001", "sharedreward", "1", affine, xform_code=4)
+    save_bold(root, "11002", "sharedreward", "1", affine, xform_code=4)
+    legacy = save_bold(
+        root, "12013", "sharedreward", "1", affine, xform_code=1
+    )
+    expected_data = np.asanyarray(nib.load(legacy).dataobj).copy()
+    report = geometry.inspect_inventory(root, geometry.DEFAULT_AFFINE_ATOL)
+    audit_json = tmp_path / "project" / "logs" / "geometry" / "fresh.json"
+    geometry.atomic_write_json(audit_json, report)
+
+    preview = argparse.Namespace(
+        audit_json=audit_json,
+        backup_root=None,
+        provenance_root=None,
+        apply=False,
+    )
+    assert geometry.run_normalize_xforms(preview) == 0
+    assert geometry.inspect_geometry(legacy).qform_code == 1
+
+    apply = argparse.Namespace(
+        audit_json=audit_json,
+        backup_root=None,
+        provenance_root=None,
+        apply=True,
+    )
+    assert geometry.run_normalize_xforms(apply) == 0
+    corrected = geometry.inspect_geometry(legacy)
+    assert corrected.qform_code == 4
+    assert corrected.sform_code == 4
+    assert np.array_equal(np.asanyarray(nib.load(legacy).dataobj), expected_data)
+
+    backup_root, provenance_root = geometry.default_xform_roots(
+        report, audit_json
+    )
+    relative = legacy.relative_to(root)
+    backup = backup_root / relative
+    provenance = geometry.xform_provenance_path(provenance_root, relative)
+    assert backup.is_file()
+    legacy_record = next(
+        row for row in report["files"] if row["relative_path"] == str(relative)
+    )
+    assert geometry.sha256_file(backup) == legacy_record["sha256"]
+    metadata = json.loads(provenance.read_text())
+    assert metadata["state"] == "complete"
+    assert metadata["voxel_data_equal"] is True
+
+    # A restart verifies and skips the completed metadata normalization.
+    assert geometry.run_normalize_xforms(apply) == 0
 
 
 def test_dry_run_preflights_without_writing_backup_or_provenance(
