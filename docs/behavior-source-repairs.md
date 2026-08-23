@@ -45,4 +45,9 @@ inventory.
   the task's zero-based second run, not BIDS run 1.
 
 These expected blockers replace the earlier undifferentiated 71-row review
-count. The next live Linux2 audit determines the exact reduced count.
+count. The Linux2 post-resolution audit on 2026-08-23 confirmed exactly 19
+review rows: the 18 missing sources and one unresolved `12037` Trust mapping
+listed above. All 2,718 events files that can currently be resolved passed the
+checker. See
+[`logs/records/20260823-084907_events-post-resolution.md`](../logs/records/20260823-084907_events-post-resolution.md)
+for the tracked audit summary.
