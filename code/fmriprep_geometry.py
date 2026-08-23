@@ -138,6 +138,8 @@ class Geometry:
     orientation: str
     qform_code: int
     sform_code: int
+    qform: tuple[tuple[float, ...], ...]
+    sform: tuple[tuple[float, ...], ...]
 
 
 @dataclass
@@ -152,6 +154,8 @@ class ImageRecord:
     geometry: Geometry | None
     status: str = "unclassified"
     reason: str = ""
+    xform_status: str = "unchecked"
+    xform_reason: str = ""
     sha256: str = ""
 
 
@@ -174,6 +178,8 @@ def inspect_geometry(path: Path) -> Geometry:
     orientation = "".join(value or "?" for value in nib.aff2axcodes(affine_array))
     qform_code = int(image.header["qform_code"])
     sform_code = int(image.header["sform_code"])
+    qform = np.asarray(image.get_qform(), dtype=float)
+    sform = np.asarray(image.get_sform(), dtype=float)
     return Geometry(
         spatial_shape=shape[:3],
         full_shape=shape,
@@ -184,6 +190,8 @@ def inspect_geometry(path: Path) -> Geometry:
         orientation=orientation,
         qform_code=qform_code,
         sform_code=sform_code,
+        qform=tuple(tuple(float(value) for value in row) for row in qform),
+        sform=tuple(tuple(float(value) for value in row) for row in sform),
     )
 
 
@@ -191,6 +199,23 @@ def geometries_match(left: Geometry, right: Geometry, affine_atol: float) -> boo
     _, np = imaging_modules()
     return left.spatial_shape == right.spatial_shape and bool(
         np.allclose(left.affine, right.affine, rtol=0.0, atol=affine_atol)
+    )
+
+
+def xform_metadata_match(
+    left: Geometry, right: Geometry, affine_atol: float
+) -> bool:
+    """Require the modal qform/sform matrices and their NIfTI intent codes."""
+    _, np = imaging_modules()
+    return (
+        left.qform_code == right.qform_code
+        and left.sform_code == right.sform_code
+        and bool(
+            np.allclose(left.qform, right.qform, rtol=0.0, atol=affine_atol)
+        )
+        and bool(
+            np.allclose(left.sform, right.sform, rtol=0.0, atol=affine_atol)
+        )
     )
 
 
@@ -259,8 +284,18 @@ def inspect_inventory(fmriprep_root: Path, affine_atol: float) -> dict[str, Any]
             continue
         if geometries_match(record.geometry, modal_reference.geometry, affine_atol):
             record.status = "modal"
+            if xform_metadata_match(
+                record.geometry, modal_reference.geometry, affine_atol
+            ):
+                record.xform_status = "modal"
+            else:
+                record.xform_status = "mismatch"
+                record.xform_reason = (
+                    "qform/sform matrix and/or intent code differs from modal metadata"
+                )
         else:
             record.status = "outlier"
+            record.xform_status = "not_applicable"
             record.reason = (
                 "spatial shape and/or effective affine differs from modal grid"
             )
@@ -268,6 +303,9 @@ def inspect_inventory(fmriprep_root: Path, affine_atol: float) -> dict[str, Any]
     outliers = [record for record in records if record.status == "outlier"]
     invalid = [record for record in records if record.status == "invalid"]
     modal = [record for record in records if record.status == "modal"]
+    xform_mismatches = [
+        record for record in records if record.xform_status == "mismatch"
+    ]
 
     # Hash only repair inputs and the modal witness. Reading every 4D image in a
     # large cohort would turn this header audit into an unnecessary data scan.
@@ -292,6 +330,7 @@ def inspect_inventory(fmriprep_root: Path, affine_atol: float) -> dict[str, Any]
             "outlier_count": len(outliers),
             "invalid_count": len(invalid),
             "grid_count": len(clusters),
+            "xform_metadata_mismatch_count": len(xform_mismatches),
         },
         "modal_grid": asdict(modal_reference.geometry),
         "modal_reference": {
@@ -310,16 +349,30 @@ def record_to_dict(record: ImageRecord) -> dict[str, Any]:
 
 
 def geometry_from_dict(data: dict[str, Any]) -> Geometry:
+    affine = tuple(
+        tuple(float(value) for value in row) for row in data["affine"]
+    )
     return Geometry(
         spatial_shape=tuple(int(value) for value in data["spatial_shape"]),
         full_shape=tuple(int(value) for value in data["full_shape"]),
         n_volumes=int(data["n_volumes"]),
         zooms=tuple(float(value) for value in data["zooms"]),
         temporal_spacing=float(data["temporal_spacing"]),
-        affine=tuple(tuple(float(value) for value in row) for row in data["affine"]),
+        affine=affine,
         orientation=str(data["orientation"]),
         qform_code=int(data["qform_code"]),
         sform_code=int(data["sform_code"]),
+        # Schema-1 audit reports written before transform-metadata validation
+        # did not retain these matrices. fMRIPrep's modal qform and sform both
+        # encode the effective affine, so the frozen affine is the safe fallback.
+        qform=tuple(
+            tuple(float(value) for value in row)
+            for row in data.get("qform", affine)
+        ),
+        sform=tuple(
+            tuple(float(value) for value in row)
+            for row in data.get("sform", affine)
+        ),
     )
 
 
@@ -344,6 +397,7 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fields = [
         "status",
+        "xform_status",
         "subject",
         "session",
         "task",
@@ -356,6 +410,7 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
         "affine",
         "sha256",
         "reason",
+        "xform_reason",
     ]
     with tempfile.NamedTemporaryFile(
         mode="w",
@@ -372,6 +427,7 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
             writer.writerow(
                 {
                     "status": record["status"],
+                    "xform_status": record.get("xform_status", "unchecked"),
                     "subject": record["subject"],
                     "session": record["session"],
                     "task": record["task"],
@@ -384,6 +440,7 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
                     "affine": json.dumps(geometry.get("affine", [])),
                     "sha256": record.get("sha256", ""),
                     "reason": record.get("reason", ""),
+                    "xform_reason": record.get("xform_reason", ""),
                 }
             )
         handle.flush()
@@ -411,6 +468,10 @@ def print_audit_summary(
     )
     print(f"Modal affine: {json.dumps(grid['affine'])}")
     print(f"Outliers: {summary['outlier_count']}")
+    print(
+        "qform/sform metadata mismatches: "
+        f"{summary.get('xform_metadata_mismatch_count', 0)}"
+    )
     print(f"Invalid: {summary['invalid_count']}")
     for record in report["files"]:
         if record["status"] in {"outlier", "invalid"}:
@@ -419,12 +480,19 @@ def print_audit_summary(
                 f"ses-{record['session']} task-{record['task']} run-{record['run']}: "
                 f"{record['relative_path']} ({record['reason']})"
             )
+        elif record.get("xform_status") == "mismatch":
+            print(
+                f"XFORM MISMATCH sub-{record['subject']} "
+                f"ses-{record['session']} task-{record['task']} run-{record['run']}: "
+                f"{record['relative_path']} ({record['xform_reason']})"
+            )
     print(f"JSON report: {json_path}")
     print(f"TSV report: {tsv_path}")
     print(
         "AUDIT COMPLETE: "
         f"{summary['candidate_count']} file(s), {summary['outlier_count']} outlier(s), "
-        f"{summary['invalid_count']} invalid file(s)."
+        f"{summary['invalid_count']} invalid file(s), "
+        f"{summary.get('xform_metadata_mismatch_count', 0)} xform metadata mismatch(es)."
     )
 
 
@@ -481,6 +549,58 @@ def write_reference_image(path: Path, geometry: Geometry) -> None:
     nib.save(image, str(path))
 
 
+def normalize_xform_metadata(
+    path: Path, target_geometry: Geometry, affine_atol: float
+) -> dict[str, Any]:
+    """Atomically copy the modal qform/sform matrices and intent codes.
+
+    ANTs correctly resamples onto the reference lattice but writes generic
+    scanner-anatomical transform codes. Rewriting through nibabel changes only
+    the derivative file; the caller validates geometry, timing, and voxel data
+    before the canonical path is replaced.
+    """
+    nib, np = imaging_modules()
+    before = inspect_geometry(path)
+    if xform_metadata_match(before, target_geometry, affine_atol):
+        return {"changed": False, "before": asdict(before), "after": asdict(before)}
+
+    image = nib.load(str(path), mmap=True)
+    header = image.header.copy()
+    corrected = nib.Nifti1Image(
+        image.dataobj, np.asarray(target_geometry.affine, dtype=float), header
+    )
+    corrected.set_qform(
+        np.asarray(target_geometry.qform, dtype=float),
+        code=target_geometry.qform_code,
+    )
+    corrected.set_sform(
+        np.asarray(target_geometry.sform, dtype=float),
+        code=target_geometry.sform_code,
+    )
+
+    mode = stat.S_IMODE(path.stat().st_mode)
+    with tempfile.NamedTemporaryFile(
+        dir=path.parent,
+        prefix=f".{path.name}.xform-metadata.",
+        suffix=".nii.gz",
+        delete=False,
+    ) as handle:
+        temp_path = Path(handle.name)
+    try:
+        nib.save(corrected, str(temp_path))
+        os.chmod(temp_path, mode)
+        fsync_file(temp_path)
+        os.replace(temp_path, path)
+        fsync_directory(path.parent)
+    finally:
+        temp_path.unlink(missing_ok=True)
+
+    after = inspect_geometry(path)
+    if not xform_metadata_match(after, target_geometry, affine_atol):
+        raise ValueError(f"failed to normalize qform/sform metadata: {path}")
+    return {"changed": True, "before": asdict(before), "after": asdict(after)}
+
+
 def write_identity_transform(path: Path) -> None:
     path.write_text(
         "#Insight Transform File V1.0\n"
@@ -534,6 +654,10 @@ def validate_resampled(
     geometry = inspect_geometry(path)
     if not geometries_match(geometry, target_geometry, affine_atol):
         raise ValueError(f"resampled output does not match modal grid: {path}")
+    if not xform_metadata_match(geometry, target_geometry, affine_atol):
+        raise ValueError(
+            f"resampled output qform/sform metadata does not match modal grid: {path}"
+        )
     if geometry.n_volumes != source_geometry.n_volumes:
         raise ValueError(
             f"volume count changed from {source_geometry.n_volumes} to {geometry.n_volumes}: {path}"
@@ -611,6 +735,8 @@ def existing_repair_state(
         raise ValueError(
             f"repaired-file checksum does not match provenance: {canonical}"
         )
+    if not xform_metadata_match(current_geometry, target_geometry, affine_atol):
+        return "metadata_pending"
     return "complete"
 
 
@@ -691,7 +817,7 @@ def run_repair(args: argparse.Namespace) -> int:
             )
 
     plan = preflight_repair(report, audit_json, backup_root, provenance_root)
-    pending = [item for item in plan if item[-1] == "pending"]
+    pending = [item for item in plan if item[-1] in {"pending", "metadata_pending"}]
     complete = [item for item in plan if item[-1] == "complete"]
     print(f"Audit outliers: {len(plan)}")
     print(f"Pending repair: {len(pending)}")
@@ -746,7 +872,11 @@ def run_repair(args: argparse.Namespace) -> int:
     for record, canonical, backup, provenance_path, state in plan:
         if state == "complete":
             continue
-        source_geometry = geometry_from_dict(record["geometry"])
+        source_geometry = (
+            inspect_geometry(canonical)
+            if state == "metadata_pending"
+            else geometry_from_dict(record["geometry"])
+        )
         copy_original(canonical, backup, record["sha256"])
         canonical.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(
@@ -757,40 +887,67 @@ def run_repair(args: argparse.Namespace) -> int:
         os.close(fd)
         temp_output = Path(temp_name)
         temp_output.unlink(missing_ok=True)
-        command = ants_command(
-            apptainer,
-            image,
-            project_root,
-            backup,
-            reference_image,
-            identity_transform,
-            temp_output,
-        )
-        print("RUN:", " ".join(command))
+        command: list[str]
         try:
-            subprocess.run(command, check=True)
+            if state == "metadata_pending":
+                command = [
+                    "nibabel",
+                    "copy-modal-qform-sform",
+                    str(canonical),
+                ]
+                print(f"NORMALIZE XFORMS: {canonical}")
+                shutil.copy2(canonical, temp_output)
+            else:
+                command = ants_command(
+                    apptainer,
+                    image,
+                    project_root,
+                    backup,
+                    reference_image,
+                    identity_transform,
+                    temp_output,
+                )
+                print("RUN:", " ".join(command))
+                subprocess.run(command, check=True)
+            xform_normalization = normalize_xform_metadata(
+                temp_output, target_geometry, affine_atol
+            )
             validation = validate_resampled(
                 temp_output, source_geometry, target_geometry, affine_atol
             )
             os.chmod(temp_output, stat.S_IMODE(canonical.stat().st_mode))
-            provenance = {
-                "schema_version": SCHEMA_VERSION,
-                "state": "prepared",
-                "prepared_at": utc_now(),
-                "audit_json": str(audit_json),
-                "audit_sha256": audit_sha256,
-                "canonical_path": str(canonical),
-                "backup_path": str(backup),
-                "original_sha256": record["sha256"],
-                "corrected_sha256": validation["sha256"],
-                "original_geometry": record["geometry"],
-                "corrected_geometry": validation["geometry"],
-                "modal_grid": report["modal_grid"],
-                "interpolation": "LanczosWindowedSinc",
-                "transform": "identity physical-space affine",
-                "command": command,
-                "tool": tool_info,
-            }
+            if state == "metadata_pending":
+                provenance = json.loads(provenance_path.read_text())
+                provenance["pre_xform_normalization_sha256"] = sha256_file(canonical)
+                provenance["xform_metadata_normalization"] = {
+                    "normalized_at": utc_now(),
+                    "method": "nibabel qform/sform copy from frozen modal grid",
+                    **xform_normalization,
+                }
+            else:
+                provenance = {
+                    "schema_version": SCHEMA_VERSION,
+                    "audit_json": str(audit_json),
+                    "audit_sha256": audit_sha256,
+                    "canonical_path": str(canonical),
+                    "backup_path": str(backup),
+                    "original_sha256": record["sha256"],
+                    "original_geometry": record["geometry"],
+                    "modal_grid": report["modal_grid"],
+                    "interpolation": "LanczosWindowedSinc",
+                    "transform": "identity physical-space affine",
+                    "command": command,
+                    "tool": tool_info,
+                    "xform_metadata_normalization": xform_normalization,
+                }
+            provenance.update(
+                {
+                    "state": "prepared",
+                    "prepared_at": utc_now(),
+                    "corrected_sha256": validation["sha256"],
+                    "corrected_geometry": validation["geometry"],
+                }
+            )
             atomic_write_json(provenance_path, provenance)
             fsync_file(temp_output)
             os.replace(temp_output, canonical)
@@ -841,15 +998,25 @@ def run_verify(args: argparse.Namespace) -> int:
     fmriprep_root = ensure_standard_fmriprep_root(Path(report["fmriprep_root"]))
     current = inspect_inventory(fmriprep_root, float(report["affine_atol"]))
     summary = current["summary"]
-    if summary["outlier_count"] or summary["invalid_count"]:
+    if (
+        summary["outlier_count"]
+        or summary["invalid_count"]
+        or summary.get("xform_metadata_mismatch_count", 0)
+    ):
         for record in current["files"]:
             if record["status"] != "modal":
                 print(f"CHECK FAILED: {record['status']}: {record['relative_path']}")
+            elif record.get("xform_status") == "mismatch":
+                print(
+                    "CHECK FAILED: xform metadata mismatch: "
+                    f"{record['relative_path']}"
+                )
         return 1
     print(
         "CHECK PASSED: "
         f"{summary['candidate_count']} non-echo {TARGET_SPACE} BOLD file(s) share the "
-        f"modal grid; {len(plan)} repaired original(s) and provenance record(s) verified."
+        f"modal grid and qform/sform metadata; {len(plan)} repaired original(s) "
+        "and provenance record(s) verified."
     )
     return 0
 
@@ -882,7 +1049,10 @@ def run_audit(args: argparse.Namespace) -> int:
     summary = report["summary"]
     if summary["invalid_count"]:
         return 2
-    if args.fail_on_outliers and summary["outlier_count"]:
+    if args.fail_on_outliers and (
+        summary["outlier_count"]
+        or summary.get("xform_metadata_mismatch_count", 0)
+    ):
         return 1
     return 0
 

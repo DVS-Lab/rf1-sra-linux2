@@ -294,7 +294,9 @@ and pristine `bids/` inputs are outside this repair's scope.
 
 The audit reads NIfTI headers, clusters spatial shape plus effective affine
 using a small numerical tolerance, and chooses a modal grid only when the mode
-is unique. It writes a detailed JSON repair contract and a human-readable TSV.
+is unique. It separately audits qform/sform matrices and intent codes against
+the modal MNI metadata. It writes a detailed JSON repair contract and a
+human-readable TSV.
 It does not resample or replace anything. Invalid images and a tied mode are
 blocking findings.
 
@@ -339,8 +341,11 @@ Repair copies each original into
 provenance under `derivatives/fmriprep_geometry/repairs/<audit-id>/`, and uses
 4D ANTs identity resampling with `LanczosWindowedSinc` interpolation from the
 pinned fMRIPrep container. It validates the target grid, volume count, finite
-values, and nonzero data before atomically replacing the original canonical
-fMRIPrep path. Existing JSON sidecars remain in place. Downstream repositories
+values, and nonzero data, then copies the modal qform/sform matrices and MNI
+intent codes before atomically replacing the original canonical fMRIPrep path.
+A legacy repaired output that already matches the lattice but still has ANTs'
+generic `1/1` transform codes receives a metadata-only repair and is not
+interpolated again. Existing JSON sidecars remain in place. Downstream repositories
 therefore continue to use ordinary fMRIPrep paths and need no outlier-specific
 resolution logic.
 
