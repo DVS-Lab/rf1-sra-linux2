@@ -64,7 +64,7 @@ production defaults.
 | `code/` | All production entry points, worker scripts, helpers, validation scripts, and the current batch subject list. |
 | `bids/` | Generated BIDS dataset on Linux2; ignored by Git. |
 | `derivatives/` | Generated outputs are ignored and should not contain repository code. |
-| `qc/` | Tracked cohort-level run imaging QC policy, canonical tables, workbooks, and figures. |
+| `qc/` | Tracked cohort-level imaging and events-response QC policies, canonical tables, workbooks, and figures. |
 | `tests/` | Synthetic pytest coverage for parsing, path generation, safety checks, and completion checks. |
 
 See `code/README.md` for the detailed implementation manual.
@@ -81,7 +81,7 @@ Raw DICOMs / XNAT
   -> rf1-sra-linux2 fMRIPrep / FreeSurfer / CIFTI
   -> rf1-sra-linux2 post-fMRIPrep geometry audit / reviewed repair
   -> rf1-sra-linux2 TEDANA / MRIQC / confounds
-  -> rf1-sra-linux2 cohort-level run imaging QC
+  -> rf1-sra-linux2 cohort-level run imaging and events-response QC
   -> rf1-dwi QSIPrep / QSIRecon
 ```
 
@@ -102,6 +102,7 @@ flowchart TD
   I --> M["Build canonical cohort run imaging QC"]
   L --> M
   F --> M
+  B --> N["Build canonical events response QC"]
   E --> J["rf1-dwi consumes shared BIDS/fMRIPrep/FreeSurfer"]
 ```
 
@@ -588,6 +589,43 @@ recorded thresholds and flags cannot be reproduced. Imaging outliers are
 run-level facts, not automatic participant exclusions. See [the QC
 manual](qc/README.md) for exact definitions and provenance.
 
+## Full-Cohort Events Response QC
+
+After the canonical events backfill and `check_events.py` audit, build the
+separate response-pattern QC. This read-only stage counts response opportunities
+and misses, measures longest and terminal miss streaks, and reports the onset of
+a sustained terminal block. It does not edit BIDS, trim imaging, or make final
+run-inclusion decisions.
+
+The historical 25% Social Doors/Doors rule is retained as a review threshold.
+Applying it to other tasks is descriptive pending an explicit cross-task policy
+decision. A terminal-failure candidate has at least five consecutive misses at
+the end of a run. A salvage review candidate also has at least 40% of expected
+trials before that block and a preterminal miss fraction below 25%.
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+PRODUCTION_LIST=../logs/runlists/full-confounds-20260821-203754_production.txt
+
+"$QC_PYTHON" build_events_qc.py build \
+  --sublist "$PRODUCTION_LIST" \
+  --dry-run
+
+STAMP=events-response-qc-$(date +%Y%m%d-%H%M%S)
+bash run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$QC_PYTHON" build_events_qc.py build \
+    --sublist "$PRODUCTION_LIST" \
+    --overwrite \
+  --check "$QC_PYTHON" build_events_qc.py check \
+    --sublist "$PRODUCTION_LIST"
+```
+
+The canonical tables, provenance, and figures are written under
+`qc/events/results/`. Review those outputs and confirm suspected button-box
+failures independently before designing a derivative-preserving functional
+trimming workflow. See the [events response-QC manual](qc/events/README.md).
+
 ## How To Know Whether It Worked
 
 Look for these signals:
@@ -606,6 +644,8 @@ Look for these signals:
   cohort inventory before downstream analysis manifests are constructed.
 - `build_run_qc.py check` must end with `CHECK PASSED`; `incomplete` is a
   distinct state and never an implicit pass or outlier.
+- `build_events_qc.py check` must end with `CHECK PASSED`; review flags may
+  remain after a technically complete audit and require scientific adjudication.
 
 ## Before Asking For Help
 
@@ -618,6 +658,7 @@ first `CHECK FAILED` or error line, and whether the case was expected to have
 
 - [Code manual](code/README.md)
 - [Run imaging QC manual](qc/README.md)
+- [Events response-QC manual](qc/events/README.md)
 - [Validation history](docs/archive/validation-history.md)
 
 Repository-level checks do not require real imaging data or neuroimaging

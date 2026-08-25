@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "overall_miss_fraction_review": 0.25,
+  "terminal_miss_streak_review_min": 5,
+  "salvage_min_preterminal_fraction": 0.4,
+  "expected_trials": {
+    "sharedreward": 54,
+    "trust": 42,
+    "ugr": 48,
+    "socialdoors": 40,
+    "doors": 40
+  },
+  "notes": [
+    "The 25 percent threshold is the historical Social Doors/Doors exclusion rule and is applied cohort-wide here as a review flag, not an automatic exclusion.",
+    "A terminal failure candidate has at least five consecutive missed response opportunities at the end of a run.",
+    "A salvage review candidate has a terminal failure pattern, at least 40 percent of the expected trials before that pattern, and a preterminal miss fraction below 25 percent.",
+    "No functional image is trimmed and no run is approved or excluded by this audit."
+  ]
+}

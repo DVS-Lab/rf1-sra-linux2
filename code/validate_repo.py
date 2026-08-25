@@ -16,7 +16,10 @@ SCRIPT_RE = re.compile(
     r"`([^`]+\.(?:sh|py|m|json|txt))`|(?:bash|python(?:3)?)\s+([A-Za-z0-9_./+-]+\.(?:sh|py))"
 )
 QC_EXCLUSION_SHA256 = "1335b40c2ad94056cd54c1b41aea100f5063428045c63271f7909432f4e310ed"
-DOCUMENTED_GENERATED_PATHS = {"qc/provenance.json"}
+DOCUMENTED_GENERATED_PATHS = {
+    "qc/provenance.json",
+    "qc/events/results/provenance.json",
+}
 
 
 def git_ls_files(repo: Path, pattern: str | None = None) -> list[str]:
@@ -88,9 +91,12 @@ def validate_clean_status(repo: Path) -> list[str]:
 def validate_qc(repo: Path) -> list[str]:
     errors: list[str] = []
     policy = repo / "qc" / "qc_policy.json"
+    events_policy = repo / "qc" / "events" / "policy.json"
     exclusion = repo / "qc" / "reference" / "source-cerebellum-brainstem_mask.nii.gz"
     if not policy.is_file():
         errors.append("missing canonical QC policy: qc/qc_policy.json")
+    if not events_policy.is_file():
+        errors.append("missing canonical events QC policy: qc/events/policy.json")
     if not exclusion.is_file():
         errors.append("missing historical QC exclusion mask")
     elif hashlib.sha256(exclusion.read_bytes()).hexdigest() != QC_EXCLUSION_SHA256:

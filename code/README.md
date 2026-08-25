@@ -306,6 +306,16 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: `"$QC_PYTHON" build_run_qc.py check`.
 - Notes: `qc/run_qc.tsv` is authoritative; spreadsheets are generated views. Shared Reward, Trust, and UGR each use one paradigm distribution. Social Doors pools `task-socialdoors` and `task-doors` for thresholds while retaining separate run rows and a paired summary. Missing or ambiguous metrics produce `qc_status=incomplete`; no metric is silently zeroed. Existing canonical outputs require `build --overwrite`. Source-excluded subjects are omitted unless the forensic `--include-source-excluded` override is explicit. The retired MRIQC-only CSV extractor and legacy FEAT voxel counter must not be restored as competing production QC paths.
 
+### `build_events_qc.py`
+
+- Status: Canonical cohort-level behavioral response-QC builder and checker.
+- Purpose: Quantify response misses in every supported BIDS events run, distinguish distributed misses from sustained terminal miss blocks, and identify runs that may merit reviewed terminal trimming.
+- Inputs: Canonical BIDS `_events.tsv` files, `qc/events/policy.json`, an optional production subject list, and the authoritative source-exclusions directory.
+- Outputs: `qc/events/results/run_response_qc.tsv`, `review_candidates.tsv`, `qc/events/results/provenance.json`, and two PNG summaries.
+- Typical command: `"$QC_PYTHON" build_events_qc.py build --sublist "$PRODUCTION_LIST" --dry-run`, followed by `build --overwrite` after review.
+- Checker: `"$QC_PYTHON" build_events_qc.py check --sublist "$PRODUCTION_LIST"`.
+- Notes: The historical 25% Social Doors/Doors rule is reported across tasks as a review threshold, not an automatic cross-task exclusion. Terminal-failure and salvage flags require human review. This script never edits BIDS or imaging data, and its onset fields are not approved trimming boundaries.
+
 ### `run_fmriprep.sh`
 - Status: Production wrapper.
 - Purpose: Launch fMRIPrep across listed subjects.
