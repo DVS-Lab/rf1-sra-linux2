@@ -1,0 +1,154 @@
+# Open Decisions And Run-Disposition Roadmap
+
+This is the durable, non-PHI review queue for decisions that affect canonical
+RF1-SRA run eligibility. It records evidence and proposed architecture; it is
+not itself an exclusion list and does not authorize changes to BIDS or imaging
+derivatives. Add reviewer, date, rationale, and supporting evidence when a
+decision is resolved.
+
+## Current Evidence Snapshot
+
+As of 2026-08-24:
+
+- `qc/run_qc.tsv` inventories 2,729 acquired runs: 2,232 pass the cohort imaging
+  rules, 490 have one or more Tukey outlier flags, and 7 are incomplete. These
+  are measurements, not automatic exclusions.
+- `qc/events/results/run_response_qc.tsv` inventories 2,718 events runs: 2,686
+  pass the descriptive response rules and 32 require review. Twenty-five cross
+  the current 25% miss threshold, 11 have a terminal miss streak, and 7 meet
+  the descriptive salvage-candidate rule.
+- `docs/behavior-source-repairs.md` lists 18 missing behavioral sources and one
+  unresolved Trust mapping. Events must not be synthesized for these 19 runs.
+- Technical repairs for fMRIPrep geometry, `sub-10585`, `sub-11891`,
+  `sub-12018`, and the `sub-10929` fieldmap exception are complete and
+  provenance-preserving. They should not be reopened without new evidence.
+
+## Decisions Requiring Team Review
+
+### Conversion Versus Behavioral QC
+
+The current converter requires hash-bound approval before writing a coherent
+short run or behaviorally poor run. The response-QC layer can now represent
+those facts independently. The proposed rule is:
+
+> Write an events file when its source is uniquely mapped, structurally
+> readable, and safely interpretable. Record short, poor, or suspicious
+> behavior in response QC and adjudicate it in run disposition.
+
+Ambiguous provenance, appended run segments, malformed executed rows, and
+unsafe timing remain hard conversion failures. Before changing the converter,
+the team must approve this boundary and decide how existing entries in
+`code/behavior_curation.tsv` will be preserved as historical review provenance.
+
+### Canonical Source Exclusions
+
+The source-exclusions directory currently identifies `10555`, `10659`,
+`10774`, `10849`, `11207`, `11217`, `11344`, `11381`, `11385`, `11603`,
+`11753`, and `11836`. The folder remains authoritative, including for `11753`
+and `11836`, which have residual BIDS outputs. The team should record a neutral
+reason code, reviewer, and review date for every ID and confirm why five IDs
+are outside the current production cohort while seven appear in its historical
+subject list. Sensitive clinical details belong in the private lab record, not
+this repository.
+
+`11407` appears to have completed only the mock/localizer visit and remains
+unavailable unless new source data are found. The `12018` malformed downloaded
+source path has been handled and is no longer an open source-data issue.
+
+### Response Policy And Terminal Failures
+
+The lab must lock down:
+
+- whether the miss criterion is `>=25%` or `>25%`;
+- whether that criterion applies only to Social Doors/Doors or to every task;
+- whether it means automatic exclusion or human review;
+- the minimum retained trials, condition counts, and clean-response fraction
+  required for a terminal-failure salvage;
+- the approved temporal cutoff and derivative provenance required before any
+  functional image is trimmed.
+
+The seven current salvage-review candidates are `10608` Shared Reward run 2,
+`10777` Shared Reward run 2, `10908` Social Doors run 1, `11902` Shared Reward
+run 2, `11984` UGR run 2, `12033` UGR run 2, and `12041` Shared Reward run 1.
+Human review should inspect all 32 response-QC review rows, not only these
+seven. `11902` has earlier misses in addition to its terminal block, and
+`12041` is also a short run; both require particular caution. The current BIDS
+inventory gives `12057` seven acquired events runs with zero misses and no
+Trust run 2, so the remembered button-box problem needs session-note/source
+confirmation rather than an inferred trim.
+
+Until this policy is approved, no BIDS file or imaging derivative should be
+trimmed, and every salvage candidate remains `review`.
+
+### Imaging-QC Adjudication
+
+The 490 imaging outlier rows are too numerous to treat as automatic exclusions
+without scientific review. The team should decide which metrics are descriptive
+sensitivity flags, which patterns require visual inspection, and whether any
+combination can justify exclusion. The 7 incomplete rows require technical
+resolution or an explicit `unavailable` disposition. The four factual metrics
+and their cohort thresholds must remain separate from the final decision.
+
+### Acquisition And Task Exceptions
+
+- `10929` session 01 UGR run 2 has a complete magnitude series but an
+  unrecoverably short phase series in the available source. WarpKit reused the
+  reviewed UGR run-1 fieldmap and fMRIPrep/TEDANA were regenerated. The team
+  should decide whether this run is included, retained with a sensitivity flag,
+  or excluded, while preserving the acquisition issue in the canonical record.
+- Session-note review in `sharedreward-aging` reports that `11539` saw the wrong
+  friend photo, invalidating both Shared Reward runs and Trust run 1. The team
+  should confirm whether this is an intrinsic RF1 task invalidation that belongs
+  in Linux2's canonical disposition rather than only in an aging-analysis table.
+- The 18 missing event sources and unresolved `12037` Trust mapping remain the
+  authoritative source-repair queue in `docs/behavior-source-repairs.md`.
+
+### Downstream Contract
+
+The four active RF1 task repositories should eventually discover candidate
+runs, verify technical inputs, join a versioned Linux2 disposition table, and
+then apply only analysis-specific eligibility rules such as requiring both runs
+for fixed effects or both tasks for a paired contrast. They should not maintain
+independent master source exclusions or recompute canonical RF1 QC.
+
+`sharedreward-aging` currently uses a strict `>25%` miss exclusion while Linux2
+reports `>=25%` as a review flag. This conflict must be resolved explicitly.
+Analysis-specific harmonization, ratings, age, and covariate rules should remain
+downstream. Intrinsic RF1 acquisition or task-invalidity decisions should live
+in Linux2 and be consumed downstream.
+
+### Active Model Sign-Off
+
+The team should confirm that the current active models intentionally use:
+
+- corrected canonical UGR cue timing rather than the historical onset bug;
+- actual Trust feedback duration rather than the historical 1-second value;
+- the current Shared Reward miss handling and 14-EV model rather than the
+  historical 13-EV convention.
+
+These are documentation/sign-off decisions, not requests to reproduce known
+historical quirks.
+
+## Proposed Implementation After Review
+
+Keep factual and adjudicated layers separate:
+
+```text
+qc/run_qc.tsv                         imaging measurements
+qc/events/results/run_response_qc.tsv response measurements
+qc/run_disposition_reviews.tsv        reviewed manual decisions only
+qc/run_disposition.tsv                generated one-row-per-run contract
+```
+
+The generated table should join on `subject + session + task + run`, constrain
+final states to `include`, `exclude`, `review`, or `unavailable`, carry reason
+codes and review provenance, and fail if an acquired run is missing or appears
+more than once. Its checker should also record hashes of the factual QC inputs,
+manual review table, policy, and software revision. Downstream manifests should
+fail closed when the contract is missing, stale, duplicated, or lacks a
+candidate run.
+
+Do not build this as a manually maintained all-in-one spreadsheet. The generated
+contract must remain reproducible, while human decisions stay small, explicit,
+and reviewable.
+

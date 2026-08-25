@@ -659,6 +659,7 @@ first `CHECK FAILED` or error line, and whether the case was expected to have
 - [Code manual](code/README.md)
 - [Run imaging QC manual](qc/README.md)
 - [Events response-QC manual](qc/events/README.md)
+- [Open decisions and run-disposition roadmap](docs/open-decisions.md)
 - [Validation history](docs/archive/validation-history.md)
 
 Repository-level checks do not require real imaging data or neuroimaging
