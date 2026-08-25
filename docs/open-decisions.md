@@ -23,6 +23,23 @@ As of 2026-08-24:
   `sub-12018`, and the `sub-10929` fieldmap exception are complete and
   provenance-preserving. They should not be reopened without new evidence.
 
+## Settled Data-Governance Policy
+
+The private
+`/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions` directory is the
+authoritative participant-level exclusion source. Standard analysis and
+OpenNeuro release builders must omit every participant represented there,
+regardless of residual BIDS or derivative outputs. Residual outputs may remain
+preserved locally but do not establish eligibility. Any future reuse requires
+deliberate PI and data-governance review.
+
+These exclusions reflect incidental findings. Public documentation and release
+reporting must state only the aggregate number excluded for this reason, with
+the number calculated from the final release cohort. Do not publish diagnoses,
+detailed findings, or participant-by-participant reason associations. No
+additional public subject-level rationale is required, and this policy is not
+an open scientific adjudication question.
+
 ## Decisions Requiring Team Review
 
 ### Conversion Versus Behavioral QC
@@ -39,17 +56,6 @@ Ambiguous provenance, appended run segments, malformed executed rows, and
 unsafe timing remain hard conversion failures. Before changing the converter,
 the team must approve this boundary and decide how existing entries in
 `code/behavior_curation.tsv` will be preserved as historical review provenance.
-
-### Canonical Source Exclusions
-
-The source-exclusions directory currently identifies `10555`, `10659`,
-`10774`, `10849`, `11207`, `11217`, `11344`, `11381`, `11385`, `11603`,
-`11753`, and `11836`. The folder remains authoritative, including for `11753`
-and `11836`, which have residual BIDS outputs. The team should record a neutral
-reason code, reviewer, and review date for every ID and confirm why five IDs
-are outside the current production cohort while seven appear in its historical
-subject list. Sensitive clinical details belong in the private lab record, not
-this repository.
 
 `11407` appears to have completed only the mock/localizer visit and remains
 unavailable unless new source data are found. The `12018` malformed downloaded
@@ -151,4 +157,3 @@ candidate run.
 Do not build this as a manually maintained all-in-one spreadsheet. The generated
 contract must remain reproducible, while human decisions stay small, explicit,
 and reviewable.
-

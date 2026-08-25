@@ -21,6 +21,15 @@ files, and the generated `bids/` tree are intentionally excluded from version
 control. Lightweight canonical QC tables, workbooks, policy, provenance, and
 aggregate figures under `qc/` are intentionally tracked.
 
+The private `/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions` directory
+is authoritative for participant-level exclusions. Standard analysis and
+OpenNeuro release builders must ignore source-excluded participants even when
+residual BIDS or derivative outputs remain locally preserved. Future reuse
+requires deliberate PI and data-governance review. Public reporting should
+give only the aggregate number excluded from the final release because of
+incidental findings; diagnoses, detailed findings, and participant-level
+reason associations must not be published.
+
 Production processing should occur on Smith Lab Linux2 from the production
 checkout:
 
