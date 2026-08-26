@@ -27,6 +27,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pipeline_utils import apply_umask_mode
+
 
 SCHEMA_VERSION = 1
 TARGET_SPACE = "MNI152NLin6Asym"
@@ -390,6 +392,7 @@ def atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
         handle.flush()
         os.fsync(handle.fileno())
         temp_path = Path(handle.name)
+    apply_umask_mode(temp_path)
     os.replace(temp_path, path)
 
 
@@ -446,6 +449,7 @@ def write_audit_tsv(path: Path, report: dict[str, Any]) -> None:
         handle.flush()
         os.fsync(handle.fileno())
         temp_path = Path(handle.name)
+    apply_umask_mode(temp_path)
     os.replace(temp_path, path)
 
 

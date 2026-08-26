@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import os
 import sys
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from check_events import audit_subject_session
 from audit_openneuro_events import audit_key
 from convert_behavior import (
     _atomic_write_tsv,
+    ConvertedRun,
     ConversionError,
     RunKey,
     convert_behavior,
@@ -675,6 +677,22 @@ def test_audit_flags_unapproved_short_run_for_human_review(tmp_path: Path) -> No
     assert counts["review required"] == 1
     assert findings[0]["issue"] == "unexpected_trial_count"
     assert findings[0]["source_sha256"] == converted.source_sha256
+
+
+def test_atomic_events_write_honors_permissive_umask(tmp_path: Path) -> None:
+    key = RunKey("10001", "01", "trust", 1)
+    destination = event_path(tmp_path, key)
+    converted = ConvertedRun(
+        rows=[{"onset": 0.0, "duration": 1.0, "trial_type": "choice_friend"}],
+        columns=("onset", "duration", "trial_type"),
+        trial_count=1,
+    )
+    previous = os.umask(0)
+    try:
+        _atomic_write_tsv(destination, converted, overwrite=False, dry_run=False)
+    finally:
+        os.umask(previous)
+    assert destination.stat().st_mode & 0o777 == 0o666
 
 
 def test_audit_detects_changed_event_contents_even_when_row_count_matches(

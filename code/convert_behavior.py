@@ -16,6 +16,8 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from pipeline_utils import apply_umask_mode
+
 
 TASKS = ("sharedreward", "trust", "ugr", "socialdoors", "doors")
 STANDARD_RUNS = {
@@ -1163,6 +1165,7 @@ def _atomic_write_tsv(
                 writer.writerow(
                     {name: _format_value(row.get(name)) for name in converted.columns}
                 )
+        apply_umask_mode(Path(temporary))
         os.replace(temporary, path)
     finally:
         if os.path.exists(temporary):

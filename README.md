@@ -134,6 +134,20 @@ clone writes to its own `bids/`, `derivatives/`, and `logs/` directories.
 | TemplateFlow | `/ZPOOL/data/tools/templateflow` |
 | FreeSurfer license | `/ZPOOL/data/tools/licenses/fs_license.txt` |
 
+Production writers honor the inherited process umask. Atomic Python writers
+explicitly replace the forced-private `0600`/`0700` modes created by
+`mkstemp()`/`mkdtemp()` with the modes ordinary file or directory creation
+would receive. With the lab's `umask 0000`, generated files are `0666` and
+generated directories are `0777`. A umask does not retroactively repair older
+outputs. After pulling the permissions fix, repair the affected existing events
+and tracked events-QC outputs once on Linux2:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+find bids -type f -name '*_events.tsv' -exec chmod 0666 {} +
+chmod -R a+rwX qc/events/results
+```
+
 | Tool | Default location/configuration |
 | --- | --- |
 | HeuDiConv | `/ZPOOL/data/tools/heudiconv-1.4.0.sif` |

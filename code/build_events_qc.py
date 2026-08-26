@@ -16,6 +16,8 @@ from collections.abc import Iterable, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 
+from pipeline_utils import apply_umask_mode
+
 
 TASKS = ("sharedreward", "trust", "ugr", "socialdoors", "doors")
 EVENT_PATTERN = re.compile(
@@ -530,6 +532,7 @@ def run_build(args: argparse.Namespace) -> int:
     staging = Path(
         tempfile.mkdtemp(prefix=f".{output_dir.name}-", dir=output_dir.parent)
     )
+    apply_umask_mode(staging, directory=True)
     try:
         write_outputs(rows, staging, policy_path, args.sublist)
         if output_dir.exists():

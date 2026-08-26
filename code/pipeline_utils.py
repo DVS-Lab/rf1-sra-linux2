@@ -32,6 +32,18 @@ WARPKIT_FMAP_RE = re.compile(
 )
 
 
+def mode_from_umask(base_mode: int) -> int:
+    """Return the mode ordinary file creation would receive under this umask."""
+    current_umask = os.umask(0)
+    os.umask(current_umask)
+    return base_mode & ~current_umask
+
+
+def apply_umask_mode(path: Path, *, directory: bool = False) -> None:
+    """Undo tempfile's forced-private mode while preserving the process umask."""
+    os.chmod(path, mode_from_umask(0o777 if directory else 0o666))
+
+
 def read_subject_list(path: Path) -> list[str]:
     """Read subject IDs, ignoring blank lines and comments."""
     subjects: list[str] = []
@@ -185,6 +197,7 @@ def atomic_write_json(path: Path, data: dict) -> None:
         with os.fdopen(fd, "w") as tmp:
             json.dump(data, tmp, indent=2, sort_keys=True)
             tmp.write("\n")
+        apply_umask_mode(Path(tmp_name))
         Path(tmp_name).replace(path)
     finally:
         tmp_path = Path(tmp_name)

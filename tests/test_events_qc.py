@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -143,3 +144,27 @@ def test_build_and_check_detect_live_events_drift(tmp_path: Path) -> None:
         ["decision"] * 35 + ["decision-missed"] * 5,
     )
     assert run_check(argparse.Namespace(**common)) == 1
+
+
+def test_build_output_directory_honors_permissive_umask(tmp_path: Path) -> None:
+    bids = tmp_path / "bids"
+    write_events(event_path(bids, "10001", "doors"), ["decision"] * 40)
+    policy_path = tmp_path / "policy.json"
+    policy_path.write_text(json.dumps(policy()), encoding="utf-8")
+    output = tmp_path / "qc" / "events" / "results"
+    args = argparse.Namespace(
+        bids_root=bids,
+        output_dir=output,
+        policy=policy_path,
+        sublist=None,
+        excluded_source_root=tmp_path / "exclusions",
+        overwrite=False,
+        dry_run=False,
+    )
+    previous = os.umask(0)
+    try:
+        assert run_build(args) == 0
+    finally:
+        os.umask(previous)
+    assert output.stat().st_mode & 0o777 == 0o777
+    assert (output / "run_response_qc.tsv").stat().st_mode & 0o777 == 0o666

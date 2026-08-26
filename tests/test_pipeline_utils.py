@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
 CODE_DIR = Path(__file__).resolve().parents[1] / "code"
 
 from pipeline_utils import (  # noqa: E402
+    apply_umask_mode,
     atomic_write_json,
     choose_heuristic,
     collect_intended_for_updates,
@@ -70,6 +71,18 @@ def test_read_subject_list_ignores_blank_lines_comments_and_prefixes(tmp_path: P
     sublist = tmp_path / "subjects.txt"
     sublist.write_text("\n# comment\nsub-10001\n10002  # inline\n\n")
     assert read_subject_list(sublist) == ["10001", "10002"]
+
+
+def test_tempfile_mode_is_replaced_with_mode_allowed_by_umask(tmp_path: Path) -> None:
+    path = tmp_path / "private.tmp"
+    path.write_text("test")
+    path.chmod(0o600)
+    previous = os.umask(0o002)
+    try:
+        apply_umask_mode(path)
+    finally:
+        os.umask(previous)
+    assert path.stat().st_mode & 0o777 == 0o664
 
 
 def test_shell_subject_reader_skips_source_exclusions_unless_overridden(tmp_path: Path) -> None:

@@ -160,7 +160,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Session `_events.tsv` files and inheritance-compatible task-level events JSON sidecars.
 - Typical command: `python3 convert_behavior.py --subject 10001 --session 01 --overwrite`; add `--tasks sharedreward --run 1` for an exact reviewed run.
 - Checker: `python3 check_events.py --subject 10001 --session 01`.
-- Notes: Trust/UGR raw `run-0/run-1` translation, Shared Reward one-based `run-1/run-2`, and explicit/implicit session resolution are deliberate; ambiguous mappings fail. `--run` limits conversion to an exact BIDS run after review. Field-count mismatches, repeated headers, trial resets, onset resets, and internal malformed executed rows are hard failures. Explicit `ran=0` placeholders are omitted. A final interrupted trial may be omitted only when all later rows are explicit placeholders; the omission is reported and the resulting short run still needs exact fingerprint-bound approval. Shared Reward misses retain decision and feedback rows, Trust uses measured feedback offsets, and historical UGR cue timing is reconstructed from `decision_onset` and ISI after aggregate validation of the private logs.
+- Notes: Trust/UGR raw `run-0/run-1` translation, Shared Reward one-based `run-1/run-2`, and explicit/implicit session resolution are deliberate; ambiguous mappings fail. `--run` limits conversion to an exact BIDS run after review. Field-count mismatches, repeated headers, trial resets, onset resets, and internal malformed executed rows are hard failures. Explicit `ran=0` placeholders are omitted. A final interrupted trial may be omitted only when all later rows are explicit placeholders; the omission is reported and the resulting short run still needs exact fingerprint-bound approval. Shared Reward misses retain decision and feedback rows, Trust uses measured feedback offsets, and historical UGR cue timing is reconstructed from `decision_onset` and ISI after aggregate validation of the private logs. Atomic events writes preserve the permissions ordinary file creation would receive under the inherited umask instead of retaining `mkstemp()`'s private `0600` mode.
 
 ### `behavior_curation.tsv`
 - Status: Reviewed production exception registry.
@@ -314,7 +314,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: `qc/events/results/run_response_qc.tsv`, `review_candidates.tsv`, `qc/events/results/provenance.json`, and two PNG summaries.
 - Typical command: `"$QC_PYTHON" build_events_qc.py build --sublist "$PRODUCTION_LIST" --dry-run`, followed by `build --overwrite` after review.
 - Checker: `"$QC_PYTHON" build_events_qc.py check --sublist "$PRODUCTION_LIST"`.
-- Notes: The historical 25% Social Doors/Doors rule is reported across tasks as a review threshold, not an automatic cross-task exclusion. Terminal-failure and salvage flags require human review. This script never edits BIDS or imaging data, and its onset fields are not approved trimming boundaries.
+- Notes: The historical 25% Social Doors/Doors rule is reported across tasks as a review threshold, not an automatic cross-task exclusion. Terminal-failure and salvage flags require human review. This script never edits BIDS or imaging data, and its onset fields are not approved trimming boundaries. The atomically replaced results directory preserves the permissions ordinary directory creation would receive under the inherited umask instead of retaining `mkdtemp()`'s private `0700` mode.
 
 ### `run_fmriprep.sh`
 - Status: Production wrapper.
