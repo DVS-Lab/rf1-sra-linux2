@@ -8,7 +8,7 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
-As of 2026-08-24:
+As of 2026-08-26:
 
 - `qc/run_qc.tsv` inventories 2,729 acquired runs: 2,232 pass the cohort imaging
   rules, 490 have one or more Tukey outlier flags, and 7 are incomplete. These
@@ -17,8 +17,8 @@ As of 2026-08-24:
   pass the descriptive response rules and 32 require review. Twenty-five cross
   the current 25% miss threshold, 11 have a terminal miss streak, and 7 meet
   the descriptive salvage-candidate rule.
-- `docs/behavior-source-repairs.md` lists 18 missing behavioral sources and one
-  unresolved Trust mapping. Events must not be synthesized for these 19 runs.
+- `docs/behavior-source-repairs.md` lists 17 missing behavioral sources and one
+  unresolved Trust mapping. Events must not be synthesized for these 18 runs.
 - Technical repairs for fMRIPrep geometry, `sub-10585`, `sub-11891`,
   `sub-12018`, and the `sub-10929` fieldmap exception are complete and
   provenance-preserving. They should not be reopened without new evidence.
@@ -117,7 +117,7 @@ and their cohort thresholds must remain separate from the final decision.
   friend photo, invalidating both Shared Reward runs and Trust run 1. The team
   should confirm whether this is an intrinsic RF1 task invalidation that belongs
   in Linux2's canonical disposition rather than only in an aging-analysis table.
-- The 18 missing event sources and unresolved `12037` Trust mapping remain the
+- The 17 missing event sources and unresolved `12037` Trust mapping remain the
   authoritative source-repair queue in `docs/behavior-source-repairs.md`.
 
 ### Downstream Contract

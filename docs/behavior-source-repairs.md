@@ -27,6 +27,17 @@ events. Trial-level data remain in the private `rf1-sra` repository.
   runs and behaviorally poor Doors/Social Doors runs, have hash-bound curation
   entries and retain run-level QC flags.
 
+## Resolved 2026-08-26
+
+- `12032` Shared Reward run 2 contained two complete 54-trial segments. Git
+  provenance showed that the first segment was added during the `12036` scan
+  commit, before the later `12032` scan commit appended the second segment.
+  The first segment was moved without modification to the previously missing
+  `12036` Shared Reward run-2 source; the second remains the `12032` run-2
+  source. Both files independently produce 54 trials and 108 canonical event
+  rows with no conversion or review flags. This is a source-path correction,
+  not a trial-level inference.
+
 ## Remaining Source Questions
 
 These are missing or still ambiguous private behavior sources, not converter
@@ -35,7 +46,7 @@ after pulling both repositories; that audit is authoritative for the live BIDS
 inventory.
 
 - Shared Reward source missing: `11969` runs 1/2; `11984` run 1; `12020` run 1;
-  `11450`, `12036`, and `12037` run 2.
+  `11450` and `12037` run 2.
 - Trust source missing: `10486`, `10617`, `10668`, and `10974` run 2; `10836`,
   `11432`, `11450`, and `11772` run 1.
 - Trust mapping unresolved: `12037` run 2 has two complete segments appended to
@@ -45,9 +56,10 @@ inventory.
   the task's zero-based second run, not BIDS run 1.
 
 These expected blockers replace the earlier undifferentiated 71-row review
-count. The Linux2 post-resolution audit on 2026-08-23 confirmed exactly 19
-review rows: the 18 missing sources and one unresolved `12037` Trust mapping
-listed above. All 2,718 events files that can currently be resolved passed the
-checker. See
+count. The Linux2 post-resolution audit on 2026-08-23 confirmed 19 review rows;
+the `12036` Shared Reward run-2 source was subsequently recovered on 2026-08-26,
+leaving 18 expected rows: the 17 missing sources and one unresolved `12037`
+Trust mapping listed above. Re-run the Linux2 audit after installing the repair
+to refresh the live count. See
 [`logs/records/20260823-084907_events-post-resolution.md`](../logs/records/20260823-084907_events-post-resolution.md)
 for the tracked audit summary.
