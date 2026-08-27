@@ -91,9 +91,13 @@ then removal is confined to `derivatives/tedana-audit`.
 
 Native NSS-aware TEDANA denoised output has `T-N` volumes. The runner creates a
 separate audit-only full-grid image whose first `N` volumes come from the
-full-length fMRIPrep optcom and whose remaining volumes come from TEDANA. Shape,
-affine, voxel sizes, TR, volume counts, and both concatenated blocks are checked
-numerically. Event timing is not shifted.
+full-length, native-space `t2s-full` benchmark optcom and whose remaining
+volumes come from TEDANA. fMRIPrep does not retain a native-space non-echo
+optcom in this dataset, and its MNI-space optcom cannot be combined with native
+TEDANA output. The controlled TEDANA 26.0.3 `t2s-full` result is therefore the
+appropriate grid-matched reference. Shape, affine, voxel sizes, TR, volume
+counts, and both concatenated blocks are checked numerically. Event timing is
+not shifted.
 
 Each NSS-aware run also receives
 `*_desc-ICA_mixingFullGrid.tsv`: exactly `N` zero rows followed by the native

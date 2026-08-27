@@ -105,7 +105,6 @@ RUN_COLUMNS = (
     "echo_files",
     "echo_jsons",
     "fmriprep_mask",
-    "fmriprep_optcom",
     "fmriprep_confounds",
     "tedana_metrics",
     "tedana_mixing",
@@ -256,7 +255,7 @@ def detect_nss(confounds: pd.DataFrame) -> NssResult:
 def _numeric_column(confounds: pd.DataFrame, name: str, allow_initial_nan: bool) -> np.ndarray:
     if name not in confounds.columns:
         raise ValueError(f"missing confound column:{name}")
-    values = pd.to_numeric(confounds[name], errors="coerce").to_numpy(dtype=float)
+    values = pd.to_numeric(confounds[name], errors="coerce").to_numpy(dtype=float).copy()
     bad = np.flatnonzero(~np.isfinite(values))
     if len(bad):
         if allow_initial_nan and np.array_equal(bad, np.array([0])):
@@ -384,7 +383,7 @@ def validate_temporal_grid(
     reduced_data = np.asanyarray(reduced.dataobj)
     check_data = np.asanyarray(check.dataobj)
     if nss_count and not np.allclose(check_data[..., :nss_count], full_data[..., :nss_count]):
-        raise ValueError("restored NSS volumes differ from fMRIPrep optcom")
+        raise ValueError("restored NSS volumes differ from full-grid optcom reference")
     if not np.allclose(check_data[..., nss_count:], reduced_data):
         raise ValueError("restored steady-state volumes differ from TEDANA output")
 
@@ -473,7 +472,6 @@ def audit_run(
     echo_jsons = [func / f"{prefix}_echo-{echo}_part-mag_bold.json" for echo in range(1, 5)]
     confounds_path = ffunc / f"{prefix}_part-mag_desc-confounds_timeseries.tsv"
     mask_path = ffunc / f"{prefix}_part-mag_desc-brain_mask.nii.gz"
-    optcom_path = ffunc / f"{prefix}_part-mag_desc-preproc_bold.nii.gz"
     metrics_path = tfunc / f"{prefix}_desc-tedana_metrics.tsv"
     mixing_path = tfunc / f"{prefix}_desc-ICA_mixing.tsv"
     pca_metrics_path = tfunc / f"{prefix}_desc-PCA_metrics.tsv"
@@ -491,7 +489,6 @@ def audit_run(
         *((f"echo_{index}", path) for index, path in enumerate(echo_files, start=1)),
         ("confounds", confounds_path),
         ("fmriprep_mask", mask_path),
-        ("fmriprep_optcom", optcom_path),
         ("tedana_metrics", metrics_path),
         ("tedana_mixing", mixing_path),
     ):
@@ -682,7 +679,6 @@ def audit_run(
         "echo_files": ";".join(relative(path, project_root) for path in echo_files),
         "echo_jsons": ";".join(relative(path, project_root) for path in echo_jsons),
         "fmriprep_mask": relative(mask_path, project_root),
-        "fmriprep_optcom": relative(optcom_path, project_root),
         "fmriprep_confounds": relative(confounds_path, project_root),
         "tedana_metrics": relative(metrics_path, project_root),
         "tedana_mixing": relative(mixing_path, project_root),
@@ -1070,6 +1066,8 @@ def run_build(args: argparse.Namespace) -> int:
             "incomplete_run_count": sum(row["audit_status"] != "complete" for row in rows),
             "component_count": len(components),
             "sentinel_count": len(sentinels),
+            "sentinel_target": args.sentinel_target,
+            "sentinel_cap": args.sentinel_cap,
             "source_excluded_subject_count": len(excluded),
             "input_inventory_digest_path_size_mtime": _inventory_digest(inputs, project_root),
             "component_table": relative(component_output, project_root),
@@ -1137,9 +1135,25 @@ def run_check(args: argparse.Namespace) -> int:
         failures.append("run_count")
     if any(row.get("audit_status") not in {"complete", "incomplete"} for row in rows):
         failures.append("invalid_status")
+    complete_count = sum(row.get("audit_status") == "complete" for row in rows)
+    incomplete_count = sum(row.get("audit_status") == "incomplete" for row in rows)
+    if complete_count != provenance.get("complete_run_count"):
+        failures.append("complete_run_count")
+    if incomplete_count != provenance.get("incomplete_run_count"):
+        failures.append("incomplete_run_count")
+    if rows and complete_count == 0:
+        failures.append("zero_complete_runs")
     sentinels = read_tsv(output_dir / "sentinel_runs.tsv") if (output_dir / "sentinel_runs.tsv").is_file() else []
     if len(sentinels) != provenance.get("sentinel_count"):
         failures.append("sentinel_count")
+    expected_minimum = min(int(provenance.get("sentinel_target", 48)), complete_count)
+    if len(sentinels) < expected_minimum:
+        failures.append("too_few_sentinels")
+    complete_keys = {
+        row.get("run_key") for row in rows if row.get("audit_status") == "complete"
+    }
+    if any(row.get("run_key") not in complete_keys for row in sentinels):
+        failures.append("ineligible_sentinel")
     for failure in failures:
         print(f"FAILED {failure}")
     if failures:

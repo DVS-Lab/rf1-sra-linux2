@@ -72,7 +72,6 @@ def read_sentinels(path: Path) -> list[dict[str, str]]:
         "echo_times",
         "echo_files",
         "fmriprep_mask",
-        "fmriprep_optcom",
     }
     missing = required - set(rows[0] if rows else ())
     if missing:
@@ -164,7 +163,7 @@ def build_job(
     mask = project_root / row["fmriprep_mask"]
     if len(echo_files) != len(echo_times) or len(echo_files) < 3:
         raise ValueError(f"{run_key}: invalid echo files/times")
-    required = [*echo_files, mask, project_root / row["fmriprep_optcom"]]
+    required = [*echo_files, mask]
     missing = [path for path in required if not path.is_file()]
     if missing:
         raise ValueError(f"{run_key}: missing benchmark input(s): {', '.join(map(str, missing))}")
@@ -287,10 +286,6 @@ def run_one(job: Job, overwrite: bool) -> tuple[Job, str]:
         path.write_text(json.dumps(provenance, indent=2) + "\n")
         apply_umask_mode(path)
         if job.config.startswith("nss-"):
-            denoised = job.output_dir / f"{job.run_key}_desc-denoised_bold.nii.gz"
-            restored = job.output_dir / f"{job.run_key}_desc-denoisedFullGrid_bold.nii.gz"
-            full_optcom = job.project_root / job.row["fmriprep_optcom"]
-            restore_temporal_grid(full_optcom, denoised, int(job.row["nss_count"]), restored)
             mixing_path = job.output_dir / f"{job.run_key}_desc-ICA_mixing.tsv"
             padded_path = job.output_dir / f"{job.run_key}_desc-ICA_mixingFullGrid.tsv"
             mixing = pd.read_csv(mixing_path, sep="\t")
@@ -304,6 +299,25 @@ def run_one(job: Job, overwrite: bool) -> tuple[Job, str]:
         return job, "completed"
     finally:
         lock.rmdir()
+
+
+def t2s_full_reference(job: Job) -> Path:
+    benchmark_root = job.output_dir.parents[1]
+    return (
+        benchmark_root
+        / "t2s-full"
+        / job.run_key
+        / f"{job.run_key}_desc-optcom_bold.nii.gz"
+    )
+
+
+def finalize_nss_grid(job: Job) -> None:
+    reference = t2s_full_reference(job)
+    if not reference.is_file():
+        raise ValueError(f"missing completed t2s-full reference: {reference}")
+    denoised = job.output_dir / f"{job.run_key}_desc-denoised_bold.nii.gz"
+    restored = job.output_dir / f"{job.run_key}_desc-denoisedFullGrid_bold.nii.gz"
+    restore_temporal_grid(reference, denoised, int(job.row["nss_count"]), restored)
 
 
 def run_plan(args: argparse.Namespace) -> int:
@@ -329,6 +343,18 @@ def run_benchmark(args: argparse.Namespace) -> int:
             job, status = future.result()
             statuses.append((job, status))
             print(f"{status.upper()} {job.config} {job.run_key}", flush=True)
+    finalized: list[tuple[Job, str]] = []
+    for job, status in statuses:
+        if status.startswith("failed") or not job.config.startswith("nss-"):
+            finalized.append((job, status))
+            continue
+        try:
+            finalize_nss_grid(job)
+        except Exception as exc:
+            status = f"failed_full_grid:{exc}"
+            print(f"FAILED_FULL_GRID {job.config} {job.run_key}: {exc}", flush=True)
+        finalized.append((job, status))
+    statuses = finalized
     failures = [(job, status) for job, status in statuses if status.startswith("failed")]
     summary = audit_root / "benchmark_status.tsv"
     with summary.open("w", newline="") as handle:
@@ -379,7 +405,7 @@ def run_check(args: argparse.Namespace) -> int:
                 else:
                     try:
                         validate_temporal_grid(
-                            job.project_root / job.row["fmriprep_optcom"],
+                            t2s_full_reference(job),
                             denoised,
                             nss,
                             restored,

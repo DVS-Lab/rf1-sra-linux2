@@ -398,7 +398,7 @@ Each entry uses the same fields so operators can scan quickly.
 ### `audit_tedana.py`
 - Status: Read-only cohort scientific audit; not a production replacement.
 - Purpose: Inventory every acquired multi-echo task run, validate fMRIPrep NSS regressors, summarize historical TEDANA dimensionality/classification/variance, fit Motion24 to component timecourses, and choose a reproducible sentinel set.
-- Inputs: BIDS echo-2 run inventory and echo metadata, fMRIPrep echo images/confounds/native optcom/masks, historical `derivatives/tedana`, and the authoritative source-exclusion directory.
+- Inputs: BIDS echo-2 run inventory and echo metadata, fMRIPrep echo images/confounds/native masks, historical `derivatives/tedana`, and the authoritative source-exclusion directory.
 - Outputs: Tracked aggregate TSV/JSON/report/figures under `qc/tedana_audit`; ignored component rows under `derivatives/tedana-audit/current`.
 - Typical command: `"$AUDIT_PYTHON" audit_tedana.py build --overwrite`; preview with `build --dry-run`.
 - Checker: `"$AUDIT_PYTHON" audit_tedana.py check` verifies recorded checksums, row counts, and sentinel counts.
@@ -407,7 +407,7 @@ Each entry uses the same fields so operators can scan quickly.
 ### `benchmark_tedana.py`
 - Status: Isolated sentinel experiment; not production processing.
 - Purpose: Run controlled T2S-FULL versus T2S-EXCLUDE-NSS and NSS-aware FastICA versus RobustICA comparisons, reconstruct full-length audit images, and optionally calculate TEDANA-native Motion24 metrics without changing classifications.
-- Inputs: `qc/tedana_audit/sentinel_runs.tsv`, pinned TEDANA/t2smap 26.0.3 executables, fMRIPrep echo images/native masks/native optcom, and fMRIPrep confounds for optional motion metrics.
+- Inputs: `qc/tedana_audit/sentinel_runs.tsv`, pinned TEDANA/t2smap 26.0.3 executables, fMRIPrep echo images/native masks/confounds, and the completed audit-only `t2s-full` optcom used as the full-grid reference.
 - Outputs: Ignored per-configuration derivatives, logs, status, external regressors, and provenance under `derivatives/tedana-audit`.
 - Typical command: `"$AUDIT_PYTHON" benchmark_tedana.py plan`; then `"$AUDIT_PYTHON" benchmark_tedana.py run --configs t2s-full,t2s-exclude-nss,nss-fastica --jobs 2`.
 - Checker: `"$AUDIT_PYTHON" benchmark_tedana.py check --configs ...` verifies expected outputs, raw and restored volume counts, and motion-tree classification identity.

@@ -178,9 +178,7 @@ def sentinel_row(project: Path, nss: int = 2) -> dict[str, str]:
         path.touch()
         echo_files.append(path.relative_to(project).as_posix())
     mask = project / "derivatives" / "fmriprep" / "mask.nii.gz"
-    optcom = project / "derivatives" / "fmriprep" / "optcom.nii.gz"
     mask.touch()
-    optcom.touch()
     return {
         "run_key": prefix,
         "nss_count": str(nss),
@@ -188,7 +186,6 @@ def sentinel_row(project: Path, nss: int = 2) -> dict[str, str]:
         "echo_times": "0.0138;0.03154;0.04928;0.06702",
         "echo_files": ";".join(echo_files),
         "fmriprep_mask": mask.relative_to(project).as_posix(),
-        "fmriprep_optcom": optcom.relative_to(project).as_posix(),
         "fmriprep_confounds": "derivatives/fmriprep/confounds.tsv",
     }
 
@@ -281,7 +278,6 @@ def test_end_to_end_synthetic_audit_build_and_check(tmp_path: Path) -> None:
             data,
             affine,
         )
-    save_image(fmriprep_func / f"{prefix}_part-mag_desc-preproc_bold.nii.gz", data, affine)
     save_image(
         fmriprep_func / f"{prefix}_part-mag_desc-brain_mask.nii.gz",
         np.ones((2, 2, 2), dtype=np.float32),
