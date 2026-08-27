@@ -126,7 +126,11 @@ The optional `motion-fastica` and `motion-robustica` configurations are a later
 audit pass. They dynamically copy the packaged 26.0.3 `tedana_orig` tree, add
 Motion24 metric calculation, leave every decision node unchanged, and reuse the
 completed mixing matrix. The checker requires classifications to remain exactly
-identical to the corresponding ordinary NSS-aware run.
+identical to the corresponding ordinary NSS-aware run. Both supplied-matrix
+commands set `--ica-method fastica` because TEDANA does not rerun ICA when
+`--mix` is present, and TEDANA 26.0.3 otherwise attempts to report uninitialized
+RobustICA diagnostics. `motion-robustica` still reuses the RobustICA matrix; the
+FastICA argument is only a compatibility path for the metric-only pass.
 
 ## Linux2 Commands
 

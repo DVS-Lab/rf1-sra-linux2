@@ -248,6 +248,40 @@ def test_t2s_expected_files_match_tedana_bids_registry(tmp_path: Path) -> None:
     ]
 
 
+def test_motion_robustica_reuses_robust_matrix_via_safe_mix_path(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    audit_root = project / "derivatives" / "tedana-audit"
+    row = sentinel_row(project)
+    confounds = project / row["fmriprep_confounds"]
+    confounds.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(
+        {column: [0.0, 0.1, 0.2] for column in benchmark.MOTION24_COLUMNS}
+    ).to_csv(confounds, sep="\t", index=False)
+    source = audit_root / "benchmark" / "nss-robustica" / row["run_key"]
+    source.mkdir(parents=True)
+    mixing = source / f"{row['run_key']}_desc-ICA_mixing.tsv"
+    pd.DataFrame({"ICA_00": [0.0, 0.1, 0.2]}).to_csv(
+        mixing, sep="\t", index=False
+    )
+
+    job = benchmark.build_job(
+        project,
+        audit_root,
+        tmp_path / "tedana",
+        tmp_path / "t2smap",
+        audit_root / "config" / "tree.json",
+        row,
+        "motion-robustica",
+        robustica_threads=4,
+    )
+
+    assert job.command[job.command.index("--mix") + 1] == str(mixing)
+    assert job.command[job.command.index("--ica-method") + 1] == "fastica"
+    assert "--n-robust-runs" not in job.command
+
+
 def test_completed_job_backfills_provenance_before_skip(tmp_path: Path) -> None:
     project = tmp_path / "project"
     audit_root = project / "derivatives" / "tedana-audit"

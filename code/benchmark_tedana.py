@@ -228,12 +228,16 @@ def build_job(
             "tedana_orig",
             "--verbose",
         ]
-        method = "fastica" if config.endswith("fastica") else "robustica"
-        command.extend(("--ica-method", method))
-        if method == "robustica":
+        source_method = "fastica" if config.endswith("fastica") else "robustica"
+        # With --mix, TEDANA does not run ICA. TEDANA 26.0.3 nevertheless tries
+        # to report uninitialized RobustICA diagnostics when robustica is named,
+        # so supplied matrices must use the neutral FastICA execution path.
+        command_method = "fastica" if config in MOTION_CONFIGS else source_method
+        command.extend(("--ica-method", command_method))
+        if command_method == "robustica":
             command.extend(("--n-robust-runs", "30"))
         if config in MOTION_CONFIGS:
-            source_config = f"nss-{method}"
+            source_config = f"nss-{source_method}"
             source = audit_root / "benchmark" / source_config / run_key
             mixing = source / f"{run_key}_desc-ICA_mixing.tsv"
             motion_file = audit_root / "external" / run_key / f"{run_key}_motion24.tsv"
