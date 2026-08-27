@@ -155,6 +155,7 @@ def build_job(
     tree: Path,
     row: dict[str, str],
     config: str,
+    robustica_threads: int = 1,
 ) -> Job:
     run_key = row["run_key"]
     nss = int(row["nss_count"])
@@ -169,6 +170,7 @@ def build_job(
         raise ValueError(f"{run_key}: missing benchmark input(s): {', '.join(map(str, missing))}")
     output = audit_root / "benchmark" / config / run_key
     log = audit_root / "logs" / config / f"{run_key}.log"
+    n_threads = robustica_threads if config.endswith("robustica") else 1
     base = [
         "-d",
         *map(str, echo_files),
@@ -185,7 +187,7 @@ def build_job(
         "--fittype",
         "curvefit",
         "--n-threads",
-        "1",
+        str(n_threads),
     ]
     if config in {"t2s-full", "t2s-exclude-nss"}:
         command = [str(t2smap_command), *base, "--fitmode", "all", "--combmode", "t2s"]
@@ -231,6 +233,8 @@ def prepare_jobs(args: argparse.Namespace) -> tuple[list[Job], Path]:
         raise ValueError("benchmark requires TEDANA 26.0.3")
     if command_version(args.t2smap_command) != "26.0.3":
         raise ValueError("benchmark requires t2smap from TEDANA 26.0.3")
+    if args.robustica_threads < 1:
+        raise ValueError("--robustica-threads must be at least 1")
     rows = read_sentinels(args.sentinel_tsv)
     tree = audit_root / "config" / "tedana_orig_motion24_audit.json"
     if any(config in MOTION_CONFIGS for config in args.configs):
@@ -244,6 +248,7 @@ def prepare_jobs(args: argparse.Namespace) -> tuple[list[Job], Path]:
             tree,
             row,
             config,
+            args.robustica_threads,
         )
         for row in rows
         for config in args.configs
@@ -327,6 +332,7 @@ def run_plan(args: argparse.Namespace) -> int:
     for config in args.configs:
         print(f"  {config}: {sum(job.config == config for job in jobs)}")
     print(f"Audit root: {audit_root}")
+    print(f"RobustICA threads per job: {args.robustica_threads}")
     print("Production derivatives will not be modified.")
     if args.show_commands:
         for job in jobs:
@@ -339,7 +345,8 @@ def run_benchmark(args: argparse.Namespace) -> int:
     audit_root.mkdir(parents=True, exist_ok=True)
     statuses: list[tuple[Job, str]] = []
     print(
-        f"Queued {len(jobs)} benchmark job(s) with {args.jobs} run-level worker(s).",
+        f"Queued {len(jobs)} benchmark job(s) with {args.jobs} run-level worker(s); "
+        f"RobustICA receives {args.robustica_threads} thread(s) per job.",
         flush=True,
     )
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
@@ -465,6 +472,7 @@ def parser() -> argparse.ArgumentParser:
         child.add_argument("--audit-root", type=Path, default=repo / "derivatives" / "tedana-audit")
         child.add_argument("--tedana-command", type=Path, default=environment / "bin" / "tedana")
         child.add_argument("--t2smap-command", type=Path, default=environment / "bin" / "t2smap")
+        child.add_argument("--robustica-threads", type=int, default=1)
         child.add_argument("--configs", type=parse_configs, default=DEFAULT_CONFIGS)
     subparsers.choices["plan"].add_argument("--show-commands", action="store_true")
     run = subparsers.choices["run"]

@@ -84,12 +84,14 @@ The four initial configurations are:
 | `nss-fastica` | `--dummy-scans N`, curvefit, AIC, FastICA, seed 42, `tedana_orig`. |
 | `nss-robustica` | Same, with RobustICA and an explicit 30 robust runs. |
 
-TEDANA itself receives one thread per run; `--jobs` controls run-level
-parallelism. Jobs are queued run-first, so the requested configurations for a
-sentinel enter the queue together instead of making RobustICA wait behind every
-FastICA run. Existing complete outputs are skipped. An incomplete existing
-directory fails closed unless `--overwrite` is explicitly supplied, and even
-then removal is confined to `derivatives/tedana-audit`.
+`--jobs` controls run-level parallelism. T2* and FastICA jobs receive one thread.
+`--robustica-threads` is passed to RobustICA as its internal `n_jobs` value so
+its repeated ICA fits can run in parallel. Jobs are queued run-first, so the
+requested configurations for a sentinel enter the queue together instead of
+making RobustICA wait behind every FastICA run. Existing complete outputs are
+skipped. An incomplete existing directory fails closed unless `--overwrite` is
+explicitly supplied, and even then removal is confined to
+`derivatives/tedana-audit`.
 
 The live run log prints `STARTED` when a worker launches a command and reports
 its final status on completion. Near the end of a mixed benchmark, fewer than
@@ -186,10 +188,12 @@ nohup setsid -f -w \
     "$AUDIT_PYTHON" benchmark_tedana.py run \
       --sentinel-tsv "$PILOT" \
       --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica \
+      --robustica-threads 4 \
       --jobs 4 \
     --check "$AUDIT_PYTHON" benchmark_tedana.py check \
       --sentinel-tsv "$PILOT" \
       --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica \
+      --robustica-threads 4 \
   > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
 ```
 
@@ -203,14 +207,18 @@ nohup setsid -f -w \
   bash run_logged.sh --label "$STAMP" -- \
     "$AUDIT_PYTHON" benchmark_tedana.py run \
       --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica \
+      --robustica-threads 4 \
       --jobs 8 \
     --check "$AUDIT_PYTHON" benchmark_tedana.py check \
       --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica \
+      --robustica-threads 4 \
   > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
 ```
 
-Eight run-level jobs is a starting ceiling, not a target to exceed. Do not run
-the motion-audit configurations until both corresponding NSS-aware
+Eight run-level jobs with four RobustICA workers each is a starting ceiling of
+32 concurrent RobustICA workers, not a target to exceed. Monitor memory and
+load before changing either level. Do not run the motion-audit configurations
+until both corresponding NSS-aware
 decompositions have completed. Do not run full-cohort RobustICA from this
 workflow.
 

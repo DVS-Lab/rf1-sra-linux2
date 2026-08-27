@@ -201,7 +201,16 @@ def test_benchmark_commands_are_explicit_and_isolated(tmp_path: Path) -> None:
     full = benchmark.build_job(project, audit_root, tedana, t2smap, tree, row, "t2s-full")
     excluded = benchmark.build_job(project, audit_root, tedana, t2smap, tree, row, "t2s-exclude-nss")
     fast = benchmark.build_job(project, audit_root, tedana, t2smap, tree, row, "nss-fastica")
-    robust = benchmark.build_job(project, audit_root, tedana, t2smap, tree, row, "nss-robustica")
+    robust = benchmark.build_job(
+        project,
+        audit_root,
+        tedana,
+        t2smap,
+        tree,
+        row,
+        "nss-robustica",
+        robustica_threads=4,
+    )
 
     assert "--exclude" not in full.command
     assert excluded.command[excluded.command.index("--exclude") + 1] == "0:2"
@@ -214,6 +223,8 @@ def test_benchmark_commands_are_explicit_and_isolated(tmp_path: Path) -> None:
         assert job.command[job.command.index("--tree") + 1] == "tedana_orig"
     assert fast.command[fast.command.index("--ica-method") + 1] == "fastica"
     assert robust.command[robust.command.index("--ica-method") + 1] == "robustica"
+    assert fast.command[fast.command.index("--n-threads") + 1] == "1"
+    assert robust.command[robust.command.index("--n-threads") + 1] == "4"
     assert robust.command[robust.command.index("--n-robust-runs") + 1] == "30"
 
 
@@ -247,7 +258,7 @@ def test_prepare_jobs_queues_configs_together_per_run(
     monkeypatch.setattr(
         benchmark,
         "build_job",
-        lambda _project, _audit, _tedana, _t2smap, _tree, row, config: (
+        lambda _project, _audit, _tedana, _t2smap, _tree, row, config, _threads: (
             row["run_key"],
             config,
         ),
@@ -257,6 +268,7 @@ def test_prepare_jobs_queues_configs_together_per_run(
         audit_root=tmp_path / "derivatives" / "tedana-audit",
         tedana_command=Path("/usr/bin/tedana"),
         t2smap_command=Path("/usr/bin/t2smap"),
+        robustica_threads=4,
         sentinel_tsv=tmp_path / "sentinels.tsv",
         configs=configs,
     )
