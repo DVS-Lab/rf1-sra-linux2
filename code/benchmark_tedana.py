@@ -134,7 +134,7 @@ def expected_files(job: Job) -> tuple[Path, ...]:
     if job.config.startswith("t2s-"):
         return (
             job.output_dir / f"{prefix}_desc-optcom_bold.nii.gz",
-            job.output_dir / f"{prefix}_desc-T2starmap.nii.gz",
+            job.output_dir / f"{prefix}_T2starmap.nii.gz",
         )
     return (
         job.output_dir / f"{prefix}_desc-denoised_bold.nii.gz",

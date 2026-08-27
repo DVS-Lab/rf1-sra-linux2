@@ -91,6 +91,10 @@ FastICA run. Existing complete outputs are skipped. An incomplete existing
 directory fails closed unless `--overwrite` is explicitly supplied, and even
 then removal is confined to `derivatives/tedana-audit`.
 
+Under the BIDS convention, pinned TEDANA 26.0.3 `t2smap` names the optimally
+combined image `*_desc-optcom_bold.nii.gz` and the full T2* estimate
+`*_T2starmap.nii.gz`. Completion checks use those registry names exactly.
+
 Native NSS-aware TEDANA denoised output has `T-N` volumes. The runner creates a
 separate audit-only full-grid image whose first `N` volumes come from the
 full-length, native-space `t2s-full` benchmark optcom and whose remaining

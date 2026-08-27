@@ -217,6 +217,26 @@ def test_benchmark_commands_are_explicit_and_isolated(tmp_path: Path) -> None:
     assert robust.command[robust.command.index("--n-robust-runs") + 1] == "30"
 
 
+def test_t2s_expected_files_match_tedana_bids_registry(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    audit_root = project / "derivatives" / "tedana-audit"
+    row = sentinel_row(project)
+    job = benchmark.build_job(
+        project,
+        audit_root,
+        tmp_path / "tedana",
+        tmp_path / "t2smap",
+        audit_root / "config" / "tree.json",
+        row,
+        "t2s-full",
+    )
+
+    assert [path.name for path in benchmark.expected_files(job)] == [
+        f"{row['run_key']}_desc-optcom_bold.nii.gz",
+        f"{row['run_key']}_T2starmap.nii.gz",
+    ]
+
+
 def test_prepare_jobs_queues_configs_together_per_run(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
