@@ -1041,7 +1041,7 @@ def run_build(args: argparse.Namespace) -> int:
         components.extend(component_rows)
         inputs.extend(run_inputs)
         if index % 100 == 0:
-            print(f"Audited {index}/{len(inventory)} runs")
+            print(f"Audited {index}/{len(inventory)} runs", flush=True)
     summaries = summary_rows(rows)
     sentinels = select_sentinels(rows, args.sentinel_target, args.sentinel_cap)
     output_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -1096,13 +1096,19 @@ def run_build(args: argparse.Namespace) -> int:
         os.replace(stage, output_dir)
         os.replace(component_stage, component_output)
         apply_umask_mode(component_output)
-    print(f"Audited runs: {len(rows)}")
-    print(f"Complete audit rows: {sum(row['audit_status'] == 'complete' for row in rows)}")
-    print(f"Incomplete audit rows: {sum(row['audit_status'] != 'complete' for row in rows)}")
-    print(f"Component rows: {len(components)}")
-    print(f"Sentinel runs: {len(sentinels)}")
-    print(f"Tracked audit: {output_dir}")
-    print(f"Large component table: {component_output}")
+    print(f"Audited runs: {len(rows)}", flush=True)
+    print(
+        f"Complete audit rows: {sum(row['audit_status'] == 'complete' for row in rows)}",
+        flush=True,
+    )
+    print(
+        f"Incomplete audit rows: {sum(row['audit_status'] != 'complete' for row in rows)}",
+        flush=True,
+    )
+    print(f"Component rows: {len(components)}", flush=True)
+    print(f"Sentinel runs: {len(sentinels)}", flush=True)
+    print(f"Tracked audit: {output_dir}", flush=True)
+    print(f"Large component table: {component_output}", flush=True)
     return 0
 
 

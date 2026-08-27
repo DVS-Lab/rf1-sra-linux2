@@ -123,10 +123,15 @@ AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
 STAMP=tedana-cohort-audit-$(date +%Y%m%d-%H%M%S)
 nohup setsid -f -w \
   bash run_logged.sh --label "$STAMP" --include-full-log -- \
-    "$AUDIT_PYTHON" audit_tedana.py build --overwrite \
-    --check "$AUDIT_PYTHON" audit_tedana.py check \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" audit_tedana.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" audit_tedana.py check \
   > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
 ```
+
+Progress is printed every 100 runs. Generated tracked outputs are installed
+atomically only after the complete scan succeeds, so `git status` remains clean
+while the audit is running. The ignored raw log is live; the tracked compact
+run record is written when `run_logged.sh` finishes.
 
 Review `current_runs.tsv`, `sentinel_runs.tsv`, and `report.md` before starting
 the expensive benchmark. Then validate the exact plan:
