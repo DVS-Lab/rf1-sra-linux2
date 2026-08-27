@@ -269,6 +269,7 @@ def run_one(job: Job, overwrite: bool) -> tuple[Job, str]:
         with job.log_path.open("w") as log:
             log.write("COMMAND: " + shlex.join(job.command) + "\n\n")
             log.flush()
+            print(f"STARTED {job.config} {job.run_key}", flush=True)
             result = subprocess.run(job.command, stdout=log, stderr=subprocess.STDOUT)
         apply_umask_mode(job.log_path)
         if result.returncode:
@@ -337,6 +338,10 @@ def run_benchmark(args: argparse.Namespace) -> int:
     jobs, audit_root = prepare_jobs(args)
     audit_root.mkdir(parents=True, exist_ok=True)
     statuses: list[tuple[Job, str]] = []
+    print(
+        f"Queued {len(jobs)} benchmark job(s) with {args.jobs} run-level worker(s).",
+        flush=True,
+    )
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
         futures = {executor.submit(run_one, job, args.overwrite): job for job in jobs}
         for future in as_completed(futures):

@@ -91,6 +91,10 @@ FastICA run. Existing complete outputs are skipped. An incomplete existing
 directory fails closed unless `--overwrite` is explicitly supplied, and even
 then removal is confined to `derivatives/tedana-audit`.
 
+The live run log prints `STARTED` when a worker launches a command and reports
+its final status on completion. Near the end of a mixed benchmark, fewer than
+`--jobs` processes may remain simply because only long RobustICA jobs are left.
+
 Under the BIDS convention, pinned TEDANA 26.0.3 `t2smap` names the optimally
 combined image `*_desc-optcom_bold.nii.gz` and the full T2* estimate
 `*_T2starmap.nii.gz`. Completion checks use those registry names exactly.
