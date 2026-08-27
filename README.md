@@ -628,6 +628,12 @@ scientific report belong under `qc/tedana_audit/`. Do not modify production
 complete and reviewed. See the [TEDANA audit manual](qc/tedana_audit/README.md)
 for the staged Linux2 commands and interpretation gate.
 
+After all four sentinel configurations pass, `summarize_tedana_benchmark.py`
+builds the tracked paired T2*/optcom, ICA, and denoising comparisons. Its checker
+requires exact sentinel coverage, live-input provenance, finite metrics, and
+numerically identical `NSS=0` controls. These audit summaries remain an evidence
+gate, not a production configuration change.
+
 ## Full-Cohort Events Response QC
 
 After the canonical events backfill and `check_events.py` audit, build the

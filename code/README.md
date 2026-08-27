@@ -413,6 +413,15 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: `"$AUDIT_PYTHON" benchmark_tedana.py check --configs ...` verifies expected outputs, raw and restored volume counts, and motion-tree classification identity.
 - Notes: Every command explicitly sets curvefit and mask. T2* and FastICA jobs use one thread; `--robustica-threads` is passed to RobustICA as `n_jobs` for its 30 repeated ICA fits. Decomposition commands also set AIC, seed 42, ICA method, and `tedana_orig`. Requested configurations are queued together per sentinel so RobustICA does not wait behind every faster configuration. NSS-aware runs receive a numerically validated full-grid image and a zero-padded full-grid ICA matrix. Existing complete jobs skip, incomplete directories fail closed, and all removal/output paths are confined to `derivatives/tedana-audit`. Begin with the documented four-run pilot; never launch a full-cohort RobustICA rerun from this tool.
 
+### `summarize_tedana_benchmark.py`
+- Status: Read-only sentinel comparison and interpretation gate; not production processing.
+- Purpose: Build paired T2*/optimal-combination, historical/FastICA/RobustICA, and steady-state denoising summaries plus a focused component-review manifest.
+- Inputs: `qc/tedana_audit/sentinel_runs.tsv`, completed four-configuration outputs under `derivatives/tedana-audit/benchmark`, and the sentinel fMRIPrep masks/confounds.
+- Outputs: Tracked TSVs, figures, report, and provenance under `qc/tedana_audit/benchmark`.
+- Typical command: `"$AUDIT_PYTHON" summarize_tedana_benchmark.py build --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" summarize_tedana_benchmark.py check` verifies input provenance, output checksums, exact run identities, finite metrics, and row counts.
+- Notes: The two `NSS=0` T2S configurations must be numerically identical and fail closed otherwise. Denoising metrics use only steady-state volumes. Motion24 is fitted only to the denoised global signal in this stage; it does not alter classifications. The report is descriptive and cannot by itself modify production TEDANA, confounds, or QC policy.
+
 ### `genTedanaConfounds.py`
 - Status: Production helper.
 - Purpose: Build FSL-ready confound TSVs from TEDANA and fMRIPrep outputs.

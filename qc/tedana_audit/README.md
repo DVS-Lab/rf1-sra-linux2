@@ -229,9 +229,39 @@ workflow.
 
 ## Interpretation Gate
 
-The initial benchmark is evidence gathering, not a production migration. After
-it completes, the next code pass will calculate paired T2*/optcom effects,
-FastICA-versus-RobustICA summaries, denoising metrics, and the focused component
-review manifest. Only that reviewed report can recommend changes to
-`tedana.sh`, `genTedanaConfounds.py`, the canonical TEDANA QC metric, or an
-fMRIPrep issue.
+The initial benchmark is evidence gathering, not a production migration. Once
+the four-configuration checker passes, build the paired interpretation outputs:
+
+```bash
+"$AUDIT_PYTHON" summarize_tedana_benchmark.py build --dry-run
+
+STAMP=tedana-benchmark-summary-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      summarize_tedana_benchmark.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      summarize_tedana_benchmark.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+The builder processes the 51 sentinels serially to keep memory predictable. It
+writes nothing to the tracked output directory until every image pair and ICA
+table has passed. The strict `NSS=0` controls must be numerically identical.
+Tracked outputs under `qc/tedana_audit/benchmark/` include:
+
+- `paired_t2s.tsv`: T2* and full-length optcom effects of excluding NSS from
+  estimation;
+- `paired_ica.tsv`: historical, NSS-aware FastICA, and NSS-aware RobustICA
+  decomposition summaries;
+- `paired_denoising.tsv`: steady-state tSNR, variance removal, DVARS,
+  FD-DVARS, Motion24 global-signal fit, and FastICA/RobustICA image similarity;
+- `review_manifest.tsv`: high-priority rejected components and RobustICA
+  index-quality warnings;
+- `figures/`, `report.md`, and checksum/input provenance.
+
+Review the paired tables, figures, and component manifest before launching the
+optional motion-audit configurations. Only that reviewed evidence can recommend
+changes to `tedana.sh`, `genTedanaConfounds.py`, the canonical TEDANA QC metric,
+or an fMRIPrep issue. A successful checker does not authorize those changes or
+a full-cohort RobustICA run.
