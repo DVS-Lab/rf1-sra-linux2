@@ -1,0 +1,27 @@
+{
+  "classifications_changed": false,
+  "component_count": 4736,
+  "component_table": "derivatives/tedana-audit/motion24_components.tsv",
+  "component_table_sha256": "833498ac0adaebad7ed80ca0142007c297c6d3322822642d19593a86fc8edc61",
+  "generated_at": "2026-08-27T16:19:15.159042+00:00",
+  "input_inventory_digest_path_size_mtime": "211b0d06b61cc304b05f37c02c0d73863a15a585153df89a6ce02929dbc2fed3",
+  "motion_thresholds_are_descriptive": [
+    0.1,
+    0.25,
+    0.5
+  ],
+  "outputs": {
+    "figures/motion24_by_classification.png": "c007607ed19030bcb8dd64ba70eadb06d448ecd841593eaf04ab4f48709c3e61",
+    "figures/motion24_vs_variance.png": "67750e27137c4391f816af58bf71d7f14bd6a49c87175155f0f7efbdfba0a5d4",
+    "report.md": "9eac68fa2737ad0a988d93bf652fb32e88a72269ca388a2f945f9ddc8a97582e",
+    "review_manifest.tsv": "34926eecff44fea62e238eda9ca34760726a476a473da6329c7ac73baa8fed09",
+    "summary_by_run_classification.tsv": "d024c378a38d246bcd4908f26035eca8209f7c0da3520a3f0858b5c44f261a12",
+    "summary_by_task.tsv": "590ef782cb492b2eea097f65b4477631d8c8b08e020d377021314d4a50735e23"
+  },
+  "production_derivatives_modified": false,
+  "schema_version": 1,
+  "sentinel_count": 51,
+  "sentinel_manifest": "qc/tedana_audit/sentinel_runs.tsv",
+  "sentinel_manifest_sha256": "9095bad26986f775cbc9d434ea0a22a929618aa2bdd2f63e0180511ed8c21391",
+  "task_regressors_used": false
+}
