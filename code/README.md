@@ -422,6 +422,15 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: `"$AUDIT_PYTHON" summarize_tedana_benchmark.py check` verifies input provenance, output checksums, exact run identities, finite metrics, and row counts.
 - Notes: The two `NSS=0` T2S configurations must be numerically identical and fail closed otherwise. Raw T2* Pearson correlation is retained alongside log-scale Pearson, rank correlation, and voxelwise percent-difference summaries because sparse extreme fits can dominate the raw statistic. Denoising metrics use only steady-state volumes. Motion24 is fitted only to the denoised global signal in this stage; it does not alter classifications. Report and component-figure paths are validated when present. The report is descriptive and cannot by itself modify production TEDANA, confounds, or QC policy.
 
+### `summarize_tedana_motion.py`
+- Status: Read-only Motion24 interpretation gate; not production processing.
+- Purpose: Verify classification identity, collect TEDANA-native Motion24 R-squared/F/p metrics, summarize them by run/task/classification, and select focused component-review candidates.
+- Inputs: `qc/tedana_audit/sentinel_runs.tsv` plus completed ordinary and Motion24 FastICA/RobustICA outputs under `derivatives/tedana-audit/benchmark`.
+- Outputs: An ignored component table at `derivatives/tedana-audit/motion24_components.tsv` and tracked summaries, figures, review manifest, report, and provenance under `qc/tedana_audit/motion`.
+- Typical command: `"$AUDIT_PYTHON" summarize_tedana_motion.py build --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" summarize_tedana_motion.py check` verifies exact sentinel/configuration coverage, classification identity, live-input provenance, and output checksums.
+- Notes: Motion24 does not participate in any decision node. R-squared values of 0.10, 0.25, and 0.50 are descriptive summaries only. The review manifest prioritizes accepted high-motion, rejected low-motion, and high-variance rejected components; human review is required before any policy change.
+
 ### `genTedanaConfounds.py`
 - Status: Production helper.
 - Purpose: Build FSL-ready confound TSVs from TEDANA and fMRIPrep outputs.

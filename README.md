@@ -634,6 +634,12 @@ requires exact sentinel coverage, live-input provenance, finite metrics, and
 numerically identical `NSS=0` controls. These audit summaries remain an evidence
 gate, not a production configuration change.
 
+After the optional Motion24 FastICA and RobustICA passes validate,
+`summarize_tedana_motion.py` builds tracked run/task summaries and a compact
+component-review manifest while retaining the complete component table under
+ignored audit derivatives. Its descriptive Motion24 thresholds do not alter
+classification or authorize a production migration.
+
 ## Full-Cohort Events Response QC
 
 After the canonical events backfill and `check_events.py` audit, build the

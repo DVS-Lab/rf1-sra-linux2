@@ -270,3 +270,33 @@ optional motion-audit configurations. Only that reviewed evidence can recommend
 changes to `tedana.sh`, `genTedanaConfounds.py`, the canonical TEDANA QC metric,
 or an fMRIPrep issue. A successful checker does not authorize those changes or
 a full-cohort RobustICA run.
+
+## Motion24 Interpretation
+
+After both `motion-fastica` and `motion-robustica` pass the combined checker,
+build the component-level Motion24 interpretation outputs:
+
+```bash
+"$AUDIT_PYTHON" summarize_tedana_motion.py build --dry-run
+
+STAMP=tedana-motion-summary-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      summarize_tedana_motion.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      summarize_tedana_motion.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+The complete component table remains ignored at
+`derivatives/tedana-audit/motion24_components.tsv`. Tracked outputs under
+`qc/tedana_audit/motion/` include run/classification and task summaries, two
+figures, a compact review manifest, a report, and checksum/input provenance.
+The manifest selects each run/configuration's highest-motion accepted
+component, lowest-motion rejected component, and largest-variance rejected
+component, combining duplicate selections.
+
+Counts above Motion24 R-squared values 0.10, 0.25, and 0.50 are descriptive.
+They are not decision thresholds, and this stage cannot alter classification,
+denoising, production TEDANA, or confound generation.
