@@ -343,6 +343,10 @@ The full-cohort design audit is independent of that rerun and may be launched
 separately. It reads production files but writes only tracked audit summaries:
 
 ```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+mkdir -p ../logs/runs
+AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+
 "$AUDIT_PYTHON" audit_tedana_design.py build --dry-run
 
 STAMP=tedana-design-audit-$(date +%Y%m%d-%H%M%S)
@@ -365,6 +369,10 @@ without rerunning ICA.
 After the `full-fastica` checker passes, build the matched sentinel summary:
 
 ```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+mkdir -p ../logs/runs
+AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+
 "$AUDIT_PYTHON" summarize_tedana_dimensionality.py build --dry-run
 
 STAMP=tedana-dimensionality-summary-$(date +%Y%m%d-%H%M%S)
