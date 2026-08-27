@@ -420,7 +420,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Tracked TSVs, figures, report, and provenance under `qc/tedana_audit/benchmark`.
 - Typical command: `"$AUDIT_PYTHON" summarize_tedana_benchmark.py build --overwrite`; preview with `build --dry-run`.
 - Checker: `"$AUDIT_PYTHON" summarize_tedana_benchmark.py check` verifies input provenance, output checksums, exact run identities, finite metrics, and row counts.
-- Notes: The two `NSS=0` T2S configurations must be numerically identical and fail closed otherwise. Denoising metrics use only steady-state volumes. Motion24 is fitted only to the denoised global signal in this stage; it does not alter classifications. The report is descriptive and cannot by itself modify production TEDANA, confounds, or QC policy.
+- Notes: The two `NSS=0` T2S configurations must be numerically identical and fail closed otherwise. Raw T2* Pearson correlation is retained alongside log-scale Pearson, rank correlation, and voxelwise percent-difference summaries because sparse extreme fits can dominate the raw statistic. Denoising metrics use only steady-state volumes. Motion24 is fitted only to the denoised global signal in this stage; it does not alter classifications. Report and component-figure paths are validated when present. The report is descriptive and cannot by itself modify production TEDANA, confounds, or QC policy.
 
 ### `genTedanaConfounds.py`
 - Status: Production helper.

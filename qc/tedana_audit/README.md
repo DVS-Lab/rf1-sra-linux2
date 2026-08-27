@@ -251,7 +251,8 @@ table has passed. The strict `NSS=0` controls must be numerically identical.
 Tracked outputs under `qc/tedana_audit/benchmark/` include:
 
 - `paired_t2s.tsv`: T2* and full-length optcom effects of excluding NSS from
-  estimation;
+  estimation, including raw, log-scale, rank, and voxelwise percent-difference
+  comparisons so sparse extreme T2* fits do not control interpretation;
 - `paired_ica.tsv`: historical, NSS-aware FastICA, and NSS-aware RobustICA
   decomposition summaries;
 - `paired_denoising.tsv`: steady-state tSNR, variance removal, DVARS,

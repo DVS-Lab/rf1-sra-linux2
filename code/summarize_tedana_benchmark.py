@@ -33,9 +33,14 @@ T2_COLUMNS = (
     "selection_reason",
     "n_valid_t2_voxels",
     "t2star_spatial_correlation",
+    "t2star_log_spatial_correlation",
+    "t2star_spearman_correlation",
     "t2star_median_absolute_difference_seconds",
     "t2star_median_absolute_percent_difference",
     "t2star_p95_absolute_percent_difference",
+    "t2star_fraction_absolute_percent_difference_gt_1",
+    "t2star_fraction_absolute_percent_difference_gt_5",
+    "t2star_fraction_absolute_percent_difference_gt_10",
     "t2star_rmse_seconds",
     "n_valid_optcom_voxels",
     "optcom_median_voxelwise_temporal_correlation",
@@ -127,6 +132,7 @@ REVIEW_COLUMNS = (
     "reason_for_review",
     "metrics_path",
     "report_path",
+    "component_figure_path",
 )
 
 OUTPUTS = (
@@ -399,9 +405,20 @@ def compare_t2s(project: Path, audit_root: Path, row: dict[str, str]) -> dict[st
         "selection_reason": row.get("selection_reason", ""),
         "n_valid_t2_voxels": len(x_t2),
         "t2star_spatial_correlation": _correlation(x_t2, y_t2),
+        "t2star_log_spatial_correlation": _correlation(np.log(x_t2), np.log(y_t2)),
+        "t2star_spearman_correlation": _spearman(x_t2, y_t2),
         "t2star_median_absolute_difference_seconds": float(np.median(np.abs(t2_diff))),
         "t2star_median_absolute_percent_difference": float(np.median(t2_percent)),
         "t2star_p95_absolute_percent_difference": float(np.quantile(t2_percent, 0.95)),
+        "t2star_fraction_absolute_percent_difference_gt_1": float(
+            np.mean(t2_percent > 1)
+        ),
+        "t2star_fraction_absolute_percent_difference_gt_5": float(
+            np.mean(t2_percent > 5)
+        ),
+        "t2star_fraction_absolute_percent_difference_gt_10": float(
+            np.mean(t2_percent > 10)
+        ),
         "t2star_rmse_seconds": float(np.sqrt(np.mean(t2_diff**2))),
         "n_valid_optcom_voxels": len(x),
         "optcom_median_voxelwise_temporal_correlation": float(np.nanmedian(temporal)),
@@ -487,8 +504,21 @@ def _review_row(
         / (f"{row['run_key']}_desc-tedana_metrics.tsv")
     )
     metrics = metrics_absolute.relative_to(project)
-    report_absolute = metrics_absolute.parent / "tedana_report.html"
+    report_absolute = metrics_absolute.parent / f"{row['run_key']}_tedana_report.html"
     report = report_absolute.relative_to(project)
+    component_value = (
+        metric_row.get(component_column, metric_row.name)
+        if component_column is not None
+        else metric_row.name
+    )
+    component_match = "".join(
+        character for character in str(component_value) if character.isdigit()
+    )
+    component_figure_absolute = (
+        metrics_absolute.parent / "figures" / f"comp_{int(component_match):03d}.png"
+        if component_match
+        else None
+    )
     return {
         "subject": row["subject"],
         "session": row["session"],
@@ -496,11 +526,7 @@ def _review_row(
         "run": row["run"],
         "run_key": row["run_key"],
         "configuration": config,
-        "component": (
-            metric_row.get(component_column, metric_row.name)
-            if component_column is not None
-            else metric_row.name
-        ),
+        "component": component_value,
         "classification": target,
         "normalized_variance_fraction": metric_row["_normalized_variance_fraction"],
         "kappa": metric_row.get(normalized.get("kappa", ""), ""),
@@ -508,6 +534,12 @@ def _review_row(
         "reason_for_review": reason,
         "metrics_path": metrics.as_posix(),
         "report_path": report.as_posix() if report_absolute.is_file() else "",
+        "component_figure_path": (
+            component_figure_absolute.relative_to(project).as_posix()
+            if component_figure_absolute is not None
+            and component_figure_absolute.is_file()
+            else ""
+        ),
     }
 
 
@@ -799,13 +831,18 @@ def _plot_outputs(
     from matplotlib import pyplot as plt
 
     root.mkdir(parents=True, exist_ok=True)
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    fig, axes = plt.subplots(2, 3, figsize=(14, 8))
     t2_metrics = (
         (
             "t2star_median_absolute_percent_difference",
             "Median absolute T2* difference (%)",
         ),
-        ("t2star_spatial_correlation", "T2* spatial correlation"),
+        ("t2star_spatial_correlation", "Raw T2* spatial correlation"),
+        ("t2star_log_spatial_correlation", "Log T2* spatial correlation"),
+        (
+            "t2star_fraction_absolute_percent_difference_gt_5",
+            "T2* voxel fraction with >5% difference",
+        ),
         ("optcom_normalized_rmse", "Optcom normalized RMSE"),
         ("optcom_median_tsnr_difference", "Optcom median tSNR difference"),
     )
@@ -973,7 +1010,9 @@ def make_report(
         "## T2*/Optimal Combination",
         "",
         f"- T2* median absolute percent difference: {_format_summary([row['t2star_median_absolute_percent_difference'] for row in t2_rows])}",
-        f"- T2* spatial correlation: {_format_summary([row['t2star_spatial_correlation'] for row in t2_rows], 6)}",
+        f"- T2* raw spatial correlation: {_format_summary([row['t2star_spatial_correlation'] for row in t2_rows], 6)}",
+        f"- T2* log spatial correlation: {_format_summary([row['t2star_log_spatial_correlation'] for row in t2_rows], 6)}",
+        f"- T2* voxel fraction with >5% absolute difference: {_format_summary([row['t2star_fraction_absolute_percent_difference_gt_5'] for row in t2_rows], 6)}",
         f"- Optcom normalized RMSE: {_format_summary([row['optcom_normalized_rmse'] for row in t2_rows], 6)}",
         f"- Optcom median voxelwise temporal correlation: {_format_summary([row['optcom_median_voxelwise_temporal_correlation'] for row in t2_rows], 6)}",
         "",

@@ -139,6 +139,11 @@ def create_run_inputs(
         denoised = temporal_mean + scale * (native_optcom - temporal_mean)
         save_image(directory / f"{key}_desc-optcom_bold.nii.gz", native_optcom)
         save_image(directory / f"{key}_desc-denoised_bold.nii.gz", denoised)
+        (directory / f"{key}_tedana_report.html").write_text("<html>synthetic</html>\n")
+        for component in range(3):
+            figure = directory / "figures" / f"comp_{component:03d}.png"
+            figure.parent.mkdir(parents=True, exist_ok=True)
+            figure.write_bytes(b"synthetic figure")
     cross = (
         audit_root
         / "benchmark"
@@ -224,9 +229,15 @@ def test_end_to_end_summary_build_and_check(tmp_path: Path) -> None:
     assert float(
         t2_rows[1]["t2star_median_absolute_percent_difference"]
     ) == pytest.approx(10.0, rel=1e-5)
+    assert float(t2_rows[1]["t2star_log_spatial_correlation"]) == pytest.approx(1.0)
+    assert float(
+        t2_rows[1]["t2star_fraction_absolute_percent_difference_gt_5"]
+    ) == pytest.approx(1.0)
     assert float(ica_rows[0]["robustica_minus_fastica_n_ica"]) == -1
     assert float(denoising_rows[0]["robustica_minus_fastica_denoised_tsnr"]) != 0
     assert len(review_rows) == 5
+    assert all(row["report_path"] for row in review_rows)
+    assert all(row["component_figure_path"] for row in review_rows)
     assert (output / "figures" / "t2star_nss_effect.png").is_file()
     assert "production TEDANA outputs" in (output / "report.md").read_text()
 
