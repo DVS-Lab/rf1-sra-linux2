@@ -1,0 +1,4 @@
+software_versions	n_runs	n_complete	median_pca_components	p95_pca_components	median_rejected_components	p95_rejected_components	median_combined_rank_fraction	p95_combined_rank_fraction	median_residual_df_before_task	n_pca_more_than_half_timepoints	n_aic_explains_more_than_98_percent	n_rejected_components_gte_75	n_combined_rank_fraction_gte_0_30	n_residual_df_lt_100
+syngo MR E11	1556	1556	27.0	57.0	10.0	18.0	0.12385321100917432	0.16059141546526867	215.0	6	1	0	0	0
+syngo MR XA30	140	140	29.0	72.19999999999993	12.0	21.14999999999995	0.12941176470588237	0.17286652275589123	210.0	3	0	0	0	0
+syngo MR XA60	1045	1041	40.0	88.0	24.0	69.0	0.1803921568627451	0.3607142857142857	197.0	5	0	35	121	1

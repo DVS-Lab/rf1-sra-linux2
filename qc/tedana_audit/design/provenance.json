@@ -1,0 +1,22 @@
+{
+  "complete_rows": 2737,
+  "current_runs": "qc/tedana_audit/current_runs.tsv",
+  "current_runs_sha256": "ca141dfe4b856a1dacaa55b8aa00fb701499211995819b464b9ee4ba5086d0a4",
+  "generated_at": "2026-08-27T19:18:28.981809+00:00",
+  "input_inventory_digest_path_size_mtime": "75abafa39c2dd0e0e07c28eec2687a78c98b7df528b0ca4821d53f48d33f68e1",
+  "inventory_rows": 2741,
+  "outputs": {
+    "cohort_design_burden.tsv": "07e88da819c237578bc83d5b26a5affcb46a4aa28d048b9d296a54cce0c41dc1",
+    "figures/design_burden.png": "60ba94634ef6db32916fc44e4209e7108bfd8243a8b9443376ea89572a51823d",
+    "pca_method_benchmark.tsv": "42434414fd13ccb827b2f5de900d72c45747201f5618cf289b51a437e3c6f909",
+    "report.md": "0c4599749543e175fe72f01b73273e361436c05d7394f03601bd13a74e2faffb",
+    "review_runs.tsv": "4900ed90d2c5c4657c52dd16586776583678c386dbf8b37df37f6a7877cebedc",
+    "summary_by_scanner.tsv": "f62905d558a1a75ea30bf9b9eb5a031b0b0ad24cb78b1fdef87174acabccae40"
+  },
+  "pca_method_benchmark_rows": 20,
+  "production_derivatives_modified": false,
+  "review_rows": 134,
+  "schema_version": 1,
+  "task_regressors_used": false,
+  "thresholds_are_automatic_exclusions": false
+}
