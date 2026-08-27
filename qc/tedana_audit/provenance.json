@@ -1,8 +1,8 @@
 {
-  "complete_run_count": 0,
+  "complete_run_count": 2737,
   "component_count": 98719,
   "component_table": "derivatives/tedana-audit/current/current_components.tsv",
-  "component_table_sha256": "935502330d640768bdc1572151bde0450eef25e4d8f1c7485d40b01dfcfcf0b8",
+  "component_table_sha256": "276f91db8db0407bab368694863b751acaeba9596c4201bbd1f327126278fcd1",
   "constraints": {
     "classifications_changed": false,
     "nss_authority": "fMRIPrep non_steady_state_outlier regressors",
@@ -10,23 +10,25 @@
     "task_regressors_used": false
   },
   "fmriprep_version": "25.2.5",
-  "generated_at": "2026-08-27T02:22:41+00:00",
-  "incomplete_run_count": 2741,
+  "generated_at": "2026-08-27T02:36:15+00:00",
+  "incomplete_run_count": 4,
   "input_inventory_digest_path_size_mtime": "b4ed1eefc9c2eab5495babc2098c22024b3fc5007d7c5c8eaa17ee0e2f79c059",
   "outputs": {
-    "current_runs.tsv": "9a3ba357b1b49b5ae9fb2619c8b494d2aade18fb60192d4de2b903e41a8b6cc9",
-    "figures/dimensionality.png": "c158f39433bd4feb040a10695be01c43dc3dcfd4ab3682f8fc961c8d7b9c4db5",
-    "figures/motion.png": "b987f7649873eb4914b6f7ec7fc8eb49949ec7c89b097c7d09301a9c6dec2468",
-    "figures/nss.png": "3533a324b4632b028b5947676ed64adec584fe668f23443d8a435040582d5ff4",
-    "report.md": "82411dfc804068700c8adb061c5f0dd63d415ead8efff43d1c7ddbae0b60f794",
-    "sentinel_runs.tsv": "f279707efe304fcf953037bfed694ec82aed072cf33eb1ad9ccbdc4890b4538e",
-    "summary_by_task.tsv": "8216faadb805150aae6907a352cb52309119a3e522189807afee8599a8a3e795"
+    "current_runs.tsv": "ca141dfe4b856a1dacaa55b8aa00fb701499211995819b464b9ee4ba5086d0a4",
+    "figures/dimensionality.png": "6d337324fb7b7919ff84af5cba0956affb7fde07281acff90fe5c660f9dbdbb1",
+    "figures/motion.png": "ae79171a1490ab542b3dca3235c0429fe6bff30cb8bbe8c48fe175599294a6e4",
+    "figures/nss.png": "92dbdcfd99c20fb669fc4c1a66843dd36be46eebe5e97dbfd28e2e1812943e04",
+    "report.md": "5bf374fa6040f88e36a6de21435032c736742450d4f16d9c8bfda71b6e36e000",
+    "sentinel_runs.tsv": "9095bad26986f775cbc9d434ea0a22a929618aa2bdd2f63e0180511ed8c21391",
+    "summary_by_task.tsv": "4bec20fce0e593f9e5d9752c484b12e9888e87c41a287ae6e09d1edb10d2a30e"
   },
   "production_baseline": true,
   "project_root": "/ZPOOL/data/projects/rf1-sra-linux2",
   "run_count": 2741,
   "schema_version": 1,
-  "sentinel_count": 0,
+  "sentinel_cap": 64,
+  "sentinel_count": 51,
+  "sentinel_target": 48,
   "source_excluded_subject_count": 12,
   "tedana_command": "/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/tedana",
   "tedana_version": "26.0.3"
