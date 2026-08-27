@@ -84,6 +84,19 @@ The four initial configurations are:
 | `nss-fastica` | `--dummy-scans N`, curvefit, AIC, FastICA, seed 42, `tedana_orig`. |
 | `nss-robustica` | Same, with RobustICA and an explicit 30 robust runs. |
 
+Three additional configurations are intentionally opt-in:
+
+| Configuration | Purpose |
+| --- | --- |
+| `full-fastica` | Exact AIC/FastICA match to `nss-fastica`, except `--dummy-scans 0`; this isolates the NSS effect. |
+| `nss-kic-fastica` | Targeted NSS-aware KIC sensitivity condition. |
+| `nss-mdl-fastica` | Targeted NSS-aware MDL sensitivity condition. |
+
+The historical production-versus-`nss-fastica` comparison is not a clean NSS
+experiment because production TEDANA did not receive the same explicit
+fMRIPrep mask. Only `full-fastica` versus `nss-fastica` can be interpreted as
+the effect of validated initial NSS removal.
+
 `--jobs` controls run-level parallelism. T2* and FastICA jobs receive one thread.
 `--robustica-threads` is passed to RobustICA as its internal `n_jobs` value so
 its repeated ICA fits can run in parallel. Jobs are queued run-first, so the
@@ -300,3 +313,118 @@ component, combining duplicate selections.
 Counts above Motion24 R-squared values 0.10, 0.25, and 0.50 are descriptive.
 They are not decision thresholds, and this stage cannot alter classification,
 denoising, production TEDANA, or confound generation.
+
+## Phase 3: Dimensionality And Design Burden
+
+First run the matched full-volume FastICA condition for all 51 sentinels. It is
+audit-only, uses one thread per job, skips complete outputs, and does not
+overwrite prior configurations:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+git pull --ff-only
+umask 0000
+AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+
+"$AUDIT_PYTHON" benchmark_tedana.py plan \
+  --configs full-fastica
+
+STAMP=tedana-full-fastica-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" benchmark_tedana.py run \
+      --configs full-fastica --jobs 8 \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" benchmark_tedana.py check \
+      --configs full-fastica \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+The full-cohort design audit is independent of that rerun and may be launched
+separately. It reads production files but writes only tracked audit summaries:
+
+```bash
+"$AUDIT_PYTHON" audit_tedana_design.py build --dry-run
+
+STAMP=tedana-design-audit-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_design.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_design.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+This audit reconstructs the exact output of `genTedanaConfounds.py`, compares
+existing headerless TSVs, and reports nuisance rank with an intercept. Its
+`residual_df_before_task` excludes task regressors and therefore overestimates
+the residual degrees of freedom available in an L1 model. It also reads the
+saved MAPCA JSON from each TEDANA run to compare AIC, KIC, and MDL dimensionality
+without rerunning ICA.
+
+After the `full-fastica` checker passes, build the matched sentinel summary:
+
+```bash
+"$AUDIT_PYTHON" summarize_tedana_dimensionality.py build --dry-run
+
+STAMP=tedana-dimensionality-summary-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      summarize_tedana_dimensionality.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      summarize_tedana_dimensionality.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+The checker requires every NSS=0 FULL/NSS FastICA pair to have byte-identical
+metrics and numerically exact mixing matrices and denoised images. It also
+requires FastICA and RobustICA to report identical PCA dimensionality before
+comparing their final ICA counts.
+
+Only after reviewing `qc/tedana_audit/design/pca_method_benchmark.tsv` should a
+targeted PCA-method sensitivity run begin. Include `t2s-full` because it is the
+validated full-grid reference for NSS-aware audit outputs:
+
+```bash
+TARGET=../qc/tedana_audit/design/pca_method_benchmark.tsv
+
+"$AUDIT_PYTHON" benchmark_tedana.py plan \
+  --sentinel-tsv "$TARGET" \
+  --configs t2s-full,nss-fastica,nss-kic-fastica,nss-mdl-fastica
+
+STAMP=tedana-pca-method-targeted-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" benchmark_tedana.py run \
+      --sentinel-tsv "$TARGET" \
+      --configs t2s-full,nss-fastica,nss-kic-fastica,nss-mdl-fastica \
+      --jobs 8 \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" benchmark_tedana.py check \
+      --sentinel-tsv "$TARGET" \
+      --configs t2s-full,nss-fastica,nss-kic-fastica,nss-mdl-fastica \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+Do not launch this sensitivity run merely because the manifest exists. The
+design report must first confirm that the selected cases and controls answer
+the scientific question.
+
+## Upstream Evidence Gate
+
+An upstream report must identify one mechanism at a time:
+
+1. A material `full-fastica` versus `nss-fastica` effect supports discussion of
+   fMRIPrep-to-TEDANA dummy-scan integration or documentation. Include the
+   validated fMRIPrep NSS columns, exact commands, versions, and an anonymized
+   minimal reproducer.
+2. High AIC dimensionality with little matched NSS effect points toward MAPCA
+   criterion behavior or scanner-era data properties, not an fMRIPrep NSS bug.
+3. Fewer RobustICA components are a post-PCA stability result. They do not show
+   that RobustICA repaired PCA.
+4. A large confound column count is not enough. Report numerical rank, volumes,
+   pre-task residual degrees of freedom, and the eventual task-design rank.
+
+No public issue should contain private source paths, exclusion reasons, or
+subject identifiers. Do not open an issue or propose a PR until the matched
+summary and targeted method review agree on a reproducible failure mode.

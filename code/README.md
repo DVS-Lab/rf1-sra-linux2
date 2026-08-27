@@ -51,7 +51,8 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 | 10 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
 | 11 | `build_run_qc.py` | BIDS, MRIQC, fMRIPrep, TEDANA, and `qc/qc_policy.json` | Tracked canonical TSV/JSON, four workbooks, four histograms, and fixed coverage target under `qc/` | Cohort-level builder/checker; source exclusions are omitted by default, missing metrics remain incomplete, and canonical replacement requires `--overwrite`. |
 
-`audit_tedana.py` and `benchmark_tedana.py` are an audit-only scientific
+`audit_tedana.py`, `benchmark_tedana.py`, `audit_tedana_design.py`, and the
+TEDANA summarizers are an audit-only scientific
 validation branch from completed production TEDANA, not additional production
 pipeline stages. They read production inputs but write only under
 `qc/tedana_audit/` and ignored `derivatives/tedana-audit/`.
@@ -406,12 +407,30 @@ Each entry uses the same fields so operators can scan quickly.
 
 ### `benchmark_tedana.py`
 - Status: Isolated sentinel experiment; not production processing.
-- Purpose: Run controlled T2S-FULL versus T2S-EXCLUDE-NSS and NSS-aware FastICA versus RobustICA comparisons, reconstruct full-length audit images, and optionally calculate TEDANA-native Motion24 metrics without changing classifications.
+- Purpose: Run controlled T2S-FULL versus T2S-EXCLUDE-NSS, matched FULL-FastICA versus NSS-FastICA, NSS-aware FastICA versus RobustICA, and optional targeted KIC/MDL comparisons; reconstruct full-length audit images; and optionally calculate TEDANA-native Motion24 metrics without changing classifications.
 - Inputs: `qc/tedana_audit/sentinel_runs.tsv`, pinned TEDANA/t2smap 26.0.3 executables, fMRIPrep echo images/native masks/confounds, and the completed audit-only `t2s-full` optcom used as the full-grid reference.
 - Outputs: Ignored per-configuration derivatives, logs, status, external regressors, and provenance under `derivatives/tedana-audit`.
 - Typical command: `"$AUDIT_PYTHON" benchmark_tedana.py plan --robustica-threads 4`; then follow the staged pilot commands in `qc/tedana_audit/README.md`.
 - Checker: `"$AUDIT_PYTHON" benchmark_tedana.py check --configs ...` verifies expected outputs, raw and restored volume counts, and motion-tree classification identity.
-- Notes: Every command explicitly sets curvefit and mask. T2* and FastICA jobs use one thread; `--robustica-threads` is passed to RobustICA as `n_jobs` for its 30 repeated ICA fits. Decomposition commands also set AIC, seed 42, ICA method, and `tedana_orig`. Requested configurations are queued together per sentinel so RobustICA does not wait behind every faster configuration. NSS-aware runs receive a numerically validated full-grid image and a zero-padded full-grid ICA matrix. Existing complete jobs skip, incomplete directories fail closed, and all removal/output paths are confined to `derivatives/tedana-audit`. Begin with the documented four-run pilot; never launch a full-cohort RobustICA rerun from this tool.
+- Notes: Every command explicitly sets curvefit and mask. T2* and FastICA jobs use one thread; `--robustica-threads` is passed to RobustICA as `n_jobs` for its 30 repeated ICA fits. Decomposition commands also set the requested PCA criterion, seed 42, ICA method, and `tedana_orig`. `full-fastica` explicitly uses zero dummy scans; `nss-fastica` differs only by the validated run-specific count. KIC/MDL are optional targeted configurations, never defaults. Requested configurations are queued together per sentinel so RobustICA does not wait behind every faster configuration. NSS-aware runs receive a numerically validated full-grid image and a zero-padded full-grid ICA matrix. Existing complete jobs skip, incomplete directories fail closed, and all removal/output paths are confined to `derivatives/tedana-audit`. Begin with the documented four-run pilot; never launch a full-cohort RobustICA rerun from this tool.
+
+### `audit_tedana_design.py`
+- Status: Read-only full-cohort scientific audit; not production processing.
+- Purpose: Extract saved AIC/KIC/MDL PCA estimates, reconstruct the exact TEDANA-plus-fMRIPrep nuisance matrix, compare existing generated confounds, and measure column count, numerical rank, intercept-adjusted rank, condition, and pre-task residual degrees of freedom.
+- Inputs: `qc/tedana_audit/current_runs.tsv`, production fMRIPrep confounds, TEDANA PCA/ICA metrics and mixing matrices, saved MAPCA cross-component JSON, and existing `derivatives/fsl/confounds_tedana` files when present.
+- Outputs: Tracked cohort/review/scanner tables, a targeted PCA-method manifest, figure, report, and provenance under `qc/tedana_audit/design`.
+- Typical command: `"$AUDIT_PYTHON" audit_tedana_design.py build --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" audit_tedana_design.py check` validates cohort coverage, output checksums, current-run checksum, and the live input inventory.
+- Notes: Task regressors are not used, so residual degrees of freedom are explicitly pre-task estimates. Thresholds are descriptive review triggers, not exclusions. The targeted manifest is capped and balanced with controls; review it before launching optional KIC/MDL jobs.
+
+### `summarize_tedana_dimensionality.py`
+- Status: Read-only matched sentinel interpretation gate; not production processing.
+- Purpose: Isolate NSS effects with matched FULL-FastICA versus NSS-FastICA, distinguish PCA-selected from final ICA counts, and quantify RobustICA count changes after an identical PCA step.
+- Inputs: Sentinel manifest, historical TEDANA tables, and completed `full-fastica`, `nss-fastica`, and `nss-robustica` audit derivatives.
+- Outputs: Tracked paired/review TSVs, figure, report, and provenance under `qc/tedana_audit/dimensionality`.
+- Typical command: `"$AUDIT_PYTHON" summarize_tedana_dimensionality.py build --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" summarize_tedana_dimensionality.py check` validates exact coverage, PCA-contract identity, live inputs, checksums, and exact NSS=0 output identity.
+- Notes: Historical versus FULL-FastICA remains descriptive because the mask contract differs. Only FULL-FastICA versus NSS-FastICA isolates dummy-scan handling. RobustICA may return fewer stable ICA components than the shared PCA count; that is not evidence that RobustICA changed or repaired PCA.
 
 ### `summarize_tedana_benchmark.py`
 - Status: Read-only sentinel comparison and interpretation gate; not production processing.

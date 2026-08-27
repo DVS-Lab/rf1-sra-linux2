@@ -201,6 +201,15 @@ def test_benchmark_commands_are_explicit_and_isolated(tmp_path: Path) -> None:
     full = benchmark.build_job(project, audit_root, tedana, t2smap, tree, row, "t2s-full")
     excluded = benchmark.build_job(project, audit_root, tedana, t2smap, tree, row, "t2s-exclude-nss")
     fast = benchmark.build_job(project, audit_root, tedana, t2smap, tree, row, "nss-fastica")
+    full_fast = benchmark.build_job(
+        project, audit_root, tedana, t2smap, tree, row, "full-fastica"
+    )
+    kic = benchmark.build_job(
+        project, audit_root, tedana, t2smap, tree, row, "nss-kic-fastica"
+    )
+    mdl = benchmark.build_job(
+        project, audit_root, tedana, t2smap, tree, row, "nss-mdl-fastica"
+    )
     robust = benchmark.build_job(
         project,
         audit_root,
@@ -226,6 +235,13 @@ def test_benchmark_commands_are_explicit_and_isolated(tmp_path: Path) -> None:
     assert fast.command[fast.command.index("--n-threads") + 1] == "1"
     assert robust.command[robust.command.index("--n-threads") + 1] == "4"
     assert robust.command[robust.command.index("--n-robust-runs") + 1] == "30"
+    assert full_fast.command[full_fast.command.index("--dummy-scans") + 1] == "0"
+    assert full_fast.command[full_fast.command.index("--tedpca") + 1] == "aic"
+    assert kic.command[kic.command.index("--dummy-scans") + 1] == "2"
+    assert kic.command[kic.command.index("--tedpca") + 1] == "kic"
+    assert mdl.command[mdl.command.index("--tedpca") + 1] == "mdl"
+    assert benchmark.dummy_scan_count(full_fast) == 0
+    assert benchmark.dummy_scan_count(fast) == 2
 
 
 def test_t2s_expected_files_match_tedana_bids_registry(tmp_path: Path) -> None:

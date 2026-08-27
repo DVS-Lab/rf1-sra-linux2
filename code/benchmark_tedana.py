@@ -39,6 +39,11 @@ DEFAULT_CONFIGS = (
     "nss-fastica",
     "nss-robustica",
 )
+DIMENSIONALITY_CONFIGS = (
+    "full-fastica",
+    "nss-kic-fastica",
+    "nss-mdl-fastica",
+)
 MOTION_CONFIGS = ("motion-fastica", "motion-robustica")
 
 
@@ -55,7 +60,7 @@ class Job:
 
 def parse_configs(value: str) -> tuple[str, ...]:
     configs = tuple(dict.fromkeys(part.strip() for part in value.split(",") if part.strip()))
-    allowed = set(DEFAULT_CONFIGS + MOTION_CONFIGS)
+    allowed = set(DEFAULT_CONFIGS + DIMENSIONALITY_CONFIGS + MOTION_CONFIGS)
     invalid = sorted(set(configs) - allowed)
     if invalid:
         raise argparse.ArgumentTypeError(f"unknown benchmark configuration(s): {', '.join(invalid)}")
@@ -136,10 +141,17 @@ def expected_files(job: Job) -> tuple[Path, ...]:
             job.output_dir / f"{prefix}_desc-optcom_bold.nii.gz",
             job.output_dir / f"{prefix}_T2starmap.nii.gz",
         )
-    return (
+    outputs = (
         job.output_dir / f"{prefix}_desc-denoised_bold.nii.gz",
         job.output_dir / f"{prefix}_desc-ICA_mixing.tsv",
         job.output_dir / f"{prefix}_desc-tedana_metrics.tsv",
+    )
+    if job.config in MOTION_CONFIGS:
+        return outputs
+    return (
+        *outputs,
+        job.output_dir / f"{prefix}_desc-PCA_metrics.tsv",
+        job.output_dir / f"{prefix}_desc-PCACrossComponent_metrics.json",
     )
 
 
@@ -149,6 +161,15 @@ def complete(job: Job) -> bool:
 
 def provenance_path(job: Job) -> Path:
     return job.output_dir / "rf1_audit_provenance.json"
+
+
+def dummy_scan_count(job: Job) -> int:
+    """Return the number of leading volumes excluded from a decomposition."""
+    if job.config == "full-fastica":
+        return 0
+    if job.config.startswith(("nss-", "motion-")):
+        return int(job.row["nss_count"])
+    return 0
 
 
 def ensure_provenance(job: Job) -> None:
@@ -161,6 +182,7 @@ def ensure_provenance(job: Job) -> None:
         "command": list(job.command),
         "nss_count": int(job.row["nss_count"]),
         "number_of_original_volumes": int(job.row["number_of_original_volumes"]),
+        "dummy_scans": dummy_scan_count(job),
     }
     path.write_text(json.dumps(provenance, indent=2) + "\n")
     apply_umask_mode(path)
@@ -213,15 +235,20 @@ def build_job(
         if config == "t2s-exclude-nss" and nss:
             command.extend(("--exclude", f"0:{nss}"))
     else:
+        dummy_scans = 0 if config == "full-fastica" else nss
+        tedpca = {
+            "nss-kic-fastica": "kic",
+            "nss-mdl-fastica": "mdl",
+        }.get(config, "aic")
         command = [
             str(tedana_command),
             *base,
             "--dummy-scans",
-            str(nss),
+            str(dummy_scans),
             "--combmode",
             "t2s",
             "--tedpca",
-            "aic",
+            tedpca,
             "--seed",
             "42",
             "--tree",
@@ -430,6 +457,10 @@ def run_check(args: argparse.Namespace) -> int:
                     job.row["number_of_original_volumes"]
                 ):
                     raise ValueError("original volume count differs")
+                if int(metadata.get("dummy_scans", dummy_scan_count(job))) != dummy_scan_count(job):
+                    raise ValueError("dummy scan count differs")
+                if metadata.get("command") != list(job.command):
+                    raise ValueError("recorded command differs from current benchmark contract")
             except Exception as exc:
                 failures.append(
                     f"invalid provenance: {job.config} {job.run_key}: {exc}"
@@ -442,7 +473,7 @@ def run_check(args: argparse.Namespace) -> int:
                 failures.append(f"wrong t2s length: {job.config} {job.run_key}")
         else:
             denoised = job.output_dir / f"{job.run_key}_desc-denoised_bold.nii.gz"
-            if image_nvolumes(denoised) != total - nss:
+            if image_nvolumes(denoised) != total - dummy_scan_count(job):
                 failures.append(f"wrong tedana length: {job.config} {job.run_key}")
             if job.config.startswith("nss-"):
                 restored = job.output_dir / f"{job.run_key}_desc-denoisedFullGrid_bold.nii.gz"

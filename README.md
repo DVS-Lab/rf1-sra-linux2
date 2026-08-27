@@ -615,8 +615,9 @@ manual](qc/README.md) for exact definitions and provenance.
 ## TEDANA Audit And Sentinel Benchmark
 
 The historical `derivatives/tedana` tree remains the production baseline. A
-separate audit-only workflow inventories NSS handling, ICA dimensionality,
-accepted/rejected variance, motion summaries, and component-wise Motion24 fits
+separate audit-only workflow inventories NSS handling, PCA and ICA dimensionality,
+actual nuisance-matrix rank, residual degrees of freedom, accepted/rejected
+variance, motion summaries, and component-wise Motion24 fits
 without changing classifications. It then selects a balanced sentinel set for
 controlled TEDANA 26.0.3 comparisons of T2*/optimal-combination NSS exclusion,
 NSS-aware FastICA, and NSS-aware RobustICA.
@@ -639,6 +640,17 @@ After the optional Motion24 FastICA and RobustICA passes validate,
 component-review manifest while retaining the complete component table under
 ignored audit derivatives. Its descriptive Motion24 thresholds do not alter
 classification or authorize a production migration.
+
+The dimensionality extension adds a matched `full-fastica` condition whose only
+difference from `nss-fastica` is the validated `--dummy-scans` count. This
+isolates NSS handling from the explicit-mask difference that confounds the
+historical production comparison. `audit_tedana_design.py` independently
+reconstructs every production nuisance table, verifies existing generated
+files, extracts saved AIC/KIC/MDL estimates, and measures numerical rank plus
+pre-task residual degrees of freedom. `summarize_tedana_dimensionality.py`
+validates the matched sentinel comparison and exact NSS=0 controls. These
+outputs support, but do not themselves authorize, a production change or an
+upstream issue.
 
 ## Full-Cohort Events Response QC
 
