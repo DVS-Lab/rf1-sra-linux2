@@ -12,7 +12,9 @@ This report summarizes isolated audit derivatives. It does not modify or authori
 ## T2*/Optimal Combination
 
 - T2* median absolute percent difference: 0.0199 (IQR 0.0111 to 0.0324)
-- T2* spatial correlation: 0.996811 (IQR 0.786486 to 1.000000)
+- T2* raw spatial correlation: 0.996811 (IQR 0.786486 to 1.000000)
+- T2* log spatial correlation: 0.993745 (IQR 0.977680 to 0.999065)
+- T2* voxel fraction with >5% absolute difference: 0.019666 (IQR 0.003542 to 0.050143)
 - Optcom normalized RMSE: 0.030929 (IQR 0.014011 to 0.059554)
 - Optcom median voxelwise temporal correlation: 1.000000 (IQR 1.000000 to 1.000000)
 
