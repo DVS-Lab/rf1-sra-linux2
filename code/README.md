@@ -51,6 +51,11 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 | 10 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
 | 11 | `build_run_qc.py` | BIDS, MRIQC, fMRIPrep, TEDANA, and `qc/qc_policy.json` | Tracked canonical TSV/JSON, four workbooks, four histograms, and fixed coverage target under `qc/` | Cohort-level builder/checker; source exclusions are omitted by default, missing metrics remain incomplete, and canonical replacement requires `--overwrite`. |
 
+`audit_tedana.py` and `benchmark_tedana.py` are an audit-only scientific
+validation branch from completed production TEDANA, not additional production
+pipeline stages. They read production inputs but write only under
+`qc/tedana_audit/` and ignored `derivatives/tedana-audit/`.
+
 `make_repair_runlists.py` is the filesystem audit helper for recovery runs. It
 does not launch processing; it writes targeted runlists and a missing-path TSV
 under `logs/runlists/`.
@@ -389,6 +394,24 @@ Each entry uses the same fields so operators can scan quickly.
 - Typical command: normally called by `run_tedana.sh`.
 - Checker: `check_tedana.sh`.
 - Notes: Missing optional runs are logged and skipped when no BIDS echo input exists. The worker preflights `TEDANA_CMD` before entering the run loop, so a detached job cannot fail every run merely because its shell `PATH` differs from an interactive session. Failed per-run logs are tailed into the parent run record for remote diagnosis.
+
+### `audit_tedana.py`
+- Status: Read-only cohort scientific audit; not a production replacement.
+- Purpose: Inventory every acquired multi-echo task run, validate fMRIPrep NSS regressors, summarize historical TEDANA dimensionality/classification/variance, fit Motion24 to component timecourses, and choose a reproducible sentinel set.
+- Inputs: BIDS echo-2 run inventory and echo metadata, fMRIPrep echo images/confounds/native optcom/masks, historical `derivatives/tedana`, and the authoritative source-exclusion directory.
+- Outputs: Tracked aggregate TSV/JSON/report/figures under `qc/tedana_audit`; ignored component rows under `derivatives/tedana-audit/current`.
+- Typical command: `"$AUDIT_PYTHON" audit_tedana.py build --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" audit_tedana.py check` verifies recorded checksums, row counts, and sentinel counts.
+- Notes: Requires TEDANA 26.0.3 and records fMRIPrep 25.2.5. NSS regressors must be binary, one-hot, unique, and contiguous from volume zero. Motion24 fits drop exactly those validated rows and never alter classification. Task regressors are prohibited. The builder may report incomplete rows but still exits zero when it successfully records them.
+
+### `benchmark_tedana.py`
+- Status: Isolated sentinel experiment; not production processing.
+- Purpose: Run controlled T2S-FULL versus T2S-EXCLUDE-NSS and NSS-aware FastICA versus RobustICA comparisons, reconstruct full-length audit images, and optionally calculate TEDANA-native Motion24 metrics without changing classifications.
+- Inputs: `qc/tedana_audit/sentinel_runs.tsv`, pinned TEDANA/t2smap 26.0.3 executables, fMRIPrep echo images/native masks/native optcom, and fMRIPrep confounds for optional motion metrics.
+- Outputs: Ignored per-configuration derivatives, logs, status, external regressors, and provenance under `derivatives/tedana-audit`.
+- Typical command: `"$AUDIT_PYTHON" benchmark_tedana.py plan`; then `"$AUDIT_PYTHON" benchmark_tedana.py run --configs t2s-full,t2s-exclude-nss,nss-fastica --jobs 2`.
+- Checker: `"$AUDIT_PYTHON" benchmark_tedana.py check --configs ...` verifies expected outputs, raw and restored volume counts, and motion-tree classification identity.
+- Notes: Every command explicitly sets curvefit, mask, and one thread. Decomposition commands also set AIC, seed 42, ICA method, and `tedana_orig`; RobustICA explicitly uses 30 runs. NSS-aware runs receive a numerically validated full-grid image and a zero-padded full-grid ICA matrix. Existing complete jobs skip, incomplete directories fail closed, and all removal/output paths are confined to `derivatives/tedana-audit`. Run RobustICA and motion-audit configurations as separate reviewed waves; never launch a full-cohort RobustICA rerun from this tool.
 
 ### `genTedanaConfounds.py`
 - Status: Production helper.

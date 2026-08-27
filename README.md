@@ -612,6 +612,22 @@ recorded thresholds and flags cannot be reproduced. Imaging outliers are
 run-level facts, not automatic participant exclusions. See [the QC
 manual](qc/README.md) for exact definitions and provenance.
 
+## TEDANA Audit And Sentinel Benchmark
+
+The historical `derivatives/tedana` tree remains the production baseline. A
+separate audit-only workflow inventories NSS handling, ICA dimensionality,
+accepted/rejected variance, motion summaries, and component-wise Motion24 fits
+without changing classifications. It then selects a balanced sentinel set for
+controlled TEDANA 26.0.3 comparisons of T2*/optimal-combination NSS exclusion,
+NSS-aware FastICA, and NSS-aware RobustICA.
+
+All experimental images and component-level tables remain ignored under
+`derivatives/tedana-audit/`; only aggregate tables, figures, provenance, and the
+scientific report belong under `qc/tedana_audit/`. Do not modify production
+`tedana.sh`, confound generation, or QC thresholds until the sentinel report is
+complete and reviewed. See the [TEDANA audit manual](qc/tedana_audit/README.md)
+for the staged Linux2 commands and interpretation gate.
+
 ## Full-Cohort Events Response QC
 
 After the canonical events backfill and `check_events.py` audit, build the
@@ -681,6 +697,7 @@ first `CHECK FAILED` or error line, and whether the case was expected to have
 
 - [Code manual](code/README.md)
 - [Run imaging QC manual](qc/README.md)
+- [TEDANA audit and sentinel benchmark](qc/tedana_audit/README.md)
 - [Events response-QC manual](qc/events/README.md)
 - [Open decisions and run-disposition roadmap](docs/open-decisions.md)
 - [Validation history](docs/archive/validation-history.md)
