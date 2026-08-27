@@ -1,0 +1,33 @@
+{
+  "complete_run_count": 0,
+  "component_count": 98719,
+  "component_table": "derivatives/tedana-audit/current/current_components.tsv",
+  "component_table_sha256": "935502330d640768bdc1572151bde0450eef25e4d8f1c7485d40b01dfcfcf0b8",
+  "constraints": {
+    "classifications_changed": false,
+    "nss_authority": "fMRIPrep non_steady_state_outlier regressors",
+    "production_tedana_modified": false,
+    "task_regressors_used": false
+  },
+  "fmriprep_version": "25.2.5",
+  "generated_at": "2026-08-27T02:22:41+00:00",
+  "incomplete_run_count": 2741,
+  "input_inventory_digest_path_size_mtime": "b4ed1eefc9c2eab5495babc2098c22024b3fc5007d7c5c8eaa17ee0e2f79c059",
+  "outputs": {
+    "current_runs.tsv": "9a3ba357b1b49b5ae9fb2619c8b494d2aade18fb60192d4de2b903e41a8b6cc9",
+    "figures/dimensionality.png": "c158f39433bd4feb040a10695be01c43dc3dcfd4ab3682f8fc961c8d7b9c4db5",
+    "figures/motion.png": "b987f7649873eb4914b6f7ec7fc8eb49949ec7c89b097c7d09301a9c6dec2468",
+    "figures/nss.png": "3533a324b4632b028b5947676ed64adec584fe668f23443d8a435040582d5ff4",
+    "report.md": "82411dfc804068700c8adb061c5f0dd63d415ead8efff43d1c7ddbae0b60f794",
+    "sentinel_runs.tsv": "f279707efe304fcf953037bfed694ec82aed072cf33eb1ad9ccbdc4890b4538e",
+    "summary_by_task.tsv": "8216faadb805150aae6907a352cb52309119a3e522189807afee8599a8a3e795"
+  },
+  "production_baseline": true,
+  "project_root": "/ZPOOL/data/projects/rf1-sra-linux2",
+  "run_count": 2741,
+  "schema_version": 1,
+  "sentinel_count": 0,
+  "source_excluded_subject_count": 12,
+  "tedana_command": "/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/tedana",
+  "tedana_version": "26.0.3"
+}
