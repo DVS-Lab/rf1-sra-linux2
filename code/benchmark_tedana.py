@@ -245,8 +245,8 @@ def prepare_jobs(args: argparse.Namespace) -> tuple[list[Job], Path]:
             row,
             config,
         )
-        for config in args.configs
         for row in rows
+        for config in args.configs
     ]
     return jobs, audit_root
 

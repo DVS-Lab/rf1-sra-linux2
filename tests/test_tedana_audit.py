@@ -217,6 +217,40 @@ def test_benchmark_commands_are_explicit_and_isolated(tmp_path: Path) -> None:
     assert robust.command[robust.command.index("--n-robust-runs") + 1] == "30"
 
 
+def test_prepare_jobs_queues_configs_together_per_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    rows = [{"run_key": "run-a"}, {"run_key": "run-b"}]
+    configs = ("t2s-full", "nss-robustica")
+    monkeypatch.setattr(benchmark, "command_version", lambda _command: "26.0.3")
+    monkeypatch.setattr(benchmark, "read_sentinels", lambda _path: rows)
+    monkeypatch.setattr(
+        benchmark,
+        "build_job",
+        lambda _project, _audit, _tedana, _t2smap, _tree, row, config: (
+            row["run_key"],
+            config,
+        ),
+    )
+    args = Namespace(
+        project_root=tmp_path,
+        audit_root=tmp_path / "derivatives" / "tedana-audit",
+        tedana_command=Path("/usr/bin/tedana"),
+        t2smap_command=Path("/usr/bin/t2smap"),
+        sentinel_tsv=tmp_path / "sentinels.tsv",
+        configs=configs,
+    )
+
+    jobs, _ = benchmark.prepare_jobs(args)
+
+    assert jobs == [
+        ("run-a", "t2s-full"),
+        ("run-a", "nss-robustica"),
+        ("run-b", "t2s-full"),
+        ("run-b", "nss-robustica"),
+    ]
+
+
 def test_sentinel_selection_is_deterministic_and_capped() -> None:
     rows = []
     for paradigm in ("sharedreward", "trust", "ugr", "socialdoors"):

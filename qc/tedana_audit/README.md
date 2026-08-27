@@ -85,7 +85,9 @@ The four initial configurations are:
 | `nss-robustica` | Same, with RobustICA and an explicit 30 robust runs. |
 
 TEDANA itself receives one thread per run; `--jobs` controls run-level
-parallelism. Existing complete outputs are skipped. An incomplete existing
+parallelism. Jobs are queued run-first, so the requested configurations for a
+sentinel enter the queue together instead of making RobustICA wait behind every
+FastICA run. Existing complete outputs are skipped. An incomplete existing
 directory fails closed unless `--overwrite` is explicitly supplied, and even
 then removal is confined to `derivatives/tedana-audit`.
 
@@ -144,36 +146,63 @@ the expensive benchmark. Then validate the exact plan:
 "$AUDIT_PYTHON" benchmark_tedana.py plan
 ```
 
-The recommended first benchmark launch is conservative:
+Before the full benchmark, construct a four-run pilot spanning ordinary,
+high-dimensional, and high-rejection cases with both zero and nonzero NSS:
 
 ```bash
-STAMP=tedana-sentinel-initial-$(date +%Y%m%d-%H%M%S)
+PILOT=../logs/runlists/tedana-sentinel-pilot.tsv
+
+awk -F $'\t' '
+  NR == 1 ||
+  $6 == "sub-10785_ses-01_task-sharedreward_run-1" ||
+  $6 == "sub-11068_ses-01_task-sharedreward_run-1" ||
+  $6 == "sub-11560_ses-01_task-doors_run-1" ||
+  $6 == "sub-12008_ses-01_task-trust_run-2"
+' ../qc/tedana_audit/sentinel_runs.tsv > "$PILOT"
+
+wc -l "$PILOT"
+# Expect 5: one header and four runs.
+
+"$AUDIT_PYTHON" benchmark_tedana.py plan \
+  --sentinel-tsv "$PILOT" \
+  --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica
+```
+
+Launch all four controlled configurations for the pilot. This starts
+RobustICA immediately without authorizing a production change:
+
+```bash
+STAMP=tedana-sentinel-pilot-$(date +%Y%m%d-%H%M%S)
 nohup setsid -f -w \
   bash run_logged.sh --label "$STAMP" -- \
     "$AUDIT_PYTHON" benchmark_tedana.py run \
-      --configs t2s-full,t2s-exclude-nss,nss-fastica \
-      --jobs 2 \
+      --sentinel-tsv "$PILOT" \
+      --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica \
+      --jobs 4 \
     --check "$AUDIT_PYTHON" benchmark_tedana.py check \
-      --configs t2s-full,t2s-exclude-nss,nss-fastica \
+      --sentinel-tsv "$PILOT" \
+      --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica \
   > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
 ```
 
-Launch RobustICA separately after the first wave has passed and resource use is
-understood:
+After that checker passes and resource use is acceptable, launch the same four
+configurations for the full sentinel manifest. Completed pilot outputs skip;
+no overwrite flag is used:
 
 ```bash
-STAMP=tedana-sentinel-robustica-$(date +%Y%m%d-%H%M%S)
+STAMP=tedana-sentinel-full-$(date +%Y%m%d-%H%M%S)
 nohup setsid -f -w \
   bash run_logged.sh --label "$STAMP" -- \
     "$AUDIT_PYTHON" benchmark_tedana.py run \
-      --configs nss-robustica \
-      --jobs 2 \
+      --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica \
+      --jobs 8 \
     --check "$AUDIT_PYTHON" benchmark_tedana.py check \
-      --configs nss-robustica \
+      --configs t2s-full,t2s-exclude-nss,nss-fastica,nss-robustica \
   > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
 ```
 
-Do not run the motion-audit configurations until both corresponding NSS-aware
+Eight run-level jobs is a starting ceiling, not a target to exceed. Do not run
+the motion-audit configurations until both corresponding NSS-aware
 decompositions have completed. Do not run full-cohort RobustICA from this
 workflow.
 
