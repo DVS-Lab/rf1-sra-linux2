@@ -172,6 +172,15 @@ def test_component_summary_normalizes_reported_variance(tmp_path: Path) -> None:
     )
 
 
+def test_read_only_arrays_are_not_modified() -> None:
+    values = np.array([1.0, 2.0, 3.0])
+    values.setflags(write=False)
+
+    assert summary._correlation(values, values) == pytest.approx(1.0)
+    assert summary._normalize_variance(values) == pytest.approx([1 / 6, 2 / 6, 3 / 6])
+    assert np.array_equal(values, [1.0, 2.0, 3.0])
+
+
 def test_n0_identity_check_rejects_different_outputs() -> None:
     same = np.arange(8, dtype=float)
     with pytest.raises(ValueError, match=r"NSS=0 T2\* control differs"):

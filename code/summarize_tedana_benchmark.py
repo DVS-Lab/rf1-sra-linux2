@@ -245,8 +245,8 @@ def iqr(values: Sequence[Any]) -> tuple[float | None, float | None]:
 
 
 def _correlation(x: np.ndarray, y: np.ndarray) -> float:
-    x = np.asarray(x, dtype=np.float64).ravel()
-    y = np.asarray(y, dtype=np.float64).ravel()
+    x = np.array(x, dtype=np.float64, copy=True).ravel()
+    y = np.array(y, dtype=np.float64, copy=True).ravel()
     finite = np.isfinite(x) & np.isfinite(y)
     x = x[finite]
     y = y[finite]
@@ -256,6 +256,17 @@ def _correlation(x: np.ndarray, y: np.ndarray) -> float:
     y -= np.mean(y)
     denominator = np.linalg.norm(x) * np.linalg.norm(y)
     return float(np.dot(x, y) / denominator) if denominator else math.nan
+
+
+def _normalize_variance(values: Sequence[Any]) -> np.ndarray:
+    variance = np.array(values, dtype=float, copy=True)
+    if (
+        not np.all(np.isfinite(variance))
+        or np.any(variance < 0)
+        or np.sum(variance) <= 0
+    ):
+        raise ValueError("invalid TEDANA component variance")
+    return variance / np.sum(variance)
 
 
 def _image(path: Path, ndim: int) -> nib.spatialimages.SpatialImage:
@@ -419,16 +430,12 @@ def component_summary(path: Path) -> tuple[dict[str, Any], pd.DataFrame]:
     classifications = frame[classification_column].astype(str).str.lower()
     if not classifications.isin(("accepted", "rejected")).all():
         raise ValueError(f"invalid TEDANA classifications: {path}")
-    variance = pd.to_numeric(frame[variance_column], errors="coerce").to_numpy(
-        dtype=float
-    )
-    if (
-        not np.all(np.isfinite(variance))
-        or np.any(variance < 0)
-        or np.sum(variance) <= 0
-    ):
-        raise ValueError(f"invalid TEDANA component variance: {path}")
-    variance /= np.sum(variance)
+    try:
+        variance = _normalize_variance(
+            pd.to_numeric(frame[variance_column], errors="coerce").to_numpy(dtype=float)
+        )
+    except ValueError as exc:
+        raise ValueError(f"invalid TEDANA component variance: {path}") from exc
     frame = frame.copy()
     frame["_classification"] = classifications
     frame["_normalized_variance_fraction"] = variance
