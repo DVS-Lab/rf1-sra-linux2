@@ -93,6 +93,11 @@ skipped. An incomplete existing directory fails closed unless `--overwrite` is
 explicitly supplied, and even then removal is confined to
 `derivatives/tedana-audit`.
 
+Every completed job has an `rf1_audit_provenance.json` recording its run,
+configuration, exact command, NSS count, and original volume count. A resumable
+run backfills missing provenance for otherwise complete outputs; the checker
+validates those fields rather than accepting an unrecorded derivative.
+
 The live run log prints `STARTED` when a worker launches a command and reports
 its final status on completion. Near the end of a mixed benchmark, fewer than
 `--jobs` processes may remain simply because only long RobustICA jobs are left.

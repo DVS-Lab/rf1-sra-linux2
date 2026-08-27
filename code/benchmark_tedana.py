@@ -147,6 +147,25 @@ def complete(job: Job) -> bool:
     return all(path.is_file() for path in expected_files(job))
 
 
+def provenance_path(job: Job) -> Path:
+    return job.output_dir / "rf1_audit_provenance.json"
+
+
+def ensure_provenance(job: Job) -> None:
+    path = provenance_path(job)
+    if path.is_file():
+        return
+    provenance = {
+        "configuration": job.config,
+        "run_key": job.run_key,
+        "command": list(job.command),
+        "nss_count": int(job.row["nss_count"]),
+        "number_of_original_volumes": int(job.row["number_of_original_volumes"]),
+    }
+    path.write_text(json.dumps(provenance, indent=2) + "\n")
+    apply_umask_mode(path)
+
+
 def build_job(
     project_root: Path,
     audit_root: Path,
@@ -258,6 +277,7 @@ def prepare_jobs(args: argparse.Namespace) -> tuple[list[Job], Path]:
 
 def run_one(job: Job, overwrite: bool) -> tuple[Job, str]:
     if complete(job) and not overwrite:
+        ensure_provenance(job)
         return job, "skipped_complete"
     if job.output_dir.exists():
         if not overwrite:
@@ -281,16 +301,7 @@ def run_one(job: Job, overwrite: bool) -> tuple[Job, str]:
             return job, f"failed_exit_{result.returncode}"
         if not complete(job):
             return job, "failed_missing_outputs"
-        provenance = {
-            "configuration": job.config,
-            "run_key": job.run_key,
-            "command": list(job.command),
-            "nss_count": int(job.row["nss_count"]),
-            "number_of_original_volumes": int(job.row["number_of_original_volumes"]),
-        }
-        path = job.output_dir / "rf1_audit_provenance.json"
-        path.write_text(json.dumps(provenance, indent=2) + "\n")
-        apply_umask_mode(path)
+        ensure_provenance(job)
         if job.config.startswith("nss-"):
             mixing_path = job.output_dir / f"{job.run_key}_desc-ICA_mixing.tsv"
             padded_path = job.output_dir / f"{job.run_key}_desc-ICA_mixingFullGrid.tsv"
@@ -399,6 +410,26 @@ def run_check(args: argparse.Namespace) -> int:
         if not complete(job):
             failures.append(f"missing outputs: {job.config} {job.run_key}")
             continue
+        provenance = provenance_path(job)
+        if not provenance.is_file():
+            failures.append(f"missing provenance: {job.config} {job.run_key}")
+        else:
+            try:
+                metadata = json.loads(provenance.read_text())
+                if metadata.get("configuration") != job.config:
+                    raise ValueError("configuration differs")
+                if metadata.get("run_key") != job.run_key:
+                    raise ValueError("run key differs")
+                if int(metadata.get("nss_count")) != int(job.row["nss_count"]):
+                    raise ValueError("NSS count differs")
+                if int(metadata.get("number_of_original_volumes")) != int(
+                    job.row["number_of_original_volumes"]
+                ):
+                    raise ValueError("original volume count differs")
+            except Exception as exc:
+                failures.append(
+                    f"invalid provenance: {job.config} {job.run_key}: {exc}"
+                )
         total = int(job.row["number_of_original_volumes"])
         nss = int(job.row["nss_count"])
         if job.config.startswith("t2s-"):

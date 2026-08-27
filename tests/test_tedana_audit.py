@@ -248,6 +248,33 @@ def test_t2s_expected_files_match_tedana_bids_registry(tmp_path: Path) -> None:
     ]
 
 
+def test_completed_job_backfills_provenance_before_skip(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    audit_root = project / "derivatives" / "tedana-audit"
+    row = sentinel_row(project)
+    job = benchmark.build_job(
+        project,
+        audit_root,
+        tmp_path / "tedana",
+        tmp_path / "t2smap",
+        audit_root / "config" / "tree.json",
+        row,
+        "t2s-full",
+    )
+    job.output_dir.mkdir(parents=True)
+    for path in benchmark.expected_files(job):
+        path.touch()
+
+    _job, status = benchmark.run_one(job, overwrite=False)
+
+    assert status == "skipped_complete"
+    provenance = json.loads(benchmark.provenance_path(job).read_text())
+    assert provenance["configuration"] == "t2s-full"
+    assert provenance["run_key"] == row["run_key"]
+    assert provenance["nss_count"] == 2
+    assert provenance["number_of_original_volumes"] == 100
+
+
 def test_prepare_jobs_queues_configs_together_per_run(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
