@@ -97,6 +97,10 @@ def make_complete_run(project: Path) -> dict[str, str]:
             }
         )
     )
+    ica_cross_path = tfunc / f"{key}_desc-ICACrossComponent_metrics.json"
+    ica_cross_path.write_text(
+        json.dumps({"total_var_exp_rejected_components_on_accepted": 0.125})
+    )
     combined = design.build_confounds(confounds_path, mixing_path, metrics_path)
     combined_path = (
         project
@@ -125,6 +129,7 @@ def make_complete_run(project: Path) -> dict[str, str]:
         "tedana_metrics": metrics_path.relative_to(project).as_posix(),
         "tedana_mixing": mixing_path.relative_to(project).as_posix(),
         "tedana_pca_metrics": pca_path.relative_to(project).as_posix(),
+        "tedana_cross_component_metrics": ica_cross_path.relative_to(project).as_posix(),
         "echo_times": "0.01;0.02;0.03;0.04",
         "echo_files": "a;b;c;d",
         "fmriprep_mask": "mask.nii.gz",
@@ -168,11 +173,19 @@ def test_end_to_end_design_build_and_check(tmp_path: Path) -> None:
     assert rows[0]["design_status"] == "complete"
     assert rows[0]["aic_components"] == "3"
     assert rows[0]["kic_components"] == "2"
+    assert rows[0]["software_era"] == "XA60"
+    assert rows[0]["rejected_fraction"] == str(2 / 3)
+    assert rows[0]["rejected_on_accepted_variance"] == "0.125"
+    assert rows[0]["tedana_incremental_rank"] == "1"
+    assert rows[0]["tedana_incremental_rank_fraction"] == "0.125"
     assert rows[0]["flag_aic_explains_more_than_98_percent"] == "1"
     assert rows[0]["existing_combined_matches_reconstruction"] == "1"
     assert rows[1]["design_status"] == "incomplete"
     assert len(design.read_tsv(output / "pca_method_benchmark.tsv")) == 1
     assert (output / "figures" / "design_burden.png").is_file()
+    assert (output / "classification_burden_summary.tsv").is_file()
+    assert (output / "statistical_burden_summary.tsv").is_file()
+    assert (output / "extreme_tail_runs.tsv").is_file()
     assert "not automatic exclusions" in (output / "report.md").read_text()
 
     with (output / "cohort_design_burden.tsv").open("a") as handle:

@@ -464,3 +464,176 @@ An upstream report must identify one mechanism at a time:
 No public issue should contain private source paths, exclusion reasons, or
 subject identifiers. Do not open an issue or propose a PR until the matched
 summary and targeted method review agree on a reproducible failure mode.
+
+## Phase 4: Final Decision Audit
+
+This phase reflects the production RF1 model correctly. RF1 does not write an
+aggressively denoised BOLD before task modeling. It fits task EVs, selected
+fMRIPrep nuisance EVs, and rejected TEDANA IC timecourses simultaneously in the
+same FEAT GLM. Accepted/rejected component overlap remains descriptive ICA QC;
+the decision-facing tests are actual task/nuisance geometry and contrast
+precision. No aggressive/non-aggressive/tedort comparison is part of this
+phase, and no script writes a production residualized BOLD.
+
+Run these stages sequentially on Linux2. The scanner-era and nuisance-QC stages
+read large compressed images; do not overlap them merely to shorten wall time.
+
+### 4A. Refresh cohort burden
+
+The refreshed builder adds rejected fractions/variance, accepted-rejected
+overlap, independent TEDANA rank cost, era/task/session quantiles, and p99
+descriptive tails:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+git pull --ff-only
+umask 0000
+mkdir -p ../logs/runs
+
+AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+
+"$AUDIT_PYTHON" audit_tedana_design.py build --dry-run
+
+STAMP=tedana-final-burden-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_design.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_design.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+### 4B. Scanner-era forensic audit
+
+The final raw-header pass requires `pydicom`. Do not use
+`--skip-dicom-headers` for the decision report:
+
+```bash
+"$AUDIT_PYTHON" -c 'import pydicom; print("pydicom", pydicom.__version__)'
+"$AUDIT_PYTHON" audit_tedana_scanner_era.py build --dry-run
+
+STAMP=tedana-scanner-era-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_scanner_era.py build --jobs 4 --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_scanner_era.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+Four workers are intentionally conservative because each run reads four
+compressed echo series. The audit excludes identifiers, UIDs, dates, and
+acquisition timestamps from tracked metadata. It cannot establish that a
+scanner-software change caused an observed image-property difference.
+
+### 4C. Nuisance-model QC
+
+This uses the 51 sentinels and requires completed `full-fastica` and
+`nss-fastica` outputs. Residual arrays exist only in memory:
+
+```bash
+"$AUDIT_PYTHON" audit_tedana_nuisance_qc.py build --dry-run
+
+STAMP=tedana-nuisance-qc-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_nuisance_qc.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_nuisance_qc.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+BASE versus TEDANA-FULL measures the incremental artifact-control proxy;
+TEDANA-FULL versus TEDANA-NSS isolates NSS handling. All metrics use N:T, and
+N=0 pairs must be numerically identical.
+
+### 4D. Canonical first-level design geometry
+
+The four downstream repositories must exist under `/ZPOOL/data/projects` and
+their canonical activation FSFs must already have been rendered. This command
+runs `feat_model`, not FEAT:
+
+```bash
+"$AUDIT_PYTHON" audit_tedana_l1_design.py build --dry-run
+
+STAMP=tedana-l1-design-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_l1_design.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_l1_design.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+The script fails if canonical FEAT temporal high-pass is enabled. It reports
+task-EV nuisance R-squared/VIF, task-subspace overlap, rank/DF, condition, and
+relative canonical contrast efficiency. It never evaluates whether a method
+produces a larger desired activation.
+
+### 4E. FastICA seed stability
+
+Select and inspect the deterministic twelve-run manifest first:
+
+```bash
+"$AUDIT_PYTHON" audit_tedana_seed_stability.py select --dry-run
+"$AUDIT_PYTHON" audit_tedana_seed_stability.py select --overwrite
+
+SEEDS=../qc/tedana_audit/seeds/seed_runs.tsv
+column -t -s $'\t' "$SEEDS" | less -S
+
+"$AUDIT_PYTHON" benchmark_tedana.py plan \
+  --sentinel-tsv "$SEEDS" \
+  --configs t2s-full,nss-fastica-seed-1,nss-fastica-seed-10,nss-fastica-seed-42,nss-fastica-seed-100,nss-fastica-seed-1000
+```
+
+After review, run the 60 seed fits plus any missing T2S references:
+
+```bash
+STAMP=tedana-fastica-seeds-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" benchmark_tedana.py run \
+      --sentinel-tsv "$SEEDS" \
+      --configs t2s-full,nss-fastica-seed-1,nss-fastica-seed-10,nss-fastica-seed-42,nss-fastica-seed-100,nss-fastica-seed-1000 \
+      --jobs 8 \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" benchmark_tedana.py check \
+      --sentinel-tsv "$SEEDS" \
+      --configs t2s-full,nss-fastica-seed-1,nss-fastica-seed-10,nss-fastica-seed-42,nss-fastica-seed-100,nss-fastica-seed-1000 \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+Then summarize classifications, nuisance rank, and adjusted-data stability
+against seed 42:
+
+```bash
+STAMP=tedana-fastica-seed-summary-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_seed_stability.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      audit_tedana_seed_stability.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+### 4F. Final synthesis
+
+This command fails closed until every required table exists:
+
+```bash
+"$AUDIT_PYTHON" build_tedana_final_report.py build --dry-run
+
+STAMP=tedana-final-report-$(date +%Y%m%d-%H%M%S)
+bash run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$AUDIT_PYTHON" build_tedana_final_report.py build \
+  --check "$AUDIT_PYTHON" build_tedana_final_report.py check
+```
+
+Review `qc/tedana_audit/final_report.md` and the targeted tables before any
+production decision. A passing checker means the evidence package is complete;
+it does not approve AIC/FastICA/NSS changes, alter Motion24's QC-only role, or
+authorize an upstream issue.

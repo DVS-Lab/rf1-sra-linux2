@@ -45,6 +45,7 @@ DIMENSIONALITY_CONFIGS = (
     "nss-mdl-fastica",
 )
 MOTION_CONFIGS = ("motion-fastica", "motion-robustica")
+SEED_CONFIGS = tuple(f"nss-fastica-seed-{seed}" for seed in (1, 10, 42, 100, 1000))
 
 
 @dataclass(frozen=True)
@@ -60,7 +61,7 @@ class Job:
 
 def parse_configs(value: str) -> tuple[str, ...]:
     configs = tuple(dict.fromkeys(part.strip() for part in value.split(",") if part.strip()))
-    allowed = set(DEFAULT_CONFIGS + DIMENSIONALITY_CONFIGS + MOTION_CONFIGS)
+    allowed = set(DEFAULT_CONFIGS + DIMENSIONALITY_CONFIGS + MOTION_CONFIGS + SEED_CONFIGS)
     invalid = sorted(set(configs) - allowed)
     if invalid:
         raise argparse.ArgumentTypeError(f"unknown benchmark configuration(s): {', '.join(invalid)}")
@@ -172,6 +173,16 @@ def dummy_scan_count(job: Job) -> int:
     return 0
 
 
+def fastica_seed(config: str) -> int:
+    if config in SEED_CONFIGS:
+        return int(config.rsplit("-", 1)[1])
+    return 42
+
+
+def ica_method(config: str) -> str:
+    return "robustica" if config.endswith("robustica") else "fastica"
+
+
 def ensure_provenance(job: Job) -> None:
     path = provenance_path(job)
     if path.is_file():
@@ -250,12 +261,12 @@ def build_job(
             "--tedpca",
             tedpca,
             "--seed",
-            "42",
+            str(fastica_seed(config)),
             "--tree",
             "tedana_orig",
             "--verbose",
         ]
-        source_method = "fastica" if config.endswith("fastica") else "robustica"
+        source_method = ica_method(config)
         # With --mix, TEDANA does not run ICA. TEDANA 26.0.3 nevertheless tries
         # to report uninitialized RobustICA diagnostics when robustica is named,
         # so supplied matrices must use the neutral FastICA execution path.
@@ -366,6 +377,16 @@ def finalize_nss_grid(job: Job) -> None:
     denoised = job.output_dir / f"{job.run_key}_desc-denoised_bold.nii.gz"
     restored = job.output_dir / f"{job.run_key}_desc-denoisedFullGrid_bold.nii.gz"
     restore_temporal_grid(reference, denoised, int(job.row["nss_count"]), restored)
+    mixing_path = job.output_dir / f"{job.run_key}_desc-ICA_mixing.tsv"
+    padded_path = job.output_dir / f"{job.run_key}_desc-ICA_mixingFullGrid.tsv"
+    mixing = pd.read_csv(mixing_path, sep="\t")
+    padded = pad_mixing_matrix(
+        mixing,
+        int(job.row["number_of_original_volumes"]),
+        int(job.row["nss_count"]),
+    )
+    padded.to_csv(padded_path, sep="\t", index=False)
+    apply_umask_mode(padded_path)
 
 
 def run_plan(args: argparse.Namespace) -> int:

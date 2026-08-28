@@ -407,21 +407,66 @@ Each entry uses the same fields so operators can scan quickly.
 
 ### `benchmark_tedana.py`
 - Status: Isolated sentinel experiment; not production processing.
-- Purpose: Run controlled T2S-FULL versus T2S-EXCLUDE-NSS, matched FULL-FastICA versus NSS-FastICA, NSS-aware FastICA versus RobustICA, and optional targeted KIC/MDL comparisons; reconstruct full-length audit images; and optionally calculate TEDANA-native Motion24 metrics without changing classifications.
+- Purpose: Run controlled T2S-FULL versus T2S-EXCLUDE-NSS, matched FULL-FastICA versus NSS-FastICA, NSS-aware FastICA versus RobustICA, optional targeted KIC/MDL comparisons, and five prespecified FastICA seed conditions; reconstruct full-length audit images; and optionally calculate TEDANA-native Motion24 metrics without changing classifications.
 - Inputs: `qc/tedana_audit/sentinel_runs.tsv`, pinned TEDANA/t2smap 26.0.3 executables, fMRIPrep echo images/native masks/confounds, and the completed audit-only `t2s-full` optcom used as the full-grid reference.
 - Outputs: Ignored per-configuration derivatives, logs, status, external regressors, and provenance under `derivatives/tedana-audit`.
 - Typical command: `"$AUDIT_PYTHON" benchmark_tedana.py plan --robustica-threads 4`; then follow the staged pilot commands in `qc/tedana_audit/README.md`.
 - Checker: `"$AUDIT_PYTHON" benchmark_tedana.py check --configs ...` verifies expected outputs, raw and restored volume counts, and motion-tree classification identity.
-- Notes: Every command explicitly sets curvefit and mask. T2* and FastICA jobs use one thread; `--robustica-threads` is passed to RobustICA as `n_jobs` for its 30 repeated ICA fits. Decomposition commands also set the requested PCA criterion, seed 42, ICA method, and `tedana_orig`. `full-fastica` explicitly uses zero dummy scans; `nss-fastica` differs only by the validated run-specific count. KIC/MDL are optional targeted configurations, never defaults. Requested configurations are queued together per sentinel so RobustICA does not wait behind every faster configuration. NSS-aware runs receive a numerically validated full-grid image and a zero-padded full-grid ICA matrix. Existing complete jobs skip, incomplete directories fail closed, and all removal/output paths are confined to `derivatives/tedana-audit`. Begin with the documented four-run pilot; never launch a full-cohort RobustICA rerun from this tool.
+- Notes: Every command explicitly sets curvefit and mask. T2* and FastICA jobs use one thread; `--robustica-threads` is passed to RobustICA as `n_jobs` for its 30 repeated ICA fits. Decomposition commands also set the requested PCA criterion, seed, ICA method, and `tedana_orig`. Ordinary configs use seed 42; seed sensitivity is restricted to 1, 10, 42, 100, and 1000. `full-fastica` explicitly uses zero dummy scans; `nss-fastica` differs only by the validated run-specific count. KIC/MDL are optional targeted configurations, never defaults. Requested configurations are queued together per sentinel so RobustICA does not wait behind every faster configuration. NSS-aware runs receive a numerically validated full-grid image and a zero-padded full-grid ICA matrix. Existing complete jobs skip, incomplete directories fail closed, and all removal/output paths are confined to `derivatives/tedana-audit`. Begin with the documented four-run pilot; never launch a full-cohort RobustICA rerun from this tool.
 
 ### `audit_tedana_design.py`
 - Status: Read-only full-cohort scientific audit; not production processing.
-- Purpose: Extract saved AIC/KIC/MDL PCA estimates, reconstruct the exact TEDANA-plus-fMRIPrep nuisance matrix, compare existing generated confounds, and measure column count, numerical rank, intercept-adjusted rank, condition, and pre-task residual degrees of freedom.
+- Purpose: Extract saved AIC/KIC/MDL PCA estimates and accepted/rejected overlap, reconstruct the exact TEDANA-plus-fMRIPrep nuisance matrix, compare existing generated confounds, and report classification burden, independent TEDANA rank cost, combined rank, descriptive tails, and pre-task residual degrees of freedom.
 - Inputs: `qc/tedana_audit/current_runs.tsv`, production fMRIPrep confounds, TEDANA PCA/ICA metrics and mixing matrices, saved MAPCA cross-component JSON, and existing `derivatives/fsl/confounds_tedana` files when present.
 - Outputs: Tracked cohort/review/scanner tables, a targeted PCA-method manifest, figure, report, and provenance under `qc/tedana_audit/design`.
 - Typical command: `"$AUDIT_PYTHON" audit_tedana_design.py build --overwrite`; preview with `build --dry-run`.
 - Checker: `"$AUDIT_PYTHON" audit_tedana_design.py check` validates cohort coverage, output checksums, current-run checksum, and the live input inventory.
-- Notes: Task regressors are not used, so residual degrees of freedom are explicitly pre-task estimates. Thresholds are descriptive review triggers, not exclusions. The targeted manifest is capped and balanced with controls; review it before launching optional KIC/MDL jobs.
+- Notes: Task regressors are not used, so residual degrees of freedom are explicitly pre-task estimates. Percentile tails are descriptive review sets, not exclusions. Raw rejected count is subordinate to incremental nuisance rank, rejected fraction, and rejected variance. Accepted/rejected overlap is descriptive ICA QC, not evidence that RF1 removes accepted signal before fitting task EVs.
+
+### `audit_tedana_nuisance_qc.py`
+- Status: Audit-only; does not create production residualized BOLD.
+- Purpose: Compare BASE, TEDANA-FULL, and TEDANA-NSS nuisance spaces on the same full-length canonical fMRIPrep BOLD using task-independent residual QC.
+- Inputs: Sentinel manifest, canonical non-echo MNI fMRIPrep BOLD/masks/confounds, and completed matched `full-fastica` and `nss-fastica` audit derivatives.
+- Outputs: Tracked run, pair, summary, figure, report, and provenance files under `qc/tedana_audit/nuisance_qc`; residual arrays remain in memory.
+- Typical command: `"$AUDIT_PYTHON" audit_tedana_nuisance_qc.py build --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" audit_tedana_nuisance_qc.py check` validates exact condition coverage, manifest checksum, and output checksums.
+- Notes: Metrics are evaluated on N:T. The NSS matrix has exactly N leading zero rows while fMRIPrep NSS spikes remain in BASE. N=0 FULL/NSS results must be numerically identical. These are nuisance-model QC comparisons, not reproductions of the simultaneous production task GLM.
+
+### `audit_tedana_l1_design.py`
+- Status: Audit-only; runs `feat_model` but never FEAT.
+- Purpose: Measure rank, residual DF, condition number, task-EV nuisance R-squared/VIF, task-subspace overlap, and canonical contrast efficiency for BASE, TEDANA-FULL, and TEDANA-NSS in actual rendered RF1 first-level designs.
+- Inputs: Sentinel manifest, matched benchmark mixing/metrics, canonical rendered activation FSFs from the four downstream task repositories, and FSL `feat_model`.
+- Outputs: Audit-only copied FSFs/matrices under `derivatives/tedana-audit/l1-design` and tracked tables/report/provenance under `qc/tedana_audit/l1_design`.
+- Typical command: `"$AUDIT_PYTHON" audit_tedana_l1_design.py build --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" audit_tedana_l1_design.py check` validates three-condition coverage, sentinel checksum, and output checksums.
+- Notes: Only output and confound paths are replaced in copies of already rendered canonical FSFs. The script verifies that canonical template high-pass filtering is disabled, never examines task-effect magnitude, and fits task and nuisance columns simultaneously. Add `--include-ppi` only for a reviewed targeted extension.
+
+### `audit_tedana_scanner_era.py`
+- Status: Read-only forensic audit.
+- Purpose: Separate protocol metadata from reconstructed-image/noise properties across E11, XA30, and XA60; compare PCA/MAPCA behavior; form within-subject cross-era pairs; and inventory representative raw DICOM headers without identifiers or dates.
+- Inputs: Full `current_runs.tsv`, BIDS echo sidecars, fMRIPrep echo-wise inputs/masks/confounds, TEDANA PCA/MAPCA outputs, and private source DICOMs when available.
+- Outputs: Tracked protocol, echo, run, pair, DICOM, report, and provenance files under `qc/tedana_audit/scanner_era`.
+- Typical command: `"$AUDIT_PYTHON" audit_tedana_scanner_era.py build --jobs 4 --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" audit_tedana_scanner_era.py check` validates current-run identity and output checksums.
+- Notes: Cross-era differences are observational. A missing BIDS field is not invariant. Raw-header extraction requires `pydicom` and excludes identifiers, UIDs, dates, and acquisition timestamps while retaining scientific timing fields such as EchoTime. `--skip-dicom-headers` is an explicit incomplete fallback, not the final forensic pass.
+
+### `audit_tedana_seed_stability.py`
+- Status: Audit-only selection and summary workflow.
+- Purpose: Select twelve deterministic cross-era/rank/dimensionality/motion cases and compare prespecified FastICA seeds without matching component numbering.
+- Inputs: Current cohort inventory, refreshed design burden, canonical BOLD/confounds, and completed seed benchmark configurations from `benchmark_tedana.py`.
+- Outputs: Tracked seed manifest under `qc/tedana_audit/seeds` and run/pair/summary/report/provenance files under `qc/tedana_audit/seed_stability`.
+- Typical command: `"$AUDIT_PYTHON" audit_tedana_seed_stability.py select --overwrite`, followed after benchmark completion by `build --overwrite`.
+- Checker: `"$AUDIT_PYTHON" audit_tedana_seed_stability.py check` validates five seeds per selected run, manifest identity, and output checksums.
+- Notes: Comparison targets classification burden, independent nuisance rank, and nuisance-adjusted data/QC against seed 42. No component-number correspondence is assumed, no residual image is written, and production should reconsider RobustICA only if FastICA seed changes are scientifically consequential.
+
+### `build_tedana_final_report.py`
+- Status: Decision synthesis; read-only with respect to production data.
+- Purpose: Build the final decision-facing report only after burden, scanner-era, nuisance-QC, canonical-design, seed-stability, and T2*/optcom evidence tables exist.
+- Inputs: Validated tracked tables under `qc/tedana_audit`.
+- Outputs: `qc/tedana_audit/final_report.md` and checksum provenance.
+- Typical command: `"$AUDIT_PYTHON" build_tedana_final_report.py build --dry-run`, then `build` after every input is present.
+- Checker: `"$AUDIT_PYTHON" build_tedana_final_report.py check` validates every input and the report checksum.
+- Notes: The report explicitly documents RF1's simultaneous task-plus-nuisance FEAT architecture. It cannot authorize a production change and does not introduce aggressive/non-aggressive/tedort comparisons or production BOLD residualization.
 
 ### `summarize_tedana_dimensionality.py`
 - Status: Read-only matched sentinel interpretation gate; not production processing.

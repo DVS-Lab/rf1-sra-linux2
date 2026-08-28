@@ -40,6 +40,7 @@ RUN_COLUMNS = (
     "design_status",
     "design_issues",
     "software_versions",
+    "software_era",
     "number_of_original_volumes",
     "nss_count",
     "number_of_steady_state_volumes",
@@ -47,6 +48,10 @@ RUN_COLUMNS = (
     "ica_components",
     "accepted_components",
     "rejected_components",
+    "rejected_fraction",
+    "accepted_normalized_variance",
+    "rejected_normalized_variance",
+    "rejected_on_accepted_variance",
     "aic_components",
     "kic_components",
     "mdl_components",
@@ -59,11 +64,15 @@ RUN_COLUMNS = (
     "rejected_components_per_steady_state_volume",
     "base_confound_columns",
     "base_confound_rank",
+    "base_rank_with_intercept",
     "rejected_ica_columns",
     "rejected_ica_rank",
     "combined_confound_columns",
     "combined_confound_rank",
     "combined_rank_with_intercept",
+    "tedana_incremental_rank",
+    "tedana_incremental_rank_fraction",
+    "combined_nuisance_rank_fraction",
     "combined_columns_per_volume",
     "combined_rank_per_volume",
     "residual_df_before_task",
@@ -86,6 +95,7 @@ RUN_COLUMNS = (
     "tedana_mixing",
     "tedana_pca_metrics",
     "tedana_pca_cross_component_metrics",
+    "tedana_cross_component_metrics",
     "combined_confounds",
 )
 
@@ -110,11 +120,51 @@ SUMMARY_COLUMNS = (
 OUTPUTS = (
     Path("cohort_design_burden.tsv"),
     Path("summary_by_scanner.tsv"),
+    Path("classification_burden_summary.tsv"),
+    Path("statistical_burden_summary.tsv"),
+    Path("extreme_tail_runs.tsv"),
     Path("review_runs.tsv"),
     Path("pca_method_benchmark.tsv"),
     Path("figures/design_burden.png"),
     Path("report.md"),
     Path("provenance.json"),
+)
+
+CLASSIFICATION_METRICS = (
+    "ica_components",
+    "accepted_components",
+    "rejected_components",
+    "rejected_fraction",
+    "accepted_normalized_variance",
+    "rejected_normalized_variance",
+)
+
+STATISTICAL_METRICS = (
+    "base_confound_columns",
+    "base_confound_rank",
+    "rejected_ica_columns",
+    "rejected_ica_rank",
+    "combined_confound_columns",
+    "combined_confound_rank",
+    "tedana_incremental_rank",
+    "tedana_incremental_rank_fraction",
+    "combined_nuisance_rank_fraction",
+    "residual_df_before_task",
+)
+
+LONG_SUMMARY_COLUMNS = (
+    "grouping",
+    "software_era",
+    "task",
+    "session",
+    "metric",
+    "n",
+    "median",
+    "q25",
+    "q75",
+    "p90",
+    "p95",
+    "p99",
 )
 
 
@@ -169,6 +219,37 @@ def finite(value: Any) -> float | None:
 
 def boolean(value: bool) -> int:
     return int(bool(value))
+
+
+def software_era(value: Any) -> str:
+    normalized = str(value or "").upper().replace("SYNGO MR", "").strip()
+    for era in ("XA60", "XA30", "E11"):
+        if era in normalized:
+            return era
+    return "unknown"
+
+
+def cross_component_overlap(path: Path) -> float | None:
+    """Read TEDANA's rejected-on-accepted variance metric defensively."""
+    payload = json.loads(path.read_text())
+    target = "total_var_exp_rejected_components_on_accepted"
+
+    def visit(value: Any) -> float | None:
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if str(key).strip().lower() == target:
+                    return finite(item)
+                nested = visit(item)
+                if nested is not None:
+                    return nested
+        elif isinstance(value, list):
+            for item in value:
+                nested = visit(item)
+                if nested is not None:
+                    return nested
+        return None
+
+    return visit(payload)
 
 
 def pca_cross_path(pca_metrics: Path, run_key: str) -> Path:
@@ -269,6 +350,7 @@ def incomplete_row(row: dict[str, str], issue: str) -> dict[str, Any]:
             "design_status": "incomplete",
             "design_issues": issue,
             "software_versions": row.get("software_versions", ""),
+            "software_era": software_era(row.get("software_versions", "")),
             "number_of_original_volumes": row.get("number_of_original_volumes", ""),
             "nss_count": row.get("nss_count", ""),
             "number_of_steady_state_volumes": row.get(
@@ -303,7 +385,10 @@ def audit_run(
     pca_cross = pca_cross_path(paths["tedana_pca_metrics"], row["run_key"])
     if not pca_cross.is_file():
         return incomplete_row(row, "missing:tedana_pca_cross_component_metrics"), []
+    ica_cross = project / row.get("tedana_cross_component_metrics", "")
     inputs = [*paths.values(), pca_cross]
+    if ica_cross.is_file():
+        inputs.append(ica_cross)
     try:
         metrics = pd.read_csv(paths["tedana_metrics"], sep="\t")
         mixing = pd.read_csv(paths["tedana_mixing"], sep="\t")
@@ -333,6 +418,10 @@ def audit_run(
         n_pca = len(pca)
         n_ica = len(metrics)
         n_rejected = len(rejected_indices)
+        n_accepted = int((classifications == "accepted").sum())
+        overlap = cross_component_overlap(ica_cross) if ica_cross.is_file() else None
+        base_rank_with_intercept = base_diag["rank_with_intercept"]
+        incremental_rank = combined_diag["rank"] - base_diag["rank"]
         existing = combined_path(confounds_root, row)
         existing_rows = existing_columns = ""
         existing_match: int | str = ""
@@ -375,23 +464,36 @@ def audit_run(
             "design_status": "complete",
             "design_issues": "",
             "software_versions": row.get("software_versions", ""),
+            "software_era": software_era(row.get("software_versions", "")),
             "number_of_original_volumes": nvolumes,
             "nss_count": int(row["nss_count"]),
             "number_of_steady_state_volumes": steady,
             "pca_selected_components": n_pca,
             "ica_components": n_ica,
-            "accepted_components": int((classifications == "accepted").sum()),
+            "accepted_components": n_accepted,
             "rejected_components": n_rejected,
+            "rejected_fraction": n_rejected / n_ica if n_ica else math.nan,
+            "accepted_normalized_variance": finite(
+                row.get("accepted_normalized_variance")
+            ),
+            "rejected_normalized_variance": finite(
+                row.get("rejected_normalized_variance")
+            ),
+            "rejected_on_accepted_variance": overlap,
             **mapca,
             "pca_components_per_steady_state_volume": n_pca / steady,
             "rejected_components_per_steady_state_volume": n_rejected / steady,
             "base_confound_columns": base_diag["columns"],
             "base_confound_rank": base_diag["rank"],
+            "base_rank_with_intercept": base_rank_with_intercept,
             "rejected_ica_columns": rejected_diag["columns"],
             "rejected_ica_rank": rejected_diag["rank"],
             "combined_confound_columns": combined_diag["columns"],
             "combined_confound_rank": combined_diag["rank"],
             "combined_rank_with_intercept": combined_diag["rank_with_intercept"],
+            "tedana_incremental_rank": incremental_rank,
+            "tedana_incremental_rank_fraction": incremental_rank / nvolumes,
+            "combined_nuisance_rank_fraction": combined_diag["rank"] / nvolumes,
             "combined_columns_per_volume": combined_diag["columns"] / nvolumes,
             "combined_rank_per_volume": combined_diag["rank_with_intercept"] / nvolumes,
             "residual_df_before_task": nvolumes - combined_diag["rank_with_intercept"],
@@ -412,6 +514,9 @@ def audit_run(
             "tedana_mixing": relative(paths["tedana_mixing"], project),
             "tedana_pca_metrics": relative(paths["tedana_pca_metrics"], project),
             "tedana_pca_cross_component_metrics": relative(pca_cross, project),
+            "tedana_cross_component_metrics": (
+                relative(ica_cross, project) if ica_cross.is_file() else ""
+            ),
             "combined_confounds": relative(existing, project),
         }
         if n_pca != int(mapca["aic_components"]):
@@ -429,10 +534,76 @@ def quantile(rows: Sequence[dict[str, Any]], column: str, q: float) -> float | s
     return float(np.quantile(clean, q)) if clean else ""
 
 
+def long_summaries(
+    rows: Sequence[dict[str, Any]], metrics: Sequence[str]
+) -> list[dict[str, Any]]:
+    complete = [row for row in rows if row["design_status"] == "complete"]
+    groups: dict[tuple[str, str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in complete:
+        era = str(row["software_era"])
+        task = str(row["task"])
+        session = str(row["session"])
+        groups[("software_era", era, "all", "all")].append(row)
+        groups[("task", "all", task, "all")].append(row)
+        groups[("session", "all", "all", session)].append(row)
+        groups[("software_era_task_session", era, task, session)].append(row)
+    output: list[dict[str, Any]] = []
+    for (grouping, era, task, session), group in sorted(groups.items()):
+        for metric in metrics:
+            values = [finite(row.get(metric)) for row in group]
+            clean = np.asarray([value for value in values if value is not None])
+            if not len(clean):
+                continue
+            output.append(
+                {
+                    "grouping": grouping,
+                    "software_era": era,
+                    "task": task,
+                    "session": session,
+                    "metric": metric,
+                    "n": len(clean),
+                    "median": float(np.quantile(clean, 0.50)),
+                    "q25": float(np.quantile(clean, 0.25)),
+                    "q75": float(np.quantile(clean, 0.75)),
+                    "p90": float(np.quantile(clean, 0.90)),
+                    "p95": float(np.quantile(clean, 0.95)),
+                    "p99": float(np.quantile(clean, 0.99)),
+                }
+            )
+    return output
+
+
+def extreme_tail_rows(rows: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+    complete = [row for row in rows if row["design_status"] == "complete"]
+    metrics = (
+        "rejected_fraction",
+        "rejected_normalized_variance",
+        "tedana_incremental_rank_fraction",
+        "combined_nuisance_rank_fraction",
+        "rejected_on_accepted_variance",
+    )
+    thresholds = {
+        metric: quantile(complete, metric, 0.99)
+        for metric in metrics
+    }
+    output: list[dict[str, Any]] = []
+    for row in complete:
+        reasons = []
+        for metric, threshold in thresholds.items():
+            value = finite(row.get(metric))
+            if value is not None and threshold != "" and value >= float(threshold):
+                reasons.append(f"{metric}_gte_cohort_p99")
+        if reasons:
+            item = dict(row)
+            item["extreme_tail_reasons"] = ";".join(reasons)
+            output.append(item)
+    return sorted(output, key=lambda row: row["run_key"])
+
+
 def scanner_summary(rows: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in rows:
-        groups[str(row.get("software_versions") or "unknown")].append(row)
+        groups[str(row.get("software_era") or "unknown")].append(row)
     output = []
     for scanner, group in sorted(groups.items()):
         complete = [row for row in group if row["design_status"] == "complete"]
@@ -589,6 +760,11 @@ def make_report(rows: Sequence[dict[str, Any]], path: Path) -> None:
         and not row["existing_combined_matches_reconstruction"]
         for row in complete
     )
+    incremental = quantile(complete, "tedana_incremental_rank_fraction", 0.5)
+    incremental_p95 = quantile(complete, "tedana_incremental_rank_fraction", 0.95)
+    overlap_available = sum(
+        finite(row.get("rejected_on_accepted_variance")) is not None for row in complete
+    )
     lines = [
         "# TEDANA Dimensionality And Design-Burden Audit",
         "",
@@ -613,13 +789,16 @@ def make_report(rows: Sequence[dict[str, Any]], path: Path) -> None:
         "",
         "## Interpretation",
         "",
-        "`combined_rank_with_intercept` is the numerical rank of the exact production nuisance matrix plus a constant. `residual_df_before_task` subtracts that rank from the number of acquired volumes; task regressors and any additional contrasts will consume further degrees of freedom. Column count is also reported because it affects model size, but rank is the relevant estimability quantity.",
+        "`tedana_incremental_rank` is the numerical rank of the exact BASE + rejected-ICA nuisance matrix minus the rank of BASE alone. This is the independent statistical cost attributable to TEDANA; raw rejected-component count remains descriptive only.",
+        f"The cohort median incremental TEDANA rank fraction is {incremental}; its 95th percentile is {incremental_p95}.",
+        f"Rejected-on-accepted cross-component variance is available for {overlap_available}/{len(complete)} complete runs and is descriptive QC, not evidence of pre-GLM signal removal.",
+        "`combined_rank_with_intercept` is the numerical rank of the exact production nuisance matrix plus a constant. `residual_df_before_task` subtracts that rank from the number of acquired volumes; actual task regressors and PPI/nPPI regressors consume additional degrees of freedom. Column count is reported because it affects model size, but rank is the relevant estimability quantity.",
         "",
         "AIC, KIC, and MDL counts are taken from each completed TEDANA run's saved MAPCA cross-component JSON. They permit a cohort-wide comparison of dimensionality criteria without rerunning ICA. Actual KIC/MDL denoising must still be benchmarked on the generated targeted manifest before any production decision.",
         "",
         "## Decision Gate",
         "",
-        "Review `review_runs.tsv`, the scanner summary, and the targeted `pca_method_benchmark.tsv`. Do not alter production TEDANA or confound construction solely because a run crosses one descriptive threshold. A production change requires matched NSS results, targeted KIC/MDL denoising QC, task-model rank review, and human component inspection.",
+        "Review `extreme_tail_runs.tsv`, the grouped burden summaries, and the targeted `pca_method_benchmark.tsv`. The p99 tail labels are descriptive review triggers, never automatic exclusions. The production RF1 analysis fits task and nuisance EVs simultaneously; no pre-regressed or residualized BOLD is created by this audit.",
     ]
     path.write_text("\n".join(lines) + "\n")
     apply_umask_mode(path)
@@ -666,6 +845,9 @@ def build(args: argparse.Namespace) -> int:
         if index % 100 == 0 or index == len(current):
             print(f"Audited {index}/{len(current)} run(s).", flush=True)
     summaries = scanner_summary(audited)
+    classification_summaries = long_summaries(audited, CLASSIFICATION_METRICS)
+    statistical_summaries = long_summaries(audited, STATISTICAL_METRICS)
+    extremes = extreme_tail_rows(audited)
     review = review_rows(audited)
     benchmark = benchmark_manifest(current, audited, cap=args.benchmark_cap)
     benchmark_columns = (*current[0].keys(), "selection_reason")
@@ -674,18 +856,34 @@ def build(args: argparse.Namespace) -> int:
         stage = Path(temp)
         write_tsv(stage / "cohort_design_burden.tsv", audited, RUN_COLUMNS)
         write_tsv(stage / "summary_by_scanner.tsv", summaries, SUMMARY_COLUMNS)
+        write_tsv(
+            stage / "classification_burden_summary.tsv",
+            classification_summaries,
+            LONG_SUMMARY_COLUMNS,
+        )
+        write_tsv(
+            stage / "statistical_burden_summary.tsv",
+            statistical_summaries,
+            LONG_SUMMARY_COLUMNS,
+        )
+        write_tsv(
+            stage / "extreme_tail_runs.tsv",
+            extremes,
+            (*RUN_COLUMNS, "extreme_tail_reasons"),
+        )
         write_tsv(stage / "review_runs.tsv", review, RUN_COLUMNS)
         write_tsv(stage / "pca_method_benchmark.tsv", benchmark, benchmark_columns)
         plot_design(audited, stage / "figures" / "design_burden.png")
         make_report(audited, stage / "report.md")
         provenance = {
-            "schema_version": 1,
+            "schema_version": 2,
             "generated_at": utc_now(),
             "current_runs": relative(args.current_runs, project),
             "current_runs_sha256": sha256(args.current_runs),
             "inventory_rows": len(current),
             "complete_rows": sum(row["design_status"] == "complete" for row in audited),
             "review_rows": len(review),
+            "extreme_tail_rows": len(extremes),
             "pca_method_benchmark_rows": len(benchmark),
             "input_inventory_digest_path_size_mtime": inventory_digest(inputs, project),
             "production_derivatives_modified": False,
@@ -703,6 +901,7 @@ def build(args: argparse.Namespace) -> int:
         install_directory(stage, output)
     print(f"Complete design audits: {provenance['complete_rows']}/{len(current)}")
     print(f"Review rows: {len(review)}")
+    print(f"Extreme-tail review rows: {len(extremes)}")
     print(f"Targeted PCA-method benchmark runs: {len(benchmark)}")
     print(f"Tracked report: {output / 'report.md'}")
     return 0
@@ -754,6 +953,8 @@ def check(args: argparse.Namespace) -> int:
                     "tedana_pca_cross_component_metrics",
                 ):
                     live_inputs.append(project / row[column])
+                if row.get("tedana_cross_component_metrics"):
+                    live_inputs.append(project / row["tedana_cross_component_metrics"])
                 if row.get("existing_combined_present") == "1":
                     live_inputs.append(project / row["combined_confounds"])
             if provenance.get(

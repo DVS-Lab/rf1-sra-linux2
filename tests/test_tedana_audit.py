@@ -220,6 +220,9 @@ def test_benchmark_commands_are_explicit_and_isolated(tmp_path: Path) -> None:
         "nss-robustica",
         robustica_threads=4,
     )
+    seeded = benchmark.build_job(
+        project, audit_root, tedana, t2smap, tree, row, "nss-fastica-seed-1000"
+    )
 
     assert "--exclude" not in full.command
     assert excluded.command[excluded.command.index("--exclude") + 1] == "0:2"
@@ -235,6 +238,9 @@ def test_benchmark_commands_are_explicit_and_isolated(tmp_path: Path) -> None:
     assert fast.command[fast.command.index("--n-threads") + 1] == "1"
     assert robust.command[robust.command.index("--n-threads") + 1] == "4"
     assert robust.command[robust.command.index("--n-robust-runs") + 1] == "30"
+    assert seeded.command[seeded.command.index("--seed") + 1] == "1000"
+    assert seeded.command[seeded.command.index("--ica-method") + 1] == "fastica"
+    assert benchmark.dummy_scan_count(seeded) == 2
     assert full_fast.command[full_fast.command.index("--dummy-scans") + 1] == "0"
     assert full_fast.command[full_fast.command.index("--tedpca") + 1] == "aic"
     assert kic.command[kic.command.index("--dummy-scans") + 1] == "2"

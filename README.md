@@ -660,6 +660,25 @@ denoised-image similarity. Because clean fMRI has no observed gold standard, no
 single proxy or smaller component count is treated as evidence of superior
 denoising.
 
+The final decision pass evaluates RF1's actual analysis architecture. RF1
+starts from full-length fMRIPrep BOLD and estimates task EVs, selected fMRIPrep
+confounds, and rejected TEDANA IC timecourses simultaneously in one FEAT GLM.
+It does not aggressively residualize BOLD before task modeling. Accordingly,
+the final pass prioritizes incremental nuisance rank, residual DF, task-EV
+R-squared/VIF, task-subspace overlap, and canonical contrast efficiency. An
+audit-only in-memory nuisance projection supplies task-independent DVARS,
+motion-coupling, temporal, and variance-control comparisons; it never creates
+or replaces a production BOLD image.
+
+Additional forensic stages compare acquisition metadata, raw public DICOM
+headers, reconstructed echo properties, PCA behavior, and within-subject pairs
+across E11, XA30, and XA60. A twelve-run, five-seed FastICA check evaluates
+classification, nuisance rank, and adjusted-data stability without matching
+component numbers. `build_tedana_final_report.py` will write the decision-facing
+report only when every required evidence table exists and passes its checker.
+No production TEDANA setting changes until that report receives scientific
+review.
+
 ## Full-Cohort Events Response QC
 
 After the canonical events backfill and `check_events.py` audit, build the
