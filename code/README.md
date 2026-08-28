@@ -432,6 +432,15 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: `"$AUDIT_PYTHON" summarize_tedana_dimensionality.py check` validates exact coverage, PCA-contract identity, live inputs, checksums, and exact NSS=0 output identity.
 - Notes: Historical versus FULL-FastICA remains descriptive because the mask contract differs. Only FULL-FastICA versus NSS-FastICA isolates dummy-scan handling. RobustICA may return fewer stable ICA components than the shared PCA count; that is not evidence that RobustICA changed or repaired PCA.
 
+### `summarize_tedana_pca_methods.py`
+- Status: Read-only targeted PCA-criterion interpretation gate; not production processing.
+- Purpose: Compare matched NSS-aware FastICA runs using AIC, KIC, and MDL across model order, classification, exact nuisance rank, residual degrees of freedom, denoising proxies, motion coupling, and image similarity without claiming a gold-standard clean series.
+- Inputs: `qc/tedana_audit/design/pca_method_benchmark.tsv`, completed `nss-fastica`, `nss-kic-fastica`, and `nss-mdl-fastica` audit derivatives, fMRIPrep masks/confounds, and zero-padded full-grid ICA mixing matrices.
+- Outputs: Tracked method/pair TSVs, component-review manifest, figure, report, and provenance under `qc/tedana_audit/pca_methods`.
+- Typical command: `"$AUDIT_PYTHON" summarize_tedana_pca_methods.py build --overwrite`; preview with `build --dry-run`.
+- Checker: `"$AUDIT_PYTHON" summarize_tedana_pca_methods.py check` validates exact coverage, output checksums, the target manifest, and the live benchmark-input inventory.
+- Notes: Optimally combined inputs must be exactly identical across criteria. No winner is selected from tSNR, DVARS, component count, or rank alone; interpretation requires convergent artifact attenuation, signal preservation, design cost, and component review.
+
 ### `summarize_tedana_benchmark.py`
 - Status: Read-only sentinel comparison and interpretation gate; not production processing.
 - Purpose: Build paired T2*/optimal-combination, historical/FastICA/RobustICA, and steady-state denoising summaries plus a focused component-review manifest.

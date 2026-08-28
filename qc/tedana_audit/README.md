@@ -418,6 +418,34 @@ Do not launch this sensitivity run merely because the manifest exists. The
 design report must first confirm that the selected cases and controls answer
 the scientific question.
 
+After all 80 targeted jobs validate, build the matched PCA-method summary:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2/code
+mkdir -p ../logs/runs
+AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+
+"$AUDIT_PYTHON" summarize_tedana_pca_methods.py build --dry-run
+
+STAMP=tedana-pca-method-summary-$(date +%Y%m%d-%H%M%S)
+nohup setsid -f -w \
+  bash run_logged.sh --label "$STAMP" --include-full-log -- \
+    env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      summarize_tedana_pca_methods.py build --overwrite \
+    --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
+      summarize_tedana_pca_methods.py check \
+  > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
+```
+
+The summary requires exactly identical optimally combined inputs across AIC,
+KIC, and MDL. It compares model order, component classification, exact nuisance
+rank, pre-task residual degrees of freedom, tSNR, DVARS, motion coupling, signal
+scale, and denoised-image similarity. No single proxy is treated as ground
+truth: higher tSNR or lower DVARS can also reflect over-aggressive signal
+removal, while lower model order can merge distinct signal and noise sources.
+Review the component manifest and task-model safety checks before any production
+change.
+
 ## Upstream Evidence Gate
 
 An upstream report must identify one mechanism at a time:

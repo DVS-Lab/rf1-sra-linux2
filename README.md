@@ -652,6 +652,14 @@ validates the matched sentinel comparison and exact NSS=0 controls. These
 outputs support, but do not themselves authorize, a production change or an
 upstream issue.
 
+Targeted AIC/KIC/MDL audit runs are interpreted by
+`summarize_tedana_pca_methods.py`. That summary requires identical optcom inputs
+and jointly reports model order, rejected-component burden, exact nuisance rank,
+remaining degrees of freedom, tSNR, DVARS, motion coupling, signal scale, and
+denoised-image similarity. Because clean fMRI has no observed gold standard, no
+single proxy or smaller component count is treated as evidence of superior
+denoising.
+
 ## Full-Cohort Events Response QC
 
 After the canonical events backfill and `check_events.py` audit, build the
