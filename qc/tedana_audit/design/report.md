@@ -21,10 +21,13 @@ The first two flags follow TEDANA 26.0.3 documentation as warning signs for unex
 
 ## Interpretation
 
-`combined_rank_with_intercept` is the numerical rank of the exact production nuisance matrix plus a constant. `residual_df_before_task` subtracts that rank from the number of acquired volumes; task regressors and any additional contrasts will consume further degrees of freedom. Column count is also reported because it affects model size, but rank is the relevant estimability quantity.
+`tedana_incremental_rank` is the numerical rank of the exact BASE + rejected-ICA nuisance matrix minus the rank of BASE alone. This is the independent statistical cost attributable to TEDANA; raw rejected-component count remains descriptive only.
+The cohort median incremental TEDANA rank fraction is 0.050980392156862744; its 95th percentile is 0.20397058823529407.
+Rejected-on-accepted cross-component variance is available for 2730/2737 complete runs and is descriptive QC, not evidence of pre-GLM signal removal.
+`combined_rank_with_intercept` is the numerical rank of the exact production nuisance matrix plus a constant. `residual_df_before_task` subtracts that rank from the number of acquired volumes; actual task regressors and PPI/nPPI regressors consume additional degrees of freedom. Column count is reported because it affects model size, but rank is the relevant estimability quantity.
 
 AIC, KIC, and MDL counts are taken from each completed TEDANA run's saved MAPCA cross-component JSON. They permit a cohort-wide comparison of dimensionality criteria without rerunning ICA. Actual KIC/MDL denoising must still be benchmarked on the generated targeted manifest before any production decision.
 
 ## Decision Gate
 
-Review `review_runs.tsv`, the scanner summary, and the targeted `pca_method_benchmark.tsv`. Do not alter production TEDANA or confound construction solely because a run crosses one descriptive threshold. A production change requires matched NSS results, targeted KIC/MDL denoising QC, task-model rank review, and human component inspection.
+Review `extreme_tail_runs.tsv`, the grouped burden summaries, and the targeted `pca_method_benchmark.tsv`. The p99 tail labels are descriptive review triggers, never automatic exclusions. The production RF1 analysis fits task and nuisance EVs simultaneously; no pre-regressed or residualized BOLD is created by this audit.
