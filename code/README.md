@@ -448,7 +448,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Tracked protocol, echo, run, pair, DICOM, report, and provenance files under `qc/tedana_audit/scanner_era`.
 - Typical command: `"$AUDIT_PYTHON" audit_tedana_scanner_era.py build --jobs 4 --overwrite`; preview with `build --dry-run`.
 - Checker: `"$AUDIT_PYTHON" audit_tedana_scanner_era.py check` validates current-run identity and output checksums.
-- Notes: Cross-era differences are observational. A missing BIDS field is not invariant. Raw-header extraction requires `pydicom` and excludes identifiers, UIDs, dates, and acquisition timestamps while retaining scientific timing fields such as EchoTime. `--skip-dicom-headers` is an explicit incomplete fallback, not the final forensic pass.
+- Notes: Cross-era differences are observational. A missing BIDS field is not invariant. Raw-header extraction requires the version of `pydicom` pinned in `requirements-tedana-audit.txt`; install it into `AUDIT_PYTHON` using pip's `--no-deps` option as shown in the audit runbook. The audit excludes identifiers, UIDs, dates, and acquisition timestamps while retaining scientific timing fields such as EchoTime. `--skip-dicom-headers` is an explicit incomplete fallback, not the final forensic pass.
 
 ### `audit_tedana_seed_stability.py`
 - Status: Audit-only selection and summary workflow.

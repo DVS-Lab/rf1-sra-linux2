@@ -507,10 +507,15 @@ nohup setsid -f -w \
 ### 4B. Scanner-era forensic audit
 
 The final raw-header pass requires `pydicom`. Do not use
-`--skip-dicom-headers` for the decision report:
+`--skip-dicom-headers` for the decision report. Install the repository-pinned
+additive dependency with `--no-deps` so pip cannot alter the working TEDANA
+environment, then verify the environment before launching:
 
 ```bash
+"$AUDIT_PYTHON" -m pip install --no-deps \
+  -r ../requirements-tedana-audit.txt
 "$AUDIT_PYTHON" -c 'import pydicom; print("pydicom", pydicom.__version__)'
+"$AUDIT_PYTHON" -m pip check
 "$AUDIT_PYTHON" audit_tedana_scanner_era.py build --dry-run
 
 STAMP=tedana-scanner-era-$(date +%Y%m%d-%H%M%S)

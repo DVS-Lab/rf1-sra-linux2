@@ -1,0 +1,2 @@
+# Additive dependency for the raw-DICOM scanner-era audit.
+pydicom==3.0.2

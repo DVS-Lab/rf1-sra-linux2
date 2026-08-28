@@ -672,7 +672,10 @@ or replaces a production BOLD image.
 
 Additional forensic stages compare acquisition metadata, raw public DICOM
 headers, reconstructed echo properties, PCA behavior, and within-subject pairs
-across E11, XA30, and XA60. A twelve-run, five-seed FastICA check evaluates
+across E11, XA30, and XA60. The raw-header stage uses the additive dependency
+pinned in `requirements-tedana-audit.txt`; its runbook installs that package
+with `--no-deps` to preserve the working TEDANA environment. A twelve-run,
+five-seed FastICA check evaluates
 classification, nuisance rank, and adjusted-data stability without matching
 component numbers. `build_tedana_final_report.py` will write the decision-facing
 report only when every required evidence table exists and passes its checker.
