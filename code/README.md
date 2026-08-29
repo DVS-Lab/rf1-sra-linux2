@@ -445,7 +445,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Status: Read-only forensic audit.
 - Purpose: Separate protocol metadata from reconstructed-image/noise properties across E11, XA30, and XA60; compare PCA/MAPCA behavior; form within-subject cross-era pairs; and inventory representative raw DICOM headers without identifiers or dates.
 - Inputs: Full `current_runs.tsv`, BIDS echo sidecars, fMRIPrep echo-wise inputs/masks/confounds, TEDANA PCA/MAPCA outputs, and private source DICOMs when available.
-- Outputs: Tracked protocol, echo, run, pair, DICOM, report, and provenance files under `qc/tedana_audit/scanner_era`.
+- Outputs: Tracked protocol summary and within-era exception tables, echo/run properties, within-subject pairs, privacy-filtered DICOM summaries, report, and provenance under `qc/tedana_audit/scanner_era`.
 - Typical command: `"$AUDIT_PYTHON" audit_tedana_scanner_era.py build --jobs 4 --overwrite`; preview with `build --dry-run`.
 - Checker: `"$AUDIT_PYTHON" audit_tedana_scanner_era.py check` validates current-run identity and output checksums.
 - Notes: Cross-era differences are observational. A missing BIDS field is not invariant. Raw-header extraction requires the version of `pydicom` pinned in `requirements-tedana-audit.txt`; install it into `AUDIT_PYTHON` using pip's `--no-deps` option as shown in the audit runbook. The tracked raw-header summary uses an explicit scientific-keyword allowlist and omits private tags, free text, identifiers, UIDs, dates, timestamps, and raw DICOM paths while retaining scientific timing fields such as EchoTime. `--skip-dicom-headers` is an explicit incomplete fallback, not the final forensic pass.

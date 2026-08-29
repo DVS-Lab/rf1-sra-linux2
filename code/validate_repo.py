@@ -126,6 +126,7 @@ def validate_scanner_era_privacy(repo: Path) -> list[str]:
     root = repo / "qc" / "tedana_audit" / "scanner_era"
     representatives = root / "dicom_representatives.tsv"
     parameters = root / "dicom_parameters.tsv"
+    exceptions = root / "protocol_exceptions.tsv"
     provenance = root / "provenance.json"
     forbidden_columns = {
         "representative_dicom", "source_scan_directory", "series_description"
@@ -152,10 +153,18 @@ def validate_scanner_era_privacy(repo: Path) -> list[str]:
                         f"scanner-era DICOM parameter row {line} is not privacy-safe"
                     )
                     break
+    if exceptions.is_file():
+        with exceptions.open(newline="") as handle:
+            for line, row in enumerate(csv.DictReader(handle, delimiter="\t"), start=2):
+                if forbidden_parameter.search(str(row.get("parameter", ""))):
+                    errors.append(
+                        f"scanner-era protocol exception row {line} is not privacy-safe"
+                    )
+                    break
     if provenance.is_file():
         payload = json.loads(provenance.read_text())
-        if payload.get("schema_version") != 2:
-            errors.append("scanner-era provenance predates privacy-safe schema 2")
+        if payload.get("schema_version") != 3:
+            errors.append("scanner-era provenance predates privacy-safe schema 3")
         if payload.get("dicom_scientific_keyword_allowlist_enforced") is not True:
             errors.append("scanner-era provenance lacks DICOM allowlist attestation")
         if payload.get("dicom_representative_paths_redacted") is not True:

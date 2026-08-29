@@ -26,7 +26,7 @@ from pipeline_utils import apply_umask_mode, ensure_safe_child_path
 
 
 ERAS = ("E11", "XA30", "XA60")
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 PRIVATE_PATTERN = re.compile(
     r"patient|subject|institution|address|physician|operator|accession|birth|uid|serial|studyid|"
     r"acquisitiondate|acquisitiontime|contentdate|contenttime|seriesdate|seriestime|"
@@ -65,6 +65,16 @@ DICOM_SAFE_KEYWORDS = frozenset(
         "VolumetricProperties",
     }
 )
+PROTOCOL_EXCEPTION_PARAMETERS = frozenset(
+    {
+        "AcquisitionMatrixPE", "EchoTime", "EffectiveEchoSpacing", "FlipAngle",
+        "ImageType", "ImageTypeText", "MagneticFieldStrength",
+        "ManufacturersModelName", "MultibandAccelerationFactor",
+        "NonlinearGradientCorrection", "PhaseEncodingDirection", "PhaseEncodingSteps",
+        "ReconMatrixPE", "RepetitionTime", "SliceThickness", "SoftwareVersions",
+        "SpacingBetweenSlices", "TotalReadoutTime",
+    }
+)
 PROTOCOL_COLUMNS = (
     "task", "run", "echo", "parameter", "status", "eras_present",
     "e11_unique_values", "xa30_unique_values", "xa60_unique_values",
@@ -99,9 +109,14 @@ PAIR_COLUMNS = (
 DICOM_COLUMNS = (
     "task", "run", "software_era", "run_key", "series_number", "mapping_status",
 )
+PROTOCOL_EXCEPTION_COLUMNS = (
+    "run_key", "software_era", "task", "run", "echo", "parameter", "value",
+    "era_modal_value", "value_count", "era_group_count", "exception_type",
+)
 OUTPUTS = (
     Path("protocol_parameters.tsv"), Path("echo_properties.tsv"), Path("run_properties.tsv"),
-    Path("within_subject_pairs.tsv"), Path("dicom_representatives.tsv"),
+    Path("within_subject_pairs.tsv"), Path("protocol_exceptions.tsv"),
+    Path("dicom_representatives.tsv"),
     Path("dicom_parameters.tsv"), Path("report.md"), Path("provenance.json"),
 )
 
@@ -143,6 +158,12 @@ def validate_tracked_dicom_tables(output: Path) -> list[str]:
             if row.get("parameter") not in DICOM_SAFE_KEYWORDS:
                 failures.append("unsafe_dicom_parameter")
                 break
+    exceptions_path = output / "protocol_exceptions.tsv"
+    if exceptions_path.is_file():
+        for row in read_tsv(exceptions_path):
+            if row.get("parameter") not in PROTOCOL_EXCEPTION_PARAMETERS:
+                failures.append("unsafe_protocol_exception_parameter")
+                break
     return failures
 
 
@@ -181,12 +202,60 @@ def protocol_records(project: Path, rows: Sequence[dict[str, str]]) -> tuple[lis
             for parameter, value in flatten_json(payload).items():
                 records.append(
                     {
-                        "task": row["task"], "run": row["run"], "echo": str(echo),
+                        "run_key": row["run_key"], "task": row["task"],
+                        "run": row["run"], "echo": str(echo),
                         "parameter": parameter, "software_era": software_era(row["software_versions"]),
                         "value": normalized_value(value),
                     }
                 )
     return records, inputs
+
+
+def protocol_exceptions(records: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+    groups: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in records:
+        if row["parameter"] in PROTOCOL_EXCEPTION_PARAMETERS:
+            groups[
+                (
+                    row["task"], row["run"], row["echo"], row["parameter"],
+                    row["software_era"],
+                )
+            ].append(row)
+    output: list[dict[str, Any]] = []
+    for group in groups.values():
+        counts: dict[str, int] = defaultdict(int)
+        for row in group:
+            counts[row["value"]] += 1
+        if len(counts) < 2:
+            continue
+        maximum = max(counts.values())
+        modes = sorted(value for value, count in counts.items() if count == maximum)
+        tied = len(modes) > 1
+        modal = ";".join(modes)
+        selected = group if tied else [row for row in group if row["value"] != modes[0]]
+        for row in selected:
+            output.append(
+                {
+                    **{
+                        name: row[name]
+                        for name in (
+                            "run_key", "software_era", "task", "run", "echo",
+                            "parameter", "value",
+                        )
+                    },
+                    "era_modal_value": modal,
+                    "value_count": counts[row["value"]],
+                    "era_group_count": len(group),
+                    "exception_type": "within_era_tie" if tied else "within_era_nonmodal",
+                }
+            )
+    return sorted(
+        output,
+        key=lambda row: (
+            row["parameter"], row["software_era"], row["task"], row["run"],
+            row["echo"], row["run_key"],
+        ),
+    )
 
 
 def summarize_protocol(records: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -401,7 +470,7 @@ def dicom_parameters(
     return records
 
 
-def make_report(protocol: Sequence[dict[str, Any]], runs: Sequence[dict[str, Any]], pairs: Sequence[dict[str, Any]], dicoms: Sequence[dict[str, Any]], path: Path) -> None:
+def make_report(protocol: Sequence[dict[str, Any]], runs: Sequence[dict[str, Any]], pairs: Sequence[dict[str, Any]], exceptions: Sequence[dict[str, Any]], dicoms: Sequence[dict[str, Any]], path: Path) -> None:
     counts = defaultdict(int)
     for row in protocol: counts[row["status"]] += 1
     complete = sum(row["audit_status"] == "complete" for row in runs)
@@ -409,6 +478,7 @@ def make_report(protocol: Sequence[dict[str, Any]], runs: Sequence[dict[str, Any
         "# TEDANA Scanner-Era Forensic Audit", "",
         "This audit separates nominal acquisition metadata from reconstructed-image properties. Cross-era results are observational and do not establish that scanner software caused a difference.", "",
         "## Coverage", "", f"- Run properties complete: {complete}/{len(runs)}", f"- Within-subject cross-era pairs: {len(pairs)}",
+        f"- Prespecified within-era protocol exceptions: {len(exceptions)}",
         f"- Representative DICOM mappings: {sum(row['mapping_status'] == 'mapped' for row in dicoms)}/{len(dicoms)}", "",
         "## Sidecar Parameters", "", *(f"- {key}: {value}" for key, value in sorted(counts.items())), "",
         "## Interpretation Gate", "",
@@ -425,6 +495,7 @@ def build(args: argparse.Namespace) -> int:
         print("Image properties: " + ("skipped" if args.skip_images else f"enabled with {args.jobs} worker(s)")); print(f"Tracked output: {output}"); return 0
     if output.exists() and not args.overwrite: raise ValueError(f"output exists; review it or use --overwrite: {output}")
     records, inputs = protocol_records(project, complete); protocol = summarize_protocol(records)
+    exceptions = protocol_exceptions(records)
     run_rows = []; echo_rows = []
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
         futures = {executor.submit(audit_run, project, row, args.skip_images): row for row in complete}
@@ -440,8 +511,9 @@ def build(args: argparse.Namespace) -> int:
         stage = Path(temp)
         write_tsv(stage / "protocol_parameters.tsv", protocol, PROTOCOL_COLUMNS); write_tsv(stage / "echo_properties.tsv", echo_rows, ECHO_COLUMNS)
         write_tsv(stage / "run_properties.tsv", run_rows, RUN_COLUMNS); write_tsv(stage / "within_subject_pairs.tsv", pairs, PAIR_COLUMNS)
+        write_tsv(stage / "protocol_exceptions.tsv", exceptions, PROTOCOL_EXCEPTION_COLUMNS)
         write_tsv(stage / "dicom_representatives.tsv", representatives, DICOM_COLUMNS); write_tsv(stage / "dicom_parameters.tsv", dicom_summary, PROTOCOL_COLUMNS)
-        make_report(protocol, run_rows, pairs, representatives, stage / "report.md")
+        make_report(protocol, run_rows, pairs, exceptions, representatives, stage / "report.md")
         provenance = {
             "schema_version": SCHEMA_VERSION, "generated_at": utc_now(), "current_runs_sha256": sha256(args.current_runs),
             "runs": len(complete), "skip_images": args.skip_images, "jobs": args.jobs,

@@ -533,8 +533,11 @@ compressed echo series. The audit excludes identifiers, UIDs, dates, and
 acquisition timestamps from tracked metadata. Raw-header output is restricted
 to an explicit scientific-keyword allowlist; private tags, date/time VRs, UIDs,
 person names, free-text fields, and representative DICOM paths are never
-written to tracked tables. It cannot establish that a scanner-software change
-caused an observed image-property difference.
+written to tracked tables. `protocol_exceptions.tsv` preserves run identities
+only for prespecified scientific sidecar fields that vary within an era, so
+legacy TR/flip-angle and phase-encoding exceptions can receive targeted review.
+It cannot establish that a scanner-software change caused an observed
+image-property difference.
 
 ### 4C. Nuisance-model QC
 

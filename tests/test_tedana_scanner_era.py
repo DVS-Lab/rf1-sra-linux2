@@ -47,6 +47,24 @@ def test_protocol_summary_separates_invariance_and_era_effects() -> None:
     assert rows["Reconstruction"]["status"] == "differs_systematically_by_era"
 
 
+def test_protocol_exceptions_retain_run_identity() -> None:
+    records = [
+        {
+            "run_key": f"sub-{subject}_ses-01_task-trust_run-1",
+            "task": "trust", "run": "1", "echo": "1",
+            "parameter": "FlipAngle", "software_era": "E11", "value": value,
+        }
+        for subject, value in (("10001", "50"), ("10002", "50"), ("10003", "20"))
+    ]
+
+    rows = scanner.protocol_exceptions(records)
+
+    assert len(rows) == 1
+    assert rows[0]["run_key"].startswith("sub-10003_")
+    assert rows[0]["era_modal_value"] == "50"
+    assert rows[0]["exception_type"] == "within_era_nonmodal"
+
+
 @pytest.mark.parametrize(
     ("values", "total", "top10", "effective"),
     [
