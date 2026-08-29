@@ -11,6 +11,8 @@ import re
 import subprocess
 from pathlib import Path
 
+from scanner_era_privacy import DICOM_SAFE_KEYWORDS, PROTOCOL_EXCEPTION_PARAMETERS
+
 
 SCRIPT_RE = re.compile(
     r"`([^`]+\.(?:sh|py|m|json|txt))`|(?:bash|python(?:3)?)\s+([A-Za-z0-9_./+-]+\.(?:sh|py))"
@@ -131,11 +133,6 @@ def validate_scanner_era_privacy(repo: Path) -> list[str]:
     forbidden_columns = {
         "representative_dicom", "source_scan_directory", "series_description"
     }
-    forbidden_parameter = re.compile(
-        r"date|time|uid|patient|subject|institution|address|physician|operator|"
-        r"accession|birth|serial|studyid|comment|diagnos|^\([0-9a-f]{4},",
-        re.I,
-    )
     if representatives.is_file():
         with representatives.open(newline="") as handle:
             columns = set(csv.DictReader(handle, delimiter="\t").fieldnames or ())
@@ -148,7 +145,7 @@ def validate_scanner_era_privacy(repo: Path) -> list[str]:
     if parameters.is_file():
         with parameters.open(newline="") as handle:
             for line, row in enumerate(csv.DictReader(handle, delimiter="\t"), start=2):
-                if forbidden_parameter.search(str(row.get("parameter", ""))):
+                if row.get("parameter") not in DICOM_SAFE_KEYWORDS:
                     errors.append(
                         f"scanner-era DICOM parameter row {line} is not privacy-safe"
                     )
@@ -156,7 +153,7 @@ def validate_scanner_era_privacy(repo: Path) -> list[str]:
     if exceptions.is_file():
         with exceptions.open(newline="") as handle:
             for line, row in enumerate(csv.DictReader(handle, delimiter="\t"), start=2):
-                if forbidden_parameter.search(str(row.get("parameter", ""))):
+                if row.get("parameter") not in PROTOCOL_EXCEPTION_PARAMETERS:
                     errors.append(
                         f"scanner-era protocol exception row {line} is not privacy-safe"
                     )

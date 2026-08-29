@@ -22,6 +22,7 @@ def load(name: str, path: Path):
 
 
 scanner = load("audit_tedana_scanner_era", CODE / "audit_tedana_scanner_era.py")
+validator = load("validate_repo", CODE / "validate_repo.py")
 
 
 def test_protocol_summary_separates_invariance_and_era_effects() -> None:
@@ -198,3 +199,32 @@ def test_tracked_dicom_table_validation_rejects_legacy_output(tmp_path: Path) ->
 
     assert "unsafe_dicom_representative_columns" in failures
     assert "unsafe_dicom_parameter" in failures
+
+
+def test_repo_privacy_validator_uses_scientific_parameter_allowlists(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "qc" / "tedana_audit" / "scanner_era"
+    output.mkdir(parents=True)
+    (output / "dicom_parameters.tsv").write_text(
+        "parameter\tvalue\nEchoTime\t13.8\n"
+    )
+    (output / "protocol_exceptions.tsv").write_text(
+        "parameter\tvalue\nRepetitionTime\t1.615\n"
+    )
+
+    assert validator.validate_scanner_era_privacy(tmp_path) == []
+
+
+def test_repo_privacy_validator_rejects_nonallowlisted_parameter(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "qc" / "tedana_audit" / "scanner_era"
+    output.mkdir(parents=True)
+    (output / "dicom_parameters.tsv").write_text(
+        "parameter\tvalue\nAcquisitionDate\t20260101\n"
+    )
+
+    assert validator.validate_scanner_era_privacy(tmp_path) == [
+        "scanner-era DICOM parameter row 2 is not privacy-safe"
+    ]
