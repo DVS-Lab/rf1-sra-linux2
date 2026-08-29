@@ -121,6 +121,48 @@ def validate_qc(repo: Path) -> list[str]:
     return errors
 
 
+def validate_scanner_era_privacy(repo: Path) -> list[str]:
+    errors: list[str] = []
+    root = repo / "qc" / "tedana_audit" / "scanner_era"
+    representatives = root / "dicom_representatives.tsv"
+    parameters = root / "dicom_parameters.tsv"
+    provenance = root / "provenance.json"
+    forbidden_columns = {
+        "representative_dicom", "source_scan_directory", "series_description"
+    }
+    forbidden_parameter = re.compile(
+        r"date|time|uid|patient|subject|institution|address|physician|operator|"
+        r"accession|birth|serial|studyid|comment|diagnos|^\([0-9a-f]{4},",
+        re.I,
+    )
+    if representatives.is_file():
+        with representatives.open(newline="") as handle:
+            columns = set(csv.DictReader(handle, delimiter="\t").fieldnames or ())
+        exposed = sorted(columns & forbidden_columns)
+        if exposed:
+            errors.append(
+                "scanner-era DICOM mapping exposes forbidden columns: "
+                + ", ".join(exposed)
+            )
+    if parameters.is_file():
+        with parameters.open(newline="") as handle:
+            for line, row in enumerate(csv.DictReader(handle, delimiter="\t"), start=2):
+                if forbidden_parameter.search(str(row.get("parameter", ""))):
+                    errors.append(
+                        f"scanner-era DICOM parameter row {line} is not privacy-safe"
+                    )
+                    break
+    if provenance.is_file():
+        payload = json.loads(provenance.read_text())
+        if payload.get("schema_version") != 2:
+            errors.append("scanner-era provenance predates privacy-safe schema 2")
+        if payload.get("dicom_scientific_keyword_allowlist_enforced") is not True:
+            errors.append("scanner-era provenance lacks DICOM allowlist attestation")
+        if payload.get("dicom_representative_paths_redacted") is not True:
+            errors.append("scanner-era provenance lacks DICOM path-redaction attestation")
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -134,6 +176,7 @@ def main() -> int:
     errors.extend(validate_readme_paths(repo))
     errors.extend(validate_clean_status(repo))
     errors.extend(validate_qc(repo))
+    errors.extend(validate_scanner_era_privacy(repo))
     if errors:
         for error in errors:
             print(error)

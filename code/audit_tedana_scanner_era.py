@@ -26,6 +26,7 @@ from pipeline_utils import apply_umask_mode, ensure_safe_child_path
 
 
 ERAS = ("E11", "XA30", "XA60")
+SCHEMA_VERSION = 2
 PRIVATE_PATTERN = re.compile(
     r"patient|subject|institution|address|physician|operator|accession|birth|uid|serial|studyid|"
     r"acquisitiondate|acquisitiontime|contentdate|contenttime|seriesdate|seriestime|"
@@ -126,6 +127,23 @@ def sha256(path: Path) -> str:
     with path.open("rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""): digest.update(block)
     return digest.hexdigest()
+
+
+def validate_tracked_dicom_tables(output: Path) -> list[str]:
+    failures: list[str] = []
+    representatives_path = output / "dicom_representatives.tsv"
+    parameters_path = output / "dicom_parameters.tsv"
+    if representatives_path.is_file():
+        with representatives_path.open(newline="") as handle:
+            columns = tuple(csv.DictReader(handle, delimiter="\t").fieldnames or ())
+        if columns != DICOM_COLUMNS:
+            failures.append("unsafe_dicom_representative_columns")
+    if parameters_path.is_file():
+        for row in read_tsv(parameters_path):
+            if row.get("parameter") not in DICOM_SAFE_KEYWORDS:
+                failures.append("unsafe_dicom_parameter")
+                break
+    return failures
 
 
 def inventory_digest(paths: Sequence[Path], root: Path) -> str:
@@ -425,7 +443,7 @@ def build(args: argparse.Namespace) -> int:
         write_tsv(stage / "dicom_representatives.tsv", representatives, DICOM_COLUMNS); write_tsv(stage / "dicom_parameters.tsv", dicom_summary, PROTOCOL_COLUMNS)
         make_report(protocol, run_rows, pairs, representatives, stage / "report.md")
         provenance = {
-            "schema_version": 1, "generated_at": utc_now(), "current_runs_sha256": sha256(args.current_runs),
+            "schema_version": SCHEMA_VERSION, "generated_at": utc_now(), "current_runs_sha256": sha256(args.current_runs),
             "runs": len(complete), "skip_images": args.skip_images, "jobs": args.jobs,
             "skip_dicom_headers": args.skip_dicom_headers,
             "input_inventory_digest_path_size_mtime": inventory_digest([args.current_runs.resolve(), *inputs], project),
@@ -455,6 +473,10 @@ def check(args: argparse.Namespace) -> int:
         if not path.is_file(): failures.append(f"missing:{path}")
         elif item.name != "provenance.json" and provenance.get("outputs", {}).get(item.as_posix()) != sha256(path): failures.append(f"checksum:{path}")
     if provenance.get("current_runs_sha256") != sha256(args.current_runs): failures.append("current_runs_checksum")
+    if provenance.get("schema_version") != SCHEMA_VERSION: failures.append("unsafe_schema_version")
+    if provenance.get("dicom_scientific_keyword_allowlist_enforced") is not True: failures.append("missing_dicom_allowlist_attestation")
+    if provenance.get("dicom_representative_paths_redacted") is not True: failures.append("missing_dicom_path_redaction_attestation")
+    failures.extend(validate_tracked_dicom_tables(output))
     for failure in failures: print(f"FAILED {failure}")
     if failures: print(f"CHECK FAILED: {len(failures)} scanner-era issue(s)."); return 1
     print(f"CHECK PASSED: TEDANA scanner-era audit validated for {provenance['runs']} run(s)."); return 0

@@ -166,3 +166,17 @@ def test_tracked_dicom_mapping_columns_redact_raw_paths() -> None:
     assert "representative_dicom" not in scanner.DICOM_COLUMNS
     assert "source_scan_directory" not in scanner.DICOM_COLUMNS
     assert "series_description" not in scanner.DICOM_COLUMNS
+
+
+def test_tracked_dicom_table_validation_rejects_legacy_output(tmp_path: Path) -> None:
+    (tmp_path / "dicom_representatives.tsv").write_text(
+        "task\trepresentative_dicom\ntrust\t/path/1.2.3.dcm\n"
+    )
+    (tmp_path / "dicom_parameters.tsv").write_text(
+        "parameter\tstatus\nInstanceCreationDate\tidentical_across_eras\n"
+    )
+
+    failures = scanner.validate_tracked_dicom_tables(tmp_path)
+
+    assert "unsafe_dicom_representative_columns" in failures
+    assert "unsafe_dicom_parameter" in failures
