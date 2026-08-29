@@ -15,10 +15,10 @@ from source_layout import (  # noqa: E402
 )
 
 
-def write_manifest(path: Path, source_relative: str) -> None:
+def write_manifest(path: Path, source_relative: str, status: str = "active") -> None:
     path.write_text(
-        "subject\tsession\tsource_relative\treason\n"
-        f"11116\t02\t{source_relative}\tcompletes same session\n"
+        "subject\tsession\tstatus\tsource_relative\treason\n"
+        f"11116\t02\t{status}\t{source_relative}\tcompletes same session\n"
     )
 
 
@@ -46,6 +46,27 @@ def test_manifest_rejects_unsafe_paths(tmp_path: Path, unsafe: str) -> None:
     write_manifest(manifest, unsafe)
     with pytest.raises(ValueError, match="unsafe source_relative"):
         load_supplemental_sources(manifest)
+
+
+def test_paused_source_blocks_merged_session(tmp_path: Path) -> None:
+    source_root = tmp_path / "source"
+    primary = source_root / "Smith-SRA-11116-2" / "Smith-SRA-11116-2"
+    supplement = (
+        source_root
+        / "Smith-SRA-11116-2-socialdoors"
+        / "Smith-SRA-11116-2-socialdoors"
+    )
+    make_scan(primary, "1-T1w")
+    make_scan(supplement, "2-SocialDoors_face")
+    manifest = tmp_path / "sources.tsv"
+    write_manifest(
+        manifest,
+        "Smith-SRA-11116-2-socialdoors/Smith-SRA-11116-2-socialdoors",
+        status="paused",
+    )
+
+    with pytest.raises(ValueError, match="supplemental source is paused"):
+        prepare_merged_source(source_root, manifest, "11116", "02", None)
 
 
 def test_merged_view_preserves_both_visits_and_scan_labels(tmp_path: Path) -> None:

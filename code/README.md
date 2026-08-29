@@ -171,11 +171,11 @@ Each entry uses the same fields so operators can scan quickly.
 ### `supplemental_sources.tsv`
 - Status: Reviewed production exception registry.
 - Purpose: Declare additional source folders that belong to an existing scientific/BIDS session.
-- Inputs: Subject, session, source-relative folder, and a human-readable reason.
+- Inputs: Subject, session, `active`/`paused` status, source-relative folder, and a human-readable reason.
 - Outputs: A fail-closed input to `source_layout.py` and `prepdata.sh`.
 - Typical command: do not run directly; add a row only after acquisition identity and session assignment are reviewed.
 - Checker: `python3 source_layout.py count ...` and `prepdata.sh --dry-run`.
-- Notes: It does not authorize source modification or a new BIDS session. `sub-11116` uses it to combine its primary session-2 visit with the Social Doors/Doors return visit.
+- Notes: It does not authorize source modification or a new BIDS session. A `paused` row blocks conversion for the entire session. `sub-11116` remains paused until its completed post-fix behavior files are recovered and timestamp-matched; changing that row to `active` later enables the reviewed DICOM merge.
 
 ### `convert_behavior.py`
 - Status: Canonical production converter.

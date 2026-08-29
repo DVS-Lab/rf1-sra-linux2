@@ -16,11 +16,13 @@ from pathlib import Path, PurePosixPath
 class SupplementalSource:
     subject: str
     session: str
+    status: str
     source_relative: PurePosixPath
     reason: str
 
 
-REQUIRED_COLUMNS = {"subject", "session", "source_relative", "reason"}
+REQUIRED_COLUMNS = {"subject", "session", "status", "source_relative", "reason"}
+VALID_STATUSES = {"active", "paused"}
 
 
 def load_supplemental_sources(path: Path) -> list[SupplementalSource]:
@@ -43,12 +45,15 @@ def load_supplemental_sources(path: Path) -> list[SupplementalSource]:
                 continue
             subject = (row.get("subject") or "").strip().removeprefix("sub-")
             session = (row.get("session") or "").strip().removeprefix("ses-").zfill(2)
+            status = (row.get("status") or "").strip().lower()
             source_text = (row.get("source_relative") or "").strip()
             reason = (row.get("reason") or "").strip()
             if not re.fullmatch(r"\d+", subject):
                 raise ValueError(f"invalid subject at {path}:{line_number}: {subject!r}")
             if session not in {"01", "02"}:
                 raise ValueError(f"invalid session at {path}:{line_number}: {session!r}")
+            if status not in VALID_STATUSES:
+                raise ValueError(f"invalid status at {path}:{line_number}: {status!r}")
             source_relative = PurePosixPath(source_text)
             if (
                 not source_text
@@ -64,7 +69,9 @@ def load_supplemental_sources(path: Path) -> list[SupplementalSource]:
             if key in seen:
                 raise ValueError(f"duplicate supplemental source at {path}:{line_number}")
             seen.add(key)
-            specs.append(SupplementalSource(subject, session, source_relative, reason))
+            specs.append(
+                SupplementalSource(subject, session, status, source_relative, reason)
+            )
     return specs
 
 
@@ -113,6 +120,12 @@ def prepare_merged_source(
     )
     if not specs:
         raise ValueError(f"no reviewed supplemental sources for sub-{subject} ses-{session}")
+    paused = [spec for spec in specs if spec.status == "paused"]
+    if paused:
+        reasons = "; ".join(spec.reason for spec in paused)
+        raise ValueError(
+            f"supplemental source is paused for sub-{subject} ses-{session}: {reasons}"
+        )
 
     sources = [primary_source_dir(source_root, subject, session)]
     sources.extend(source_root.joinpath(*spec.source_relative.parts) for spec in specs)

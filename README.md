@@ -294,12 +294,15 @@ provenance-visible:
   jobs; the run-2 magnitude reference remains run-specific, and the reused
   fieldmap receives explicit BIDS-side metadata plus derivative provenance.
 - `sub-11116` session 2 was acquired across a primary visit and a short return
-  visit intended to complete Social Doors/Doors. `supplemental_sources.tsv` declares
+  visit intended to complete Social Doors/Doors. `supplemental_sources.tsv`
+  declares
   the second immutable source folder. `prepdata.sh` exposes both folders through
   a temporary combined scan view and writes one `ses-02`; it does not create
   `ses-03` or alter sourcedata. If both visits contain a T1w, the XA30 heuristic
   writes stable `run-1` and `run-2` T1w files and defaces both. Conversion and
   behavioral validation must still establish which return-visit runs completed.
+  Its manifest row is `paused`, so `prepdata.sh` fails before conversion until
+  the completed post-fix behavior files are recovered and timestamp-matched.
 - The private `sub-10617` Shared Reward run-1 source is restored from the
   rectangular 25-column parent version of the damaged historical edit, with
   only the leading `?TrialNumber` header corrected to `TrialNumber`. That source
@@ -464,9 +467,10 @@ say whether an absence is expected or requires investigation.
 A return visit that completes an interrupted scientific session remains in the
 same BIDS session only after review. Such multi-folder sessions must be listed
 in `code/supplemental_sources.tsv`; unlisted folders are never merged
-automatically. The merge is a temporary symlink view in scratch, preserving the
-original source trees and causing conversion to fail if any declared source is
-missing or contains no DICOMs.
+automatically, and a `paused` row blocks the entire session. The merge is a
+temporary symlink view in scratch, preserving the original source trees and
+causing conversion to fail if any declared source is missing or contains no
+DICOMs.
 
 Historical task logs use task-specific run labels. Trust and UGR use raw
 `run-0/run-1` for BIDS runs 1/2; Shared Reward has explicitly prompted for

@@ -101,13 +101,15 @@ and their cohort thresholds must remain separate from the final decision.
   two weeks. The return folder `Smith-SRA-11116-2-socialdoors` was intended to
   complete the missing Social Doors/Doors portion of the same scientific
   session and remains
-  `ses-02`, not `ses-03`. The reviewed `supplemental_sources.tsv` row combines
-  both immutable source folders in a temporary scratch view. Multiple T1w
-  acquisitions receive `run-1`/`run-2` entities and are all defaced. Conversion
-  still requires a reviewed dry run and staged overwrite of the incomplete
-  session. The currently tracked private behavior logs contain only short,
-  started-but-not-completed attempts, so run completion still needs source and
-  team review. This corrects the earlier note that mistakenly named `11078`.
+  `ses-02`, not `ses-03`. The reviewed `supplemental_sources.tsv` row preserves
+  the planned temporary merge of both immutable source folders, but its
+  `paused` status blocks conversion. The currently tracked private behavior
+  logs are the failed August 25 attempts: faces has four trials, Doors has one,
+  and neither timing record reached `RunStatus: completed`. Recover and
+  timestamp-match the completed post-fix behavior files before activating the
+  manifest row. Multiple T1w acquisitions will then receive `run-1`/`run-2`
+  entities and all be defaced. This corrects the earlier note that mistakenly
+  named `11078`.
 - `10929` session 01 UGR run 2 has a complete magnitude series but an
   unrecoverably short phase series in the available source. WarpKit reused the
   reviewed UGR run-1 fieldmap and fMRIPrep/TEDANA were regenerated. The team
