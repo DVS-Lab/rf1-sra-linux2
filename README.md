@@ -294,11 +294,12 @@ provenance-visible:
   jobs; the run-2 magnitude reference remains run-specific, and the reused
   fieldmap receives explicit BIDS-side metadata plus derivative provenance.
 - `sub-11116` session 2 was acquired across a primary visit and a short return
-  visit that completed Social Doors/Doors. `supplemental_sources.tsv` declares
+  visit intended to complete Social Doors/Doors. `supplemental_sources.tsv` declares
   the second immutable source folder. `prepdata.sh` exposes both folders through
   a temporary combined scan view and writes one `ses-02`; it does not create
   `ses-03` or alter sourcedata. If both visits contain a T1w, the XA30 heuristic
-  writes stable `run-1` and `run-2` T1w files and defaces both.
+  writes stable `run-1` and `run-2` T1w files and defaces both. Conversion and
+  behavioral validation must still establish which return-visit runs completed.
 - The private `sub-10617` Shared Reward run-1 source is restored from the
   rectangular 25-column parent version of the damaged historical edit, with
   only the leading `?TrialNumber` header corrected to `TrialNumber`. That source

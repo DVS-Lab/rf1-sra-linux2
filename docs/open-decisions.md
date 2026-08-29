@@ -98,13 +98,16 @@ and their cohort thresholds must remain separate from the final decision.
 ### Acquisition And Task Exceptions
 
 - `11116` session 02 was acquired across two visits separated by roughly one or
-  two weeks. The return folder `Smith-SRA-11116-2-socialdoors` completes the
-  missing Social Doors/Doors portion of the same scientific session and remains
+  two weeks. The return folder `Smith-SRA-11116-2-socialdoors` was intended to
+  complete the missing Social Doors/Doors portion of the same scientific
+  session and remains
   `ses-02`, not `ses-03`. The reviewed `supplemental_sources.tsv` row combines
   both immutable source folders in a temporary scratch view. Multiple T1w
   acquisitions receive `run-1`/`run-2` entities and are all defaced. Conversion
   still requires a reviewed dry run and staged overwrite of the incomplete
-  session. This corrects the earlier note that mistakenly named `11078`.
+  session. The currently tracked private behavior logs contain only short,
+  started-but-not-completed attempts, so run completion still needs source and
+  team review. This corrects the earlier note that mistakenly named `11078`.
 - `10929` session 01 UGR run 2 has a complete magnitude series but an
   unrecoverably short phase series in the available source. WarpKit reused the
   reviewed UGR run-1 fieldmap and fMRIPrep/TEDANA were regenerated. The team
