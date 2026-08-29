@@ -530,8 +530,11 @@ nohup setsid -f -w \
 
 Four workers are intentionally conservative because each run reads four
 compressed echo series. The audit excludes identifiers, UIDs, dates, and
-acquisition timestamps from tracked metadata. It cannot establish that a
-scanner-software change caused an observed image-property difference.
+acquisition timestamps from tracked metadata. Raw-header output is restricted
+to an explicit scientific-keyword allowlist; private tags, date/time VRs, UIDs,
+person names, free-text fields, and representative DICOM paths are never
+written to tracked tables. It cannot establish that a scanner-software change
+caused an observed image-property difference.
 
 ### 4C. Nuisance-model QC
 

@@ -96,6 +96,7 @@ def test_dicom_records_include_protocol_grouping(monkeypatch: pytest.MonkeyPatch
 
         class Tag:
             group = 0x0018
+            is_private = False
 
         tag = Tag()
 
@@ -118,3 +119,50 @@ def test_dicom_records_include_protocol_grouping(monkeypatch: pytest.MonkeyPatch
 
     assert records[0]["echo"] == "dicom"
     assert scanner.summarize_protocol(records)[0]["parameter"] == "EchoTime"
+
+
+def test_dicom_records_exclude_sensitive_and_private_elements(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    class Tag:
+        def __init__(self, group: int, private: bool = False):
+            self.group = group
+            self.is_private = private
+
+    class Element:
+        def __init__(self, keyword: str, vr: str, value: str, tag: Tag):
+            self.keyword = keyword
+            self.VR = vr
+            self.value = value
+            self.tag = tag
+
+    class Dataset:
+        def iterall(self):
+            return [
+                Element("EchoTime", "DS", "13.8", Tag(0x0018)),
+                Element("InstanceCreationDate", "DA", "20260101", Tag(0x0008)),
+                Element("StudyComments", "LT", "sensitive", Tag(0x0032)),
+                Element("SoftwareVersions", "LO", "private", Tag(0x0021, private=True)),
+                Element("SOPInstanceUID", "UI", "1.2.3", Tag(0x0008)),
+            ]
+
+    class Pydicom:
+        @staticmethod
+        def dcmread(*_args, **_kwargs):
+            return Dataset()
+
+    path = tmp_path / "one.dcm"
+    path.touch()
+    monkeypatch.setitem(sys.modules, "pydicom", Pydicom())
+
+    records = scanner.dicom_parameters(
+        [{"task": "trust", "run": "1", "software_era": "E11", "representative_dicom": str(path)}]
+    )
+
+    assert [row["parameter"] for row in records] == ["EchoTime"]
+
+
+def test_tracked_dicom_mapping_columns_redact_raw_paths() -> None:
+    assert "representative_dicom" not in scanner.DICOM_COLUMNS
+    assert "source_scan_directory" not in scanner.DICOM_COLUMNS
+    assert "series_description" not in scanner.DICOM_COLUMNS

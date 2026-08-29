@@ -32,6 +32,38 @@ PRIVATE_PATTERN = re.compile(
     r"studydate|studytime|instancedate|instancetime",
     re.I,
 )
+DICOM_SAFE_KEYWORDS = frozenset(
+    {
+        "AcquisitionContrast", "AcquisitionDuration", "AcquisitionMatrix", "AngioFlag",
+        "BitsAllocated", "BitsStored", "BloodSignalNulling", "Columns",
+        "ComplexImageComponent", "EchoNumbers", "EchoPlanarPulseSequence",
+        "EchoPulseSequence", "EchoTime", "EchoTrainLength", "FlipAngle",
+        "FlowCompensation", "FrameAcquisitionDuration", "FrameType",
+        "GeometryOfKSpaceTraversal", "GradientEchoTrainLength", "HighBit", "ImageType",
+        "ImagedNucleus", "ImagingFrequency", "InPlanePhaseEncodingDirection",
+        "InversionRecovery", "KSpaceFiltering", "LossyImageCompression",
+        "MRAcquisitionFrequencyEncodingSteps", "MRAcquisitionPhaseEncodingStepsInPlane",
+        "MRAcquisitionType", "MagneticFieldStrength", "MagnetizationTransfer",
+        "Manufacturer", "ManufacturerModelName", "Modality", "MultiPlanarExcitation",
+        "NumberOfAverages", "NumberOfFrames", "NumberOfKSpaceTrajectories",
+        "NumberOfPhaseEncodingSteps", "NumberOfTemporalPositions", "OperatingMode",
+        "OperatingModeType", "OversamplingPhase", "ParallelAcquisition",
+        "ParallelAcquisitionTechnique", "ParallelReductionFactorInPlane",
+        "ParallelReductionFactorOutOfPlane", "PartialFourier", "PartialFourierDirection",
+        "PercentPhaseFieldOfView", "PercentSampling", "PhaseContrast",
+        "PhotometricInterpretation", "PixelBandwidth", "PixelRepresentation",
+        "PixelSpacing", "PulseSequenceName", "RFEchoTrainLength",
+        "RectilinearPhaseEncodeReordering", "RepetitionTime", "RescaleIntercept",
+        "RescaleSlope", "RescaleType", "Rows", "SAR", "SamplesPerPixel",
+        "SaturationRecovery", "ScanOptions", "ScanningSequence",
+        "SegmentedKSpaceTraversal", "SequenceName", "SequenceVariant", "SliceThickness",
+        "SoftwareVersions", "SpacingBetweenSlices", "SpatialPresaturation",
+        "SpectrallySelectedExcitation", "SpectrallySelectedSuppression", "Spoiling",
+        "SteadyStatePulseSequence", "T2Preparation", "Tagging", "TransmitterFrequency",
+        "VariableFlipAngleFlag", "VolumeBasedCalculationTechnique",
+        "VolumetricProperties",
+    }
+)
 PROTOCOL_COLUMNS = (
     "task", "run", "echo", "parameter", "status", "eras_present",
     "e11_unique_values", "xa30_unique_values", "xa60_unique_values",
@@ -64,8 +96,7 @@ PAIR_COLUMNS = (
     *(f"second_minus_first_{metric}" for metric in PAIR_METRICS),
 )
 DICOM_COLUMNS = (
-    "task", "run", "software_era", "run_key", "series_number", "series_description",
-    "source_scan_directory", "representative_dicom", "mapping_status",
+    "task", "run", "software_era", "run_key", "series_number", "mapping_status",
 )
 OUTPUTS = (
     Path("protocol_parameters.tsv"), Path("echo_properties.tsv"), Path("run_properties.tsv"),
@@ -333,7 +364,14 @@ def dicom_parameters(
         dataset = pydicom.dcmread(path, stop_before_pixels=True, force=True)
         for element in dataset.iterall():
             name = element.keyword or str(element.tag)
-            if element.VR == "SQ" or element.tag.group == 0x0010 or PRIVATE_PATTERN.search(name) or element.VR == "UI": continue
+            if (
+                name not in DICOM_SAFE_KEYWORDS
+                or element.VR in {"DA", "DT", "PN", "SQ", "TM", "UI"}
+                or element.tag.group == 0x0010
+                or bool(getattr(element.tag, "is_private", False))
+                or PRIVATE_PATTERN.search(name)
+            ):
+                continue
             value = normalized_value(str(element.value))
             records.append(
                 {
@@ -391,7 +429,10 @@ def build(args: argparse.Namespace) -> int:
             "runs": len(complete), "skip_images": args.skip_images, "jobs": args.jobs,
             "skip_dicom_headers": args.skip_dicom_headers,
             "input_inventory_digest_path_size_mtime": inventory_digest([args.current_runs.resolve(), *inputs], project),
-            "identifiers_and_dates_excluded_from_metadata_tables": True, "causal_claim_authorized": False,
+            "identifiers_and_dates_excluded_from_metadata_tables": True,
+            "dicom_scientific_keyword_allowlist_enforced": True,
+            "dicom_representative_paths_redacted": True,
+            "causal_claim_authorized": False,
             "outputs": {},
         }
         for item in OUTPUTS:
