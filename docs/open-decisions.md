@@ -97,17 +97,14 @@ and their cohort thresholds must remain separate from the final decision.
 
 ### Acquisition And Task Exceptions
 
-- `11078` session 02 is being acquired across two visits separated by roughly
-  one or two weeks. The planned return visit completes the missing Social
-  Doors/Doors portion of the same scientific session and must remain `ses-02`,
-  not become `ses-03`. Two T1w acquisitions may coexist in that BIDS session,
-  distinguished with stable BIDS entities such as `run-1` and `run-2`. Before
-  converting the return visit, update and test the XA30 heuristic and T1w
-  defacing loop: the current heuristic retains only one T1w series and
-  `prepdata.sh` targets only the unsuffixed T1w path. Preserve the first visit,
-  append the return DICOMs under the same private session-2 source hierarchy,
-  and use a staged overwrite only after the combined inventory has been
-  reviewed.
+- `11116` session 02 was acquired across two visits separated by roughly one or
+  two weeks. The return folder `Smith-SRA-11116-2-socialdoors` completes the
+  missing Social Doors/Doors portion of the same scientific session and remains
+  `ses-02`, not `ses-03`. The reviewed `supplemental_sources.tsv` row combines
+  both immutable source folders in a temporary scratch view. Multiple T1w
+  acquisitions receive `run-1`/`run-2` entities and are all defaced. Conversion
+  still requires a reviewed dry run and staged overwrite of the incomplete
+  session. This corrects the earlier note that mistakenly named `11078`.
 - `10929` session 01 UGR run 2 has a complete magnitude series but an
   unrecoverably short phase series in the available source. WarpKit reused the
   reviewed UGR run-1 fieldmap and fMRIPrep/TEDANA were regenerated. The team

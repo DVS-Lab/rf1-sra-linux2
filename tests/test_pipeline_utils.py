@@ -7,6 +7,7 @@ import subprocess
 import sys
 from datetime import date
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -273,6 +274,48 @@ def test_repair_runlists_issue_tsv_uses_unix_line_endings(tmp_path: Path) -> Non
 def test_heuristic_filter_files_skips_only_scanner_generated_scan_dirs(heuristic_name: str, filename: str, expected: bool) -> None:
     heuristic = load_heuristic(heuristic_name)
     assert heuristic.filter_files(filename) is expected
+
+
+def xa30_sequence(series_id: int, protocol_name: str = "other") -> SimpleNamespace:
+    return SimpleNamespace(
+        series_id=series_id,
+        protocol_name=protocol_name,
+        image_type=(),
+        dim3=1,
+        dim4=1,
+        series_description="other",
+    )
+
+
+def test_xa30_heuristic_keeps_single_t1w_unsuffixed() -> None:
+    heuristic = load_heuristic("heuristics_XA30.py")
+    info = heuristic.infotodict(
+        [xa30_sequence(1, "T1w-anat_mpg_07sag_iso")]
+    )
+    by_template = {key[0]: value for key, value in info.items()}
+    assert by_template[
+        "sub-{subject}/{session}/anat/sub-{subject}_{session}_T1w"
+    ] == [1]
+    assert by_template[
+        "sub-{subject}/{session}/anat/sub-{subject}_{session}_run-{item:d}_T1w"
+    ] == []
+
+
+def test_xa30_heuristic_numbers_multiple_t1w_acquisitions() -> None:
+    heuristic = load_heuristic("heuristics_XA30.py")
+    info = heuristic.infotodict(
+        [
+            xa30_sequence(1, "T1w-anat_mpg_07sag_iso"),
+            xa30_sequence(20, "T1w-anat_mpg_07sag_iso"),
+        ]
+    )
+    by_template = {key[0]: value for key, value in info.items()}
+    assert by_template[
+        "sub-{subject}/{session}/anat/sub-{subject}_{session}_T1w"
+    ] == []
+    assert by_template[
+        "sub-{subject}/{session}/anat/sub-{subject}_{session}_run-{item:d}_T1w"
+    ] == [1, 20]
 
 
 def make_bids_run(root: Path, sub: str, ses: str, task: str, run: str, echoes: int = 4) -> None:

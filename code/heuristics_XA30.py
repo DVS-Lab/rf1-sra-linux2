@@ -20,6 +20,7 @@ def create_key(template, outtype=('nii.gz',), annotation_classes=None):
 
 def infotodict(seqinfo):
     t1w = create_key('sub-{subject}/{session}/anat/sub-{subject}_{session}_T1w')
+    t1w_run = create_key('sub-{subject}/{session}/anat/sub-{subject}_{session}_run-{item:d}_T1w')
     mag = create_key('sub-{subject}/{session}/fmap/sub-{subject}_{session}_acq-bold_magnitude')
     phase = create_key('sub-{subject}/{session}/fmap/sub-{subject}_{session}_acq-bold_phasediff')
     t2_flair = create_key('sub-{subject}/{session}/anat/sub-{subject}_{session}_FLAIR')
@@ -42,7 +43,7 @@ def infotodict(seqinfo):
     dwi_pa = create_key('sub-{subject}/{session}/fmap/sub-{subject}_{session}_acq-dwi_dir-PA_epi')
     dwi_ap = create_key('sub-{subject}/{session}/fmap/sub-{subject}_{session}_acq-dwi_dir-AP_epi')
 
-    info = {t1w: [],
+    info = {t1w: [], t1w_run: [],
             mag: [], phase: [],
             dwi: [], dwi_pa: [], dwi_ap: [],
             t2_flair: [],
@@ -53,12 +54,18 @@ def infotodict(seqinfo):
             UGR_mag: [], UGR_phase: [], UGR_sbref: []}
     
     list_of_ids = [s.series_id for s in seqinfo]
+    t1w_ids = [
+        s.series_id for s in seqinfo
+        if 'T1w-anat_mpg_07sag_iso' in s.protocol_name
+    ]
+    if len(t1w_ids) == 1:
+        info[t1w] = t1w_ids
+    elif len(t1w_ids) > 1:
+        info[t1w_run] = t1w_ids
 
     for s in seqinfo:
 
         # anatomicals and standard fmaps
-        if ('T1w-anat_mpg_07sag_iso' in s.protocol_name):
-            info[t1w] = [s.series_id]
         if ('gre_field' in s.protocol_name):
             info[mag] = [s.series_id]
         if ('gre_field' in s.protocol_name) and ('P' in s.image_type):
@@ -121,4 +128,3 @@ POPULATE_INTENDED_FOR_OPTS = {
                 'matching_parameters': ['ModalityAcquisitionLabel'],
                 'criterion': 'Closest'
 }
-

@@ -17,6 +17,7 @@ rf1_load_config() {
   SOURCEDATA_EXCLUSIONS_ROOT="${SOURCEDATA_EXCLUSIONS_ROOT:-/ZPOOL/data/sourcedata/sourcedata/rf1-sra-exclusions}"
   BEHAVIOR_ROOT="${BEHAVIOR_ROOT:-/ZPOOL/data/projects/rf1-sra/stimuli}"
   BEHAVIOR_CURATION_FILE="${BEHAVIOR_CURATION_FILE:-${SCRIPT_DIR}/behavior_curation.tsv}"
+  SUPPLEMENTAL_SOURCES_FILE="${SUPPLEMENTAL_SOURCES_FILE:-${SCRIPT_DIR}/supplemental_sources.tsv}"
   TOOLS_ROOT="/ZPOOL/data/tools"
   SCRATCH_ROOT="/ZPOOL/data/scratch"
   TEMPLATEFLOW_HOME="${TOOLS_ROOT}/templateflow"

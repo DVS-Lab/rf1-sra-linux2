@@ -63,6 +63,7 @@ if [[ ! "$ses" =~ ^0[12]$ ]]; then
 fi
 
 rf1_require_dir "$BEHAVIOR_ROOT"
+rf1_require_file "$SUPPLEMENTAL_SOURCES_FILE"
 echo "Using private behavior root: $BEHAVIOR_ROOT"
 
 excluded_source="${SOURCEDATA_EXCLUSIONS_ROOT}/Smith-SRA-${sub}"
@@ -155,6 +156,23 @@ else
   trap cleanup EXIT
 fi
 
+supplement_count="$(python3 "${scriptdir}/source_layout.py" count \
+  --manifest "$SUPPLEMENTAL_SOURCES_FILE" \
+  --subject "$sub" \
+  --session "$ses")"
+if ((supplement_count > 0)); then
+  layout_cmd=(
+    python3 "${scriptdir}/source_layout.py" prepare
+    --manifest "$SUPPLEMENTAL_SOURCES_FILE"
+    --source-root "$SOURCEDATA_ROOT"
+    --subject "$sub"
+    --session "$ses"
+  )
+  ((!dry_run)) && layout_cmd+=(--output-root "$stage_root")
+  dicom_template="$("${layout_cmd[@]}")"
+  echo "Using ${supplement_count} reviewed supplemental DICOM source(s) for sub-${sub} ses-${ses}."
+fi
+
 cmd=(
   apptainer run --cleanenv
   -B "${PROJECT_ROOT}:/project"
@@ -202,8 +220,14 @@ printf ' %q' "${behavior_cmd[@]}"
 printf '\n'
 "${behavior_cmd[@]}"
 
-t1="${staged_session}/anat/sub-${sub}_ses-${ses}_T1w.nii.gz"
-if [[ -f "$t1" ]]; then
+t1_files=()
+if [[ -d "${staged_session}/anat" ]]; then
+  while IFS= read -r -d '' t1; do
+    t1_files+=("$t1")
+  done < <(find "${staged_session}/anat" -maxdepth 1 -type f \
+    -name "sub-${sub}_ses-${ses}*_T1w.nii.gz" -print0 | sort -z)
+fi
+if ((${#t1_files[@]} > 0)); then
   if [[ "$PYDEFACE_CMD" == */* ]]; then
     if [[ ! -x "$PYDEFACE_CMD" ]]; then
       echo "Configured pydeface executable is not executable: $PYDEFACE_CMD" >&2
@@ -213,10 +237,12 @@ if [[ -f "$t1" ]]; then
     echo "Configured pydeface command was not found on PATH: $PYDEFACE_CMD" >&2
     exit 1
   fi
-  echo "Defacing staged T1w: $t1"
-  "$PYDEFACE_CMD" "$t1"
-  def="${staged_session}/anat/sub-${sub}_ses-${ses}_T1w_defaced.nii.gz"
-  [[ -f "$def" ]] && mv -f "$def" "$t1"
+  for t1 in "${t1_files[@]}"; do
+    echo "Defacing staged T1w: $t1"
+    "$PYDEFACE_CMD" "$t1"
+    def="${t1%.nii.gz}_defaced.nii.gz"
+    [[ -f "$def" ]] && mv -f "$def" "$t1"
+  done
 fi
 
 scans_tsv="${staged_session}/sub-${sub}_ses-${ses}_scans.tsv"

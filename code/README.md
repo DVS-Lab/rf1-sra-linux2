@@ -153,11 +153,29 @@ Each entry uses the same fields so operators can scan quickly.
 ### `prepdata.sh`
 - Status: Production worker.
 - Purpose: Run one subject/session through staged imaging and behavioral BIDS conversion, defacing, date shifting, and validation.
-- Inputs: One subject/session, DICOMs, task logs, HeuDiConv, heuristics, `convert_behavior.py`, and `shiftdates.py`.
+- Inputs: One subject/session, DICOMs, task logs, HeuDiConv, heuristics, `supplemental_sources.tsv`, `convert_behavior.py`, and `shiftdates.py`.
 - Outputs: One staged and then live BIDS subject/session tree.
 - Typical command: normally called by `run_prepdata.sh`.
 - Checker: `check_bids.sh`.
-- Notes: Stages all transformations and events validation before replacing live BIDS outputs; `--overwrite` is required for replacement. Matching existing events are preserved in the stage so missing private logs cannot silently erase curated behavior. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. `sub-11891` session 01 uses its nested source-data path explicitly. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing.
+- Notes: Stages all transformations and events validation before replacing live BIDS outputs; `--overwrite` is required for replacement. Matching existing events are preserved in the stage so missing private logs cannot silently erase curated behavior. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. Every generated T1w is defaced, including run-numbered T1w acquisitions. `sub-11891` session 01 uses its nested source-data path explicitly. Reviewed same-session return visits are combined only through `supplemental_sources.tsv` and a temporary scratch symlink view; sourcedata are not modified. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing.
+
+### `source_layout.py`
+- Status: Production helper.
+- Purpose: Validate reviewed supplemental DICOM folders and stage a temporary combined scan view for one BIDS session.
+- Inputs: Subject/session, source root, and `supplemental_sources.tsv`.
+- Outputs: A scratch-only symlink inventory and HeuDiConv DICOM template.
+- Typical command: normally called by `prepdata.sh`; inspect a declaration with `python3 source_layout.py count --manifest supplemental_sources.tsv --subject 11116 --session 02`.
+- Checker: `tests/test_source_layout.py`, the `prepdata.sh --dry-run` plan, and `check_bids.sh` after conversion.
+- Notes: Manifest paths must be relative, every declared folder must contain DICOMs, and nothing under sourcedata is changed.
+
+### `supplemental_sources.tsv`
+- Status: Reviewed production exception registry.
+- Purpose: Declare additional source folders that belong to an existing scientific/BIDS session.
+- Inputs: Subject, session, source-relative folder, and a human-readable reason.
+- Outputs: A fail-closed input to `source_layout.py` and `prepdata.sh`.
+- Typical command: do not run directly; add a row only after acquisition identity and session assignment are reviewed.
+- Checker: `python3 source_layout.py count ...` and `prepdata.sh --dry-run`.
+- Notes: It does not authorize source modification or a new BIDS session. `sub-11116` uses it to combine its primary session-2 visit with the Social Doors/Doors return visit.
 
 ### `convert_behavior.py`
 - Status: Canonical production converter.
@@ -220,7 +238,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: BIDS key assignments.
 - Typical command: not run directly.
 - Checker: Conversion output plus tests around heuristic selection.
-- Notes: The March 4, 2025 cutoff remains the current production behavior. Uses the same localizer/PhoenixZIPReport filename filter as `heuristics_rf1.py`.
+- Notes: The March 4, 2025 cutoff remains the current production behavior. A single T1w keeps the historical unsuffixed name; multiple T1w acquisitions are emitted as `run-1`, `run-2`, and so on. Uses the same localizer/PhoenixZIPReport filename filter as `heuristics_rf1.py`.
 
 ### `shiftdates.py`
 - Status: Production helper.
