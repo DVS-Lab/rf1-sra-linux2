@@ -1,0 +1,705 @@
+task	run	echo	parameter	status	eras_present	e11_unique_values	xa30_unique_values	xa60_unique_values	e11_n_values	xa30_n_values	xa60_n_values
+doors	1	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
+doors	1	dicom	AcquisitionDuration	differs_systematically_by_era	XA30;XA60		"""403.5"""	"""403.502"""	0	1	1
+doors	1	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
+doors	1	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
+doors	1	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+doors	1	dicom	BitsStored	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+doors	1	dicom	BloodSignalNulling	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+doors	1	dicom	Columns	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+doors	1	dicom	ComplexImageComponent	identical_across_eras	XA30;XA60		"""MAGNITUDE"""	"""MAGNITUDE"""	0	1	1
+doors	1	dicom	EchoNumbers	identical_across_eras	E11;XA60	"""1"""		"""1"""	1	0	1
+doors	1	dicom	EchoPlanarPulseSequence	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+doors	1	dicom	EchoPulseSequence	identical_across_eras	XA30;XA60		"""GRADIENT"""	"""GRADIENT"""	0	1	1
+doors	1	dicom	EchoTime	insufficient_cross_era_coverage	E11	"""13.8"""			1	0	0
+doors	1	dicom	EchoTrainLength	identical_across_eras	E11;XA30;XA60	"""34"""	"""34"""	"""34"""	1	1	1
+doors	1	dicom	FlipAngle	identical_across_eras	E11;XA30;XA60	"""50"""	"""50"""	"""50"""	1	1	1
+doors	1	dicom	FlowCompensation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	FrameAcquisitionDuration	identical_across_eras	XA30;XA60		"""402000.0"""	"""402000.0"""	0	1	1
+doors	1	dicom	FrameType	identical_across_eras	XA30;XA60		"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	0	1	1
+doors	1	dicom	GeometryOfKSpaceTraversal	identical_across_eras	XA30;XA60		"""RECTILINEAR"""	"""RECTILINEAR"""	0	1	1
+doors	1	dicom	GradientEchoTrainLength	identical_across_eras	XA30;XA60		"""34"""	"""34"""	0	1	1
+doors	1	dicom	HighBit	identical_across_eras	E11;XA30;XA60	"""15"""	"""15"""	"""15"""	1	1	1
+doors	1	dicom	ImageType	differs_systematically_by_era	E11;XA30;XA60	"""['ORIGINAL', 'PRIMARY', 'M', 'MB', 'TE1', 'ND', 'NORM', 'MOSAIC']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	1	1	1
+doors	1	dicom	ImagedNucleus	insufficient_cross_era_coverage	E11	"""1H"""			1	0	0
+doors	1	dicom	ImagingFrequency	insufficient_cross_era_coverage	E11	"""123.255811"""			1	0	0
+doors	1	dicom	InPlanePhaseEncodingDirection	differs_systematically_by_era	E11;XA30;XA60	"""COL"""	"""COLUMN"""	"""COLUMN"""	1	1	1
+doors	1	dicom	InversionRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+doors	1	dicom	KSpaceFiltering	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	LossyImageCompression	identical_across_eras	XA30;XA60		"""00"""	"""00"""	0	1	1
+doors	1	dicom	MRAcquisitionFrequencyEncodingSteps	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+doors	1	dicom	MRAcquisitionPhaseEncodingStepsInPlane	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+doors	1	dicom	MRAcquisitionType	identical_across_eras	E11;XA30;XA60	"""2D"""	"""2D"""	"""2D"""	1	1	1
+doors	1	dicom	MagneticFieldStrength	identical_across_eras	E11;XA30;XA60	"""3"""	"""3"""	"""3"""	1	1	1
+doors	1	dicom	MagnetizationTransfer	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	Manufacturer	differs_systematically_by_era	E11;XA30;XA60	"""SIEMENS"""	"""Siemens Healthineers"""	"""Siemens Healthineers"""	1	1	1
+doors	1	dicom	ManufacturerModelName	differs_systematically_by_era	E11;XA30;XA60	"""Prisma"""	"""MAGNETOM Prisma"""	"""MAGNETOM Prisma"""	1	1	1
+doors	1	dicom	Modality	identical_across_eras	E11;XA30;XA60	"""MR"""	"""MR"""	"""MR"""	1	1	1
+doors	1	dicom	MultiPlanarExcitation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+doors	1	dicom	NumberOfAverages	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+doors	1	dicom	NumberOfFrames	identical_across_eras	XA30;XA60		"""51"""	"""51"""	0	1	1
+doors	1	dicom	NumberOfKSpaceTrajectories	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+doors	1	dicom	NumberOfPhaseEncodingSteps	insufficient_cross_era_coverage	E11	"""69"""			1	0	0
+doors	1	dicom	NumberOfTemporalPositions	identical_across_eras	XA30;XA60		"""218"""	"""218"""	0	1	1
+doors	1	dicom	OperatingMode	varies_within_era	XA30;XA60		"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	0	2	2
+doors	1	dicom	OperatingModeType	varies_within_era	XA30;XA60		"""GRADIENT"";""RF"""	"""GRADIENT"";""RF"""	0	2	2
+doors	1	dicom	OversamplingPhase	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	ParallelAcquisition	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+doors	1	dicom	ParallelAcquisitionTechnique	identical_across_eras	XA30;XA60		"""GRAPPA"""	"""GRAPPA"""	0	1	1
+doors	1	dicom	ParallelReductionFactorInPlane	identical_across_eras	XA30;XA60		"""2.0"""	"""2.0"""	0	1	1
+doors	1	dicom	ParallelReductionFactorOutOfPlane	identical_across_eras	XA30;XA60		"""1.0"""	"""1.0"""	0	1	1
+doors	1	dicom	PartialFourier	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+doors	1	dicom	PartialFourierDirection	identical_across_eras	XA30;XA60		"""PHASE"""	"""PHASE"""	0	1	1
+doors	1	dicom	PercentPhaseFieldOfView	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+doors	1	dicom	PercentSampling	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+doors	1	dicom	PhaseContrast	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+doors	1	dicom	PhotometricInterpretation	identical_across_eras	E11;XA30;XA60	"""MONOCHROME2"""	"""MONOCHROME2"""	"""MONOCHROME2"""	1	1	1
+doors	1	dicom	PixelBandwidth	identical_across_eras	E11;XA30;XA60	"""2500"""	"""2500"""	"""2500"""	1	1	1
+doors	1	dicom	PixelRepresentation	identical_across_eras	E11;XA30;XA60	"""0"""	"""0"""	"""0"""	1	1	1
+doors	1	dicom	PixelSpacing	differs_systematically_by_era	E11;XA30;XA60	"""[2.7000000476837, 2.7000000476837]"""	"""[2.7, 2.7]"""	"""[2.7, 2.7]"""	1	1	1
+doors	1	dicom	PulseSequenceName	identical_across_eras	XA30;XA60		"""epfid2d4_80"""	"""epfid2d4_80"""	0	1	1
+doors	1	dicom	RFEchoTrainLength	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+doors	1	dicom	RectilinearPhaseEncodeReordering	identical_across_eras	XA30;XA60		"""LINEAR"""	"""LINEAR"""	0	1	1
+doors	1	dicom	RepetitionTime	identical_across_eras	E11;XA30;XA60	"""1615"""	"""1615"""	"""1615"""	1	1	1
+doors	1	dicom	RescaleIntercept	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+doors	1	dicom	RescaleSlope	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+doors	1	dicom	RescaleType	identical_across_eras	XA30;XA60		"""US"""	"""US"""	0	1	1
+doors	1	dicom	Rows	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+doors	1	dicom	SAR	insufficient_cross_era_coverage	E11	"""0.02629023523987"""			1	0	0
+doors	1	dicom	SamplesPerPixel	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+doors	1	dicom	SaturationRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+doors	1	dicom	ScanOptions	insufficient_cross_era_coverage	E11	"""['PFP', 'FS']"""			1	0	0
+doors	1	dicom	ScanningSequence	insufficient_cross_era_coverage	E11	"""EP"""			1	0	0
+doors	1	dicom	SegmentedKSpaceTraversal	identical_across_eras	XA30;XA60		"""SINGLE"""	"""SINGLE"""	0	1	1
+doors	1	dicom	SequenceName	insufficient_cross_era_coverage	E11	"""epfid2d4_80"""			1	0	0
+doors	1	dicom	SequenceVariant	insufficient_cross_era_coverage	E11	"""['SK', 'SS']"""			1	0	0
+doors	1	dicom	SliceThickness	differs_systematically_by_era	E11;XA30;XA60	"""2.7000000476837"""	"""2.7"""	"""2.7"""	1	1	1
+doors	1	dicom	SoftwareVersions	differs_systematically_by_era	E11;XA30;XA60	"""syngo MR E11"""	"""syngo MR XA30"""	"""syngo MR XA60"""	1	1	1
+doors	1	dicom	SpacingBetweenSlices	identical_across_eras	E11;XA30;XA60	"""2.97"""	"""2.97"""	"""2.97"""	1	1	1
+doors	1	dicom	SpatialPresaturation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	SpectrallySelectedExcitation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	SpectrallySelectedSuppression	identical_across_eras	XA30;XA60		"""FAT"""	"""FAT"""	0	1	1
+doors	1	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+doors	1	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.24915"""	"""123.249144"""	0	1	1
+doors	1	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
+doors	1	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+doors	1	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
+sharedreward	1	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
+sharedreward	1	dicom	AcquisitionDuration	differs_systematically_by_era	XA30;XA60		"""463.502"""	"""463.5"""	0	1	1
+sharedreward	1	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
+sharedreward	1	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
+sharedreward	1	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+sharedreward	1	dicom	BitsStored	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+sharedreward	1	dicom	BloodSignalNulling	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	1	dicom	Columns	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+sharedreward	1	dicom	ComplexImageComponent	identical_across_eras	XA30;XA60		"""MAGNITUDE"""	"""MAGNITUDE"""	0	1	1
+sharedreward	1	dicom	EchoNumbers	identical_across_eras	E11;XA60	"""1"""		"""1"""	1	0	1
+sharedreward	1	dicom	EchoPlanarPulseSequence	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+sharedreward	1	dicom	EchoPulseSequence	identical_across_eras	XA30;XA60		"""GRADIENT"""	"""GRADIENT"""	0	1	1
+sharedreward	1	dicom	EchoTime	insufficient_cross_era_coverage	E11	"""13.8"""			1	0	0
+sharedreward	1	dicom	EchoTrainLength	identical_across_eras	E11;XA30;XA60	"""34"""	"""34"""	"""34"""	1	1	1
+sharedreward	1	dicom	FlipAngle	identical_across_eras	E11;XA30;XA60	"""50"""	"""50"""	"""50"""	1	1	1
+sharedreward	1	dicom	FlowCompensation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	FrameAcquisitionDuration	identical_across_eras	XA30;XA60		"""462000.0"""	"""462000.0"""	0	1	1
+sharedreward	1	dicom	FrameType	identical_across_eras	XA30;XA60		"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	0	1	1
+sharedreward	1	dicom	GeometryOfKSpaceTraversal	identical_across_eras	XA30;XA60		"""RECTILINEAR"""	"""RECTILINEAR"""	0	1	1
+sharedreward	1	dicom	GradientEchoTrainLength	identical_across_eras	XA30;XA60		"""34"""	"""34"""	0	1	1
+sharedreward	1	dicom	HighBit	identical_across_eras	E11;XA30;XA60	"""15"""	"""15"""	"""15"""	1	1	1
+sharedreward	1	dicom	ImageType	differs_systematically_by_era	E11;XA30;XA60	"""['ORIGINAL', 'PRIMARY', 'M', 'MB', 'TE1', 'ND', 'NORM', 'MOSAIC']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	1	1	1
+sharedreward	1	dicom	ImagedNucleus	insufficient_cross_era_coverage	E11	"""1H"""			1	0	0
+sharedreward	1	dicom	ImagingFrequency	insufficient_cross_era_coverage	E11	"""123.255737"""			1	0	0
+sharedreward	1	dicom	InPlanePhaseEncodingDirection	differs_systematically_by_era	E11;XA30;XA60	"""COL"""	"""COLUMN"""	"""COLUMN"""	1	1	1
+sharedreward	1	dicom	InversionRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	1	dicom	KSpaceFiltering	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	LossyImageCompression	identical_across_eras	XA30;XA60		"""00"""	"""00"""	0	1	1
+sharedreward	1	dicom	MRAcquisitionFrequencyEncodingSteps	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+sharedreward	1	dicom	MRAcquisitionPhaseEncodingStepsInPlane	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+sharedreward	1	dicom	MRAcquisitionType	identical_across_eras	E11;XA30;XA60	"""2D"""	"""2D"""	"""2D"""	1	1	1
+sharedreward	1	dicom	MagneticFieldStrength	identical_across_eras	E11;XA30;XA60	"""3"""	"""3"""	"""3"""	1	1	1
+sharedreward	1	dicom	MagnetizationTransfer	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	Manufacturer	differs_systematically_by_era	E11;XA30;XA60	"""SIEMENS"""	"""Siemens Healthineers"""	"""Siemens Healthineers"""	1	1	1
+sharedreward	1	dicom	ManufacturerModelName	differs_systematically_by_era	E11;XA30;XA60	"""Prisma"""	"""MAGNETOM Prisma"""	"""MAGNETOM Prisma"""	1	1	1
+sharedreward	1	dicom	Modality	identical_across_eras	E11;XA30;XA60	"""MR"""	"""MR"""	"""MR"""	1	1	1
+sharedreward	1	dicom	MultiPlanarExcitation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	1	dicom	NumberOfAverages	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+sharedreward	1	dicom	NumberOfFrames	identical_across_eras	XA30;XA60		"""51"""	"""51"""	0	1	1
+sharedreward	1	dicom	NumberOfKSpaceTrajectories	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+sharedreward	1	dicom	NumberOfPhaseEncodingSteps	insufficient_cross_era_coverage	E11	"""69"""			1	0	0
+sharedreward	1	dicom	NumberOfTemporalPositions	identical_across_eras	XA30;XA60		"""255"""	"""255"""	0	1	1
+sharedreward	1	dicom	OperatingMode	varies_within_era	XA30;XA60		"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	0	2	2
+sharedreward	1	dicom	OperatingModeType	varies_within_era	XA30;XA60		"""GRADIENT"";""RF"""	"""GRADIENT"";""RF"""	0	2	2
+sharedreward	1	dicom	OversamplingPhase	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	ParallelAcquisition	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+sharedreward	1	dicom	ParallelAcquisitionTechnique	identical_across_eras	XA30;XA60		"""GRAPPA"""	"""GRAPPA"""	0	1	1
+sharedreward	1	dicom	ParallelReductionFactorInPlane	identical_across_eras	XA30;XA60		"""2.0"""	"""2.0"""	0	1	1
+sharedreward	1	dicom	ParallelReductionFactorOutOfPlane	identical_across_eras	XA30;XA60		"""1.0"""	"""1.0"""	0	1	1
+sharedreward	1	dicom	PartialFourier	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+sharedreward	1	dicom	PartialFourierDirection	identical_across_eras	XA30;XA60		"""PHASE"""	"""PHASE"""	0	1	1
+sharedreward	1	dicom	PercentPhaseFieldOfView	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+sharedreward	1	dicom	PercentSampling	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+sharedreward	1	dicom	PhaseContrast	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	1	dicom	PhotometricInterpretation	identical_across_eras	E11;XA30;XA60	"""MONOCHROME2"""	"""MONOCHROME2"""	"""MONOCHROME2"""	1	1	1
+sharedreward	1	dicom	PixelBandwidth	identical_across_eras	E11;XA30;XA60	"""2500"""	"""2500"""	"""2500"""	1	1	1
+sharedreward	1	dicom	PixelRepresentation	identical_across_eras	E11;XA30;XA60	"""0"""	"""0"""	"""0"""	1	1	1
+sharedreward	1	dicom	PixelSpacing	differs_systematically_by_era	E11;XA30;XA60	"""[2.7000000476837, 2.7000000476837]"""	"""[2.7, 2.7]"""	"""[2.7, 2.7]"""	1	1	1
+sharedreward	1	dicom	PulseSequenceName	identical_across_eras	XA30;XA60		"""epfid2d4_80"""	"""epfid2d4_80"""	0	1	1
+sharedreward	1	dicom	RFEchoTrainLength	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+sharedreward	1	dicom	RectilinearPhaseEncodeReordering	identical_across_eras	XA30;XA60		"""LINEAR"""	"""LINEAR"""	0	1	1
+sharedreward	1	dicom	RepetitionTime	identical_across_eras	E11;XA30;XA60	"""1615"""	"""1615"""	"""1615"""	1	1	1
+sharedreward	1	dicom	RescaleIntercept	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+sharedreward	1	dicom	RescaleSlope	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+sharedreward	1	dicom	RescaleType	identical_across_eras	XA30;XA60		"""US"""	"""US"""	0	1	1
+sharedreward	1	dicom	Rows	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+sharedreward	1	dicom	SAR	insufficient_cross_era_coverage	E11	"""0.02580690225643"""			1	0	0
+sharedreward	1	dicom	SamplesPerPixel	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+sharedreward	1	dicom	SaturationRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	1	dicom	ScanOptions	insufficient_cross_era_coverage	E11	"""['PFP', 'FS']"""			1	0	0
+sharedreward	1	dicom	ScanningSequence	insufficient_cross_era_coverage	E11	"""EP"""			1	0	0
+sharedreward	1	dicom	SegmentedKSpaceTraversal	identical_across_eras	XA30;XA60		"""SINGLE"""	"""SINGLE"""	0	1	1
+sharedreward	1	dicom	SequenceName	insufficient_cross_era_coverage	E11	"""epfid2d4_80"""			1	0	0
+sharedreward	1	dicom	SequenceVariant	insufficient_cross_era_coverage	E11	"""['SK', 'SS']"""			1	0	0
+sharedreward	1	dicom	SliceThickness	differs_systematically_by_era	E11;XA30;XA60	"""2.7000000476837"""	"""2.7"""	"""2.7"""	1	1	1
+sharedreward	1	dicom	SoftwareVersions	differs_systematically_by_era	E11;XA30;XA60	"""syngo MR E11"""	"""syngo MR XA30"""	"""syngo MR XA60"""	1	1	1
+sharedreward	1	dicom	SpacingBetweenSlices	differs_systematically_by_era	E11;XA30;XA60	"""2.9699999464334"""	"""2.97"""	"""2.97"""	1	1	1
+sharedreward	1	dicom	SpatialPresaturation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	SpectrallySelectedExcitation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	SpectrallySelectedSuppression	identical_across_eras	XA30;XA60		"""FAT"""	"""FAT"""	0	1	1
+sharedreward	1	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	1	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249139"""	"""123.23687"""	0	1	1
+sharedreward	1	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
+sharedreward	1	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	1	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
+sharedreward	2	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
+sharedreward	2	dicom	AcquisitionDuration	identical_across_eras	XA30;XA60		"""463.502"""	"""463.502"""	0	1	1
+sharedreward	2	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
+sharedreward	2	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
+sharedreward	2	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+sharedreward	2	dicom	BitsStored	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+sharedreward	2	dicom	BloodSignalNulling	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	2	dicom	Columns	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+sharedreward	2	dicom	ComplexImageComponent	identical_across_eras	XA30;XA60		"""MAGNITUDE"""	"""MAGNITUDE"""	0	1	1
+sharedreward	2	dicom	EchoNumbers	identical_across_eras	E11;XA60	"""1"""		"""1"""	1	0	1
+sharedreward	2	dicom	EchoPlanarPulseSequence	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+sharedreward	2	dicom	EchoPulseSequence	identical_across_eras	XA30;XA60		"""GRADIENT"""	"""GRADIENT"""	0	1	1
+sharedreward	2	dicom	EchoTime	insufficient_cross_era_coverage	E11	"""13.8"""			1	0	0
+sharedreward	2	dicom	EchoTrainLength	identical_across_eras	E11;XA30;XA60	"""34"""	"""34"""	"""34"""	1	1	1
+sharedreward	2	dicom	FlipAngle	identical_across_eras	E11;XA30;XA60	"""50"""	"""50"""	"""50"""	1	1	1
+sharedreward	2	dicom	FlowCompensation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	FrameAcquisitionDuration	identical_across_eras	XA30;XA60		"""462000.0"""	"""462000.0"""	0	1	1
+sharedreward	2	dicom	FrameType	identical_across_eras	XA30;XA60		"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	0	1	1
+sharedreward	2	dicom	GeometryOfKSpaceTraversal	identical_across_eras	XA30;XA60		"""RECTILINEAR"""	"""RECTILINEAR"""	0	1	1
+sharedreward	2	dicom	GradientEchoTrainLength	identical_across_eras	XA30;XA60		"""34"""	"""34"""	0	1	1
+sharedreward	2	dicom	HighBit	identical_across_eras	E11;XA30;XA60	"""15"""	"""15"""	"""15"""	1	1	1
+sharedreward	2	dicom	ImageType	differs_systematically_by_era	E11;XA30;XA60	"""['ORIGINAL', 'PRIMARY', 'M', 'MB', 'TE1', 'ND', 'NORM', 'MOSAIC']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	1	1	1
+sharedreward	2	dicom	ImagedNucleus	insufficient_cross_era_coverage	E11	"""1H"""			1	0	0
+sharedreward	2	dicom	ImagingFrequency	insufficient_cross_era_coverage	E11	"""123.255779"""			1	0	0
+sharedreward	2	dicom	InPlanePhaseEncodingDirection	differs_systematically_by_era	E11;XA30;XA60	"""COL"""	"""COLUMN"""	"""COLUMN"""	1	1	1
+sharedreward	2	dicom	InversionRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	2	dicom	KSpaceFiltering	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	LossyImageCompression	identical_across_eras	XA30;XA60		"""00"""	"""00"""	0	1	1
+sharedreward	2	dicom	MRAcquisitionFrequencyEncodingSteps	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+sharedreward	2	dicom	MRAcquisitionPhaseEncodingStepsInPlane	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+sharedreward	2	dicom	MRAcquisitionType	identical_across_eras	E11;XA30;XA60	"""2D"""	"""2D"""	"""2D"""	1	1	1
+sharedreward	2	dicom	MagneticFieldStrength	identical_across_eras	E11;XA30;XA60	"""3"""	"""3"""	"""3"""	1	1	1
+sharedreward	2	dicom	MagnetizationTransfer	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	Manufacturer	differs_systematically_by_era	E11;XA30;XA60	"""SIEMENS"""	"""Siemens Healthineers"""	"""Siemens Healthineers"""	1	1	1
+sharedreward	2	dicom	ManufacturerModelName	differs_systematically_by_era	E11;XA30;XA60	"""Prisma"""	"""MAGNETOM Prisma"""	"""MAGNETOM Prisma"""	1	1	1
+sharedreward	2	dicom	Modality	identical_across_eras	E11;XA30;XA60	"""MR"""	"""MR"""	"""MR"""	1	1	1
+sharedreward	2	dicom	MultiPlanarExcitation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	2	dicom	NumberOfAverages	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+sharedreward	2	dicom	NumberOfFrames	identical_across_eras	XA30;XA60		"""51"""	"""51"""	0	1	1
+sharedreward	2	dicom	NumberOfKSpaceTrajectories	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+sharedreward	2	dicom	NumberOfPhaseEncodingSteps	insufficient_cross_era_coverage	E11	"""69"""			1	0	0
+sharedreward	2	dicom	NumberOfTemporalPositions	identical_across_eras	XA30;XA60		"""255"""	"""255"""	0	1	1
+sharedreward	2	dicom	OperatingMode	varies_within_era	XA30;XA60		"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	0	2	2
+sharedreward	2	dicom	OperatingModeType	varies_within_era	XA30;XA60		"""GRADIENT"";""RF"""	"""GRADIENT"";""RF"""	0	2	2
+sharedreward	2	dicom	OversamplingPhase	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	ParallelAcquisition	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+sharedreward	2	dicom	ParallelAcquisitionTechnique	identical_across_eras	XA30;XA60		"""GRAPPA"""	"""GRAPPA"""	0	1	1
+sharedreward	2	dicom	ParallelReductionFactorInPlane	identical_across_eras	XA30;XA60		"""2.0"""	"""2.0"""	0	1	1
+sharedreward	2	dicom	ParallelReductionFactorOutOfPlane	identical_across_eras	XA30;XA60		"""1.0"""	"""1.0"""	0	1	1
+sharedreward	2	dicom	PartialFourier	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+sharedreward	2	dicom	PartialFourierDirection	identical_across_eras	XA30;XA60		"""PHASE"""	"""PHASE"""	0	1	1
+sharedreward	2	dicom	PercentPhaseFieldOfView	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+sharedreward	2	dicom	PercentSampling	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+sharedreward	2	dicom	PhaseContrast	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	2	dicom	PhotometricInterpretation	identical_across_eras	E11;XA30;XA60	"""MONOCHROME2"""	"""MONOCHROME2"""	"""MONOCHROME2"""	1	1	1
+sharedreward	2	dicom	PixelBandwidth	identical_across_eras	E11;XA30;XA60	"""2500"""	"""2500"""	"""2500"""	1	1	1
+sharedreward	2	dicom	PixelRepresentation	identical_across_eras	E11;XA30;XA60	"""0"""	"""0"""	"""0"""	1	1	1
+sharedreward	2	dicom	PixelSpacing	differs_systematically_by_era	E11;XA30;XA60	"""[2.7000000476837, 2.7000000476837]"""	"""[2.7, 2.7]"""	"""[2.7, 2.7]"""	1	1	1
+sharedreward	2	dicom	PulseSequenceName	identical_across_eras	XA30;XA60		"""epfid2d4_80"""	"""epfid2d4_80"""	0	1	1
+sharedreward	2	dicom	RFEchoTrainLength	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+sharedreward	2	dicom	RectilinearPhaseEncodeReordering	identical_across_eras	XA30;XA60		"""LINEAR"""	"""LINEAR"""	0	1	1
+sharedreward	2	dicom	RepetitionTime	identical_across_eras	E11;XA30;XA60	"""1615"""	"""1615"""	"""1615"""	1	1	1
+sharedreward	2	dicom	RescaleIntercept	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+sharedreward	2	dicom	RescaleSlope	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+sharedreward	2	dicom	RescaleType	identical_across_eras	XA30;XA60		"""US"""	"""US"""	0	1	1
+sharedreward	2	dicom	Rows	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+sharedreward	2	dicom	SAR	insufficient_cross_era_coverage	E11	"""0.03155584851541"""			1	0	0
+sharedreward	2	dicom	SamplesPerPixel	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+sharedreward	2	dicom	SaturationRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	2	dicom	ScanOptions	insufficient_cross_era_coverage	E11	"""['PFP', 'FS']"""			1	0	0
+sharedreward	2	dicom	ScanningSequence	insufficient_cross_era_coverage	E11	"""EP"""			1	0	0
+sharedreward	2	dicom	SegmentedKSpaceTraversal	identical_across_eras	XA30;XA60		"""SINGLE"""	"""SINGLE"""	0	1	1
+sharedreward	2	dicom	SequenceName	insufficient_cross_era_coverage	E11	"""epfid2d4_80"""			1	0	0
+sharedreward	2	dicom	SequenceVariant	insufficient_cross_era_coverage	E11	"""['SK', 'SS']"""			1	0	0
+sharedreward	2	dicom	SliceThickness	differs_systematically_by_era	E11;XA30;XA60	"""2.7000000476837"""	"""2.7"""	"""2.7"""	1	1	1
+sharedreward	2	dicom	SoftwareVersions	differs_systematically_by_era	E11;XA30;XA60	"""syngo MR E11"""	"""syngo MR XA30"""	"""syngo MR XA60"""	1	1	1
+sharedreward	2	dicom	SpacingBetweenSlices	differs_systematically_by_era	E11;XA30;XA60	"""2.96999996109"""	"""2.97"""	"""2.97"""	1	1	1
+sharedreward	2	dicom	SpatialPresaturation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	SpectrallySelectedExcitation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	SpectrallySelectedSuppression	identical_across_eras	XA30;XA60		"""FAT"""	"""FAT"""	0	1	1
+sharedreward	2	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+sharedreward	2	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249144"""	"""123.237071"""	0	1	1
+sharedreward	2	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
+sharedreward	2	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+sharedreward	2	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
+socialdoors	1	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
+socialdoors	1	dicom	AcquisitionDuration	differs_systematically_by_era	XA30;XA60		"""403.5"""	"""403.502"""	0	1	1
+socialdoors	1	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
+socialdoors	1	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
+socialdoors	1	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+socialdoors	1	dicom	BitsStored	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+socialdoors	1	dicom	BloodSignalNulling	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+socialdoors	1	dicom	Columns	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+socialdoors	1	dicom	ComplexImageComponent	identical_across_eras	XA30;XA60		"""MAGNITUDE"""	"""MAGNITUDE"""	0	1	1
+socialdoors	1	dicom	EchoNumbers	identical_across_eras	E11;XA60	"""1"""		"""1"""	1	0	1
+socialdoors	1	dicom	EchoPlanarPulseSequence	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+socialdoors	1	dicom	EchoPulseSequence	identical_across_eras	XA30;XA60		"""GRADIENT"""	"""GRADIENT"""	0	1	1
+socialdoors	1	dicom	EchoTime	insufficient_cross_era_coverage	E11	"""13.8"""			1	0	0
+socialdoors	1	dicom	EchoTrainLength	identical_across_eras	E11;XA30;XA60	"""34"""	"""34"""	"""34"""	1	1	1
+socialdoors	1	dicom	FlipAngle	identical_across_eras	E11;XA30;XA60	"""50"""	"""50"""	"""50"""	1	1	1
+socialdoors	1	dicom	FlowCompensation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	FrameAcquisitionDuration	identical_across_eras	XA30;XA60		"""402000.0"""	"""402000.0"""	0	1	1
+socialdoors	1	dicom	FrameType	identical_across_eras	XA30;XA60		"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	0	1	1
+socialdoors	1	dicom	GeometryOfKSpaceTraversal	identical_across_eras	XA30;XA60		"""RECTILINEAR"""	"""RECTILINEAR"""	0	1	1
+socialdoors	1	dicom	GradientEchoTrainLength	identical_across_eras	XA30;XA60		"""34"""	"""34"""	0	1	1
+socialdoors	1	dicom	HighBit	identical_across_eras	E11;XA30;XA60	"""15"""	"""15"""	"""15"""	1	1	1
+socialdoors	1	dicom	ImageType	differs_systematically_by_era	E11;XA30;XA60	"""['ORIGINAL', 'PRIMARY', 'M', 'MB', 'TE1', 'ND', 'NORM', 'MOSAIC']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	1	1	1
+socialdoors	1	dicom	ImagedNucleus	insufficient_cross_era_coverage	E11	"""1H"""			1	0	0
+socialdoors	1	dicom	ImagingFrequency	insufficient_cross_era_coverage	E11	"""123.255816"""			1	0	0
+socialdoors	1	dicom	InPlanePhaseEncodingDirection	differs_systematically_by_era	E11;XA30;XA60	"""COL"""	"""COLUMN"""	"""COLUMN"""	1	1	1
+socialdoors	1	dicom	InversionRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+socialdoors	1	dicom	KSpaceFiltering	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	LossyImageCompression	identical_across_eras	XA30;XA60		"""00"""	"""00"""	0	1	1
+socialdoors	1	dicom	MRAcquisitionFrequencyEncodingSteps	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+socialdoors	1	dicom	MRAcquisitionPhaseEncodingStepsInPlane	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+socialdoors	1	dicom	MRAcquisitionType	identical_across_eras	E11;XA30;XA60	"""2D"""	"""2D"""	"""2D"""	1	1	1
+socialdoors	1	dicom	MagneticFieldStrength	identical_across_eras	E11;XA30;XA60	"""3"""	"""3"""	"""3"""	1	1	1
+socialdoors	1	dicom	MagnetizationTransfer	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	Manufacturer	differs_systematically_by_era	E11;XA30;XA60	"""SIEMENS"""	"""Siemens Healthineers"""	"""Siemens Healthineers"""	1	1	1
+socialdoors	1	dicom	ManufacturerModelName	differs_systematically_by_era	E11;XA30;XA60	"""Prisma"""	"""MAGNETOM Prisma"""	"""MAGNETOM Prisma"""	1	1	1
+socialdoors	1	dicom	Modality	identical_across_eras	E11;XA30;XA60	"""MR"""	"""MR"""	"""MR"""	1	1	1
+socialdoors	1	dicom	MultiPlanarExcitation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+socialdoors	1	dicom	NumberOfAverages	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+socialdoors	1	dicom	NumberOfFrames	identical_across_eras	XA30;XA60		"""51"""	"""51"""	0	1	1
+socialdoors	1	dicom	NumberOfKSpaceTrajectories	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+socialdoors	1	dicom	NumberOfPhaseEncodingSteps	insufficient_cross_era_coverage	E11	"""69"""			1	0	0
+socialdoors	1	dicom	NumberOfTemporalPositions	identical_across_eras	XA30;XA60		"""218"""	"""218"""	0	1	1
+socialdoors	1	dicom	OperatingMode	varies_within_era	XA30;XA60		"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	0	2	2
+socialdoors	1	dicom	OperatingModeType	varies_within_era	XA30;XA60		"""GRADIENT"";""RF"""	"""GRADIENT"";""RF"""	0	2	2
+socialdoors	1	dicom	OversamplingPhase	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	ParallelAcquisition	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+socialdoors	1	dicom	ParallelAcquisitionTechnique	identical_across_eras	XA30;XA60		"""GRAPPA"""	"""GRAPPA"""	0	1	1
+socialdoors	1	dicom	ParallelReductionFactorInPlane	identical_across_eras	XA30;XA60		"""2.0"""	"""2.0"""	0	1	1
+socialdoors	1	dicom	ParallelReductionFactorOutOfPlane	identical_across_eras	XA30;XA60		"""1.0"""	"""1.0"""	0	1	1
+socialdoors	1	dicom	PartialFourier	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+socialdoors	1	dicom	PartialFourierDirection	identical_across_eras	XA30;XA60		"""PHASE"""	"""PHASE"""	0	1	1
+socialdoors	1	dicom	PercentPhaseFieldOfView	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+socialdoors	1	dicom	PercentSampling	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+socialdoors	1	dicom	PhaseContrast	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+socialdoors	1	dicom	PhotometricInterpretation	identical_across_eras	E11;XA30;XA60	"""MONOCHROME2"""	"""MONOCHROME2"""	"""MONOCHROME2"""	1	1	1
+socialdoors	1	dicom	PixelBandwidth	identical_across_eras	E11;XA30;XA60	"""2500"""	"""2500"""	"""2500"""	1	1	1
+socialdoors	1	dicom	PixelRepresentation	identical_across_eras	E11;XA30;XA60	"""0"""	"""0"""	"""0"""	1	1	1
+socialdoors	1	dicom	PixelSpacing	differs_systematically_by_era	E11;XA30;XA60	"""[2.7000000476837, 2.7000000476837]"""	"""[2.7, 2.7]"""	"""[2.7, 2.7]"""	1	1	1
+socialdoors	1	dicom	PulseSequenceName	identical_across_eras	XA30;XA60		"""epfid2d4_80"""	"""epfid2d4_80"""	0	1	1
+socialdoors	1	dicom	RFEchoTrainLength	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+socialdoors	1	dicom	RectilinearPhaseEncodeReordering	identical_across_eras	XA30;XA60		"""LINEAR"""	"""LINEAR"""	0	1	1
+socialdoors	1	dicom	RepetitionTime	identical_across_eras	E11;XA30;XA60	"""1615"""	"""1615"""	"""1615"""	1	1	1
+socialdoors	1	dicom	RescaleIntercept	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+socialdoors	1	dicom	RescaleSlope	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+socialdoors	1	dicom	RescaleType	identical_across_eras	XA30;XA60		"""US"""	"""US"""	0	1	1
+socialdoors	1	dicom	Rows	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+socialdoors	1	dicom	SAR	insufficient_cross_era_coverage	E11	"""0.02629023523987"""			1	0	0
+socialdoors	1	dicom	SamplesPerPixel	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+socialdoors	1	dicom	SaturationRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+socialdoors	1	dicom	ScanOptions	insufficient_cross_era_coverage	E11	"""['PFP', 'FS']"""			1	0	0
+socialdoors	1	dicom	ScanningSequence	insufficient_cross_era_coverage	E11	"""EP"""			1	0	0
+socialdoors	1	dicom	SegmentedKSpaceTraversal	identical_across_eras	XA30;XA60		"""SINGLE"""	"""SINGLE"""	0	1	1
+socialdoors	1	dicom	SequenceName	insufficient_cross_era_coverage	E11	"""epfid2d4_80"""			1	0	0
+socialdoors	1	dicom	SequenceVariant	insufficient_cross_era_coverage	E11	"""['SK', 'SS']"""			1	0	0
+socialdoors	1	dicom	SliceThickness	differs_systematically_by_era	E11;XA30;XA60	"""2.7000000476837"""	"""2.7"""	"""2.7"""	1	1	1
+socialdoors	1	dicom	SoftwareVersions	differs_systematically_by_era	E11;XA30;XA60	"""syngo MR E11"""	"""syngo MR XA30"""	"""syngo MR XA60"""	1	1	1
+socialdoors	1	dicom	SpacingBetweenSlices	identical_across_eras	E11;XA30;XA60	"""2.97"""	"""2.97"""	"""2.97"""	1	1	1
+socialdoors	1	dicom	SpatialPresaturation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	SpectrallySelectedExcitation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	SpectrallySelectedSuppression	identical_across_eras	XA30;XA60		"""FAT"""	"""FAT"""	0	1	1
+socialdoors	1	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+socialdoors	1	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249148"""	"""123.249147"""	0	1	1
+socialdoors	1	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
+socialdoors	1	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+socialdoors	1	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
+trust	1	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
+trust	1	dicom	AcquisitionDuration	identical_across_eras	XA30;XA60		"""503.502"""	"""503.502"""	0	1	1
+trust	1	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
+trust	1	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
+trust	1	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+trust	1	dicom	BitsStored	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+trust	1	dicom	BloodSignalNulling	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	1	dicom	Columns	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+trust	1	dicom	ComplexImageComponent	identical_across_eras	XA30;XA60		"""MAGNITUDE"""	"""MAGNITUDE"""	0	1	1
+trust	1	dicom	EchoNumbers	identical_across_eras	E11;XA60	"""1"""		"""1"""	1	0	1
+trust	1	dicom	EchoPlanarPulseSequence	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+trust	1	dicom	EchoPulseSequence	identical_across_eras	XA30;XA60		"""GRADIENT"""	"""GRADIENT"""	0	1	1
+trust	1	dicom	EchoTime	insufficient_cross_era_coverage	E11	"""13.8"""			1	0	0
+trust	1	dicom	EchoTrainLength	identical_across_eras	E11;XA30;XA60	"""34"""	"""34"""	"""34"""	1	1	1
+trust	1	dicom	FlipAngle	identical_across_eras	E11;XA30;XA60	"""50"""	"""50"""	"""50"""	1	1	1
+trust	1	dicom	FlowCompensation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	FrameAcquisitionDuration	identical_across_eras	XA30;XA60		"""502000.0"""	"""502000.0"""	0	1	1
+trust	1	dicom	FrameType	identical_across_eras	XA30;XA60		"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	0	1	1
+trust	1	dicom	GeometryOfKSpaceTraversal	identical_across_eras	XA30;XA60		"""RECTILINEAR"""	"""RECTILINEAR"""	0	1	1
+trust	1	dicom	GradientEchoTrainLength	identical_across_eras	XA30;XA60		"""34"""	"""34"""	0	1	1
+trust	1	dicom	HighBit	identical_across_eras	E11;XA30;XA60	"""15"""	"""15"""	"""15"""	1	1	1
+trust	1	dicom	ImageType	differs_systematically_by_era	E11;XA30;XA60	"""['ORIGINAL', 'PRIMARY', 'M', 'MB', 'TE1', 'ND', 'NORM', 'MOSAIC']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	1	1	1
+trust	1	dicom	ImagedNucleus	insufficient_cross_era_coverage	E11	"""1H"""			1	0	0
+trust	1	dicom	ImagingFrequency	insufficient_cross_era_coverage	E11	"""123.255782"""			1	0	0
+trust	1	dicom	InPlanePhaseEncodingDirection	differs_systematically_by_era	E11;XA30;XA60	"""COL"""	"""COLUMN"""	"""COLUMN"""	1	1	1
+trust	1	dicom	InversionRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	1	dicom	KSpaceFiltering	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	LossyImageCompression	identical_across_eras	XA30;XA60		"""00"""	"""00"""	0	1	1
+trust	1	dicom	MRAcquisitionFrequencyEncodingSteps	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+trust	1	dicom	MRAcquisitionPhaseEncodingStepsInPlane	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+trust	1	dicom	MRAcquisitionType	identical_across_eras	E11;XA30;XA60	"""2D"""	"""2D"""	"""2D"""	1	1	1
+trust	1	dicom	MagneticFieldStrength	identical_across_eras	E11;XA30;XA60	"""3"""	"""3"""	"""3"""	1	1	1
+trust	1	dicom	MagnetizationTransfer	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	Manufacturer	differs_systematically_by_era	E11;XA30;XA60	"""SIEMENS"""	"""Siemens Healthineers"""	"""Siemens Healthineers"""	1	1	1
+trust	1	dicom	ManufacturerModelName	differs_systematically_by_era	E11;XA30;XA60	"""Prisma"""	"""MAGNETOM Prisma"""	"""MAGNETOM Prisma"""	1	1	1
+trust	1	dicom	Modality	identical_across_eras	E11;XA30;XA60	"""MR"""	"""MR"""	"""MR"""	1	1	1
+trust	1	dicom	MultiPlanarExcitation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	1	dicom	NumberOfAverages	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+trust	1	dicom	NumberOfFrames	identical_across_eras	XA30;XA60		"""51"""	"""51"""	0	1	1
+trust	1	dicom	NumberOfKSpaceTrajectories	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+trust	1	dicom	NumberOfPhaseEncodingSteps	insufficient_cross_era_coverage	E11	"""69"""			1	0	0
+trust	1	dicom	NumberOfTemporalPositions	identical_across_eras	XA30;XA60		"""280"""	"""280"""	0	1	1
+trust	1	dicom	OperatingMode	varies_within_era	XA30;XA60		"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	0	2	2
+trust	1	dicom	OperatingModeType	varies_within_era	XA30;XA60		"""GRADIENT"";""RF"""	"""GRADIENT"";""RF"""	0	2	2
+trust	1	dicom	OversamplingPhase	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	ParallelAcquisition	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+trust	1	dicom	ParallelAcquisitionTechnique	identical_across_eras	XA30;XA60		"""GRAPPA"""	"""GRAPPA"""	0	1	1
+trust	1	dicom	ParallelReductionFactorInPlane	identical_across_eras	XA30;XA60		"""2.0"""	"""2.0"""	0	1	1
+trust	1	dicom	ParallelReductionFactorOutOfPlane	identical_across_eras	XA30;XA60		"""1.0"""	"""1.0"""	0	1	1
+trust	1	dicom	PartialFourier	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+trust	1	dicom	PartialFourierDirection	identical_across_eras	XA30;XA60		"""PHASE"""	"""PHASE"""	0	1	1
+trust	1	dicom	PercentPhaseFieldOfView	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+trust	1	dicom	PercentSampling	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+trust	1	dicom	PhaseContrast	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	1	dicom	PhotometricInterpretation	identical_across_eras	E11;XA30;XA60	"""MONOCHROME2"""	"""MONOCHROME2"""	"""MONOCHROME2"""	1	1	1
+trust	1	dicom	PixelBandwidth	identical_across_eras	E11;XA30;XA60	"""2500"""	"""2500"""	"""2500"""	1	1	1
+trust	1	dicom	PixelRepresentation	identical_across_eras	E11;XA30;XA60	"""0"""	"""0"""	"""0"""	1	1	1
+trust	1	dicom	PixelSpacing	differs_systematically_by_era	E11;XA30;XA60	"""[2.7000000476837, 2.7000000476837]"""	"""[2.7, 2.7]"""	"""[2.7, 2.7]"""	1	1	1
+trust	1	dicom	PulseSequenceName	identical_across_eras	XA30;XA60		"""epfid2d4_80"""	"""epfid2d4_80"""	0	1	1
+trust	1	dicom	RFEchoTrainLength	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+trust	1	dicom	RectilinearPhaseEncodeReordering	identical_across_eras	XA30;XA60		"""LINEAR"""	"""LINEAR"""	0	1	1
+trust	1	dicom	RepetitionTime	identical_across_eras	E11;XA30;XA60	"""1615"""	"""1615"""	"""1615"""	1	1	1
+trust	1	dicom	RescaleIntercept	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+trust	1	dicom	RescaleSlope	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+trust	1	dicom	RescaleType	identical_across_eras	XA30;XA60		"""US"""	"""US"""	0	1	1
+trust	1	dicom	Rows	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+trust	1	dicom	SAR	insufficient_cross_era_coverage	E11	"""0.03180212402406"""			1	0	0
+trust	1	dicom	SamplesPerPixel	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+trust	1	dicom	SaturationRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	1	dicom	ScanOptions	insufficient_cross_era_coverage	E11	"""['PFP', 'FS']"""			1	0	0
+trust	1	dicom	ScanningSequence	insufficient_cross_era_coverage	E11	"""EP"""			1	0	0
+trust	1	dicom	SegmentedKSpaceTraversal	identical_across_eras	XA30;XA60		"""SINGLE"""	"""SINGLE"""	0	1	1
+trust	1	dicom	SequenceName	insufficient_cross_era_coverage	E11	"""epfid2d4_80"""			1	0	0
+trust	1	dicom	SequenceVariant	insufficient_cross_era_coverage	E11	"""['SK', 'SS']"""			1	0	0
+trust	1	dicom	SliceThickness	differs_systematically_by_era	E11;XA30;XA60	"""2.7000000476837"""	"""2.7"""	"""2.7"""	1	1	1
+trust	1	dicom	SoftwareVersions	differs_systematically_by_era	E11;XA30;XA60	"""syngo MR E11"""	"""syngo MR XA30"""	"""syngo MR XA60"""	1	1	1
+trust	1	dicom	SpacingBetweenSlices	differs_systematically_by_era	E11;XA30;XA60	"""2.96999996109"""	"""2.97"""	"""2.97"""	1	1	1
+trust	1	dicom	SpatialPresaturation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	SpectrallySelectedExcitation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	SpectrallySelectedSuppression	identical_across_eras	XA30;XA60		"""FAT"""	"""FAT"""	0	1	1
+trust	1	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	1	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249123"""	"""123.236857"""	0	1	1
+trust	1	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
+trust	1	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	1	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
+trust	2	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
+trust	2	dicom	AcquisitionDuration	differs_systematically_by_era	XA30;XA60		"""503.502"""	"""503.5"""	0	1	1
+trust	2	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
+trust	2	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
+trust	2	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+trust	2	dicom	BitsStored	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+trust	2	dicom	BloodSignalNulling	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	2	dicom	Columns	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+trust	2	dicom	ComplexImageComponent	identical_across_eras	XA30;XA60		"""MAGNITUDE"""	"""MAGNITUDE"""	0	1	1
+trust	2	dicom	EchoNumbers	identical_across_eras	E11;XA60	"""1"""		"""1"""	1	0	1
+trust	2	dicom	EchoPlanarPulseSequence	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+trust	2	dicom	EchoPulseSequence	identical_across_eras	XA30;XA60		"""GRADIENT"""	"""GRADIENT"""	0	1	1
+trust	2	dicom	EchoTime	insufficient_cross_era_coverage	E11	"""13.8"""			1	0	0
+trust	2	dicom	EchoTrainLength	identical_across_eras	E11;XA30;XA60	"""34"""	"""34"""	"""34"""	1	1	1
+trust	2	dicom	FlipAngle	identical_across_eras	E11;XA30;XA60	"""50"""	"""50"""	"""50"""	1	1	1
+trust	2	dicom	FlowCompensation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	FrameAcquisitionDuration	identical_across_eras	XA30;XA60		"""502000.0"""	"""502000.0"""	0	1	1
+trust	2	dicom	FrameType	identical_across_eras	XA30;XA60		"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	0	1	1
+trust	2	dicom	GeometryOfKSpaceTraversal	identical_across_eras	XA30;XA60		"""RECTILINEAR"""	"""RECTILINEAR"""	0	1	1
+trust	2	dicom	GradientEchoTrainLength	identical_across_eras	XA30;XA60		"""34"""	"""34"""	0	1	1
+trust	2	dicom	HighBit	identical_across_eras	E11;XA30;XA60	"""15"""	"""15"""	"""15"""	1	1	1
+trust	2	dicom	ImageType	differs_systematically_by_era	E11;XA30;XA60	"""['ORIGINAL', 'PRIMARY', 'M', 'MB', 'TE1', 'ND', 'NORM', 'MOSAIC']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	1	1	1
+trust	2	dicom	ImagedNucleus	insufficient_cross_era_coverage	E11	"""1H"""			1	0	0
+trust	2	dicom	ImagingFrequency	insufficient_cross_era_coverage	E11	"""123.255739"""			1	0	0
+trust	2	dicom	InPlanePhaseEncodingDirection	differs_systematically_by_era	E11;XA30;XA60	"""COL"""	"""COLUMN"""	"""COLUMN"""	1	1	1
+trust	2	dicom	InversionRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	2	dicom	KSpaceFiltering	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	LossyImageCompression	identical_across_eras	XA30;XA60		"""00"""	"""00"""	0	1	1
+trust	2	dicom	MRAcquisitionFrequencyEncodingSteps	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+trust	2	dicom	MRAcquisitionPhaseEncodingStepsInPlane	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+trust	2	dicom	MRAcquisitionType	identical_across_eras	E11;XA30;XA60	"""2D"""	"""2D"""	"""2D"""	1	1	1
+trust	2	dicom	MagneticFieldStrength	identical_across_eras	E11;XA30;XA60	"""3"""	"""3"""	"""3"""	1	1	1
+trust	2	dicom	MagnetizationTransfer	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	Manufacturer	differs_systematically_by_era	E11;XA30;XA60	"""SIEMENS"""	"""Siemens Healthineers"""	"""Siemens Healthineers"""	1	1	1
+trust	2	dicom	ManufacturerModelName	differs_systematically_by_era	E11;XA30;XA60	"""Prisma"""	"""MAGNETOM Prisma"""	"""MAGNETOM Prisma"""	1	1	1
+trust	2	dicom	Modality	identical_across_eras	E11;XA30;XA60	"""MR"""	"""MR"""	"""MR"""	1	1	1
+trust	2	dicom	MultiPlanarExcitation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	2	dicom	NumberOfAverages	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+trust	2	dicom	NumberOfFrames	identical_across_eras	XA30;XA60		"""51"""	"""51"""	0	1	1
+trust	2	dicom	NumberOfKSpaceTrajectories	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+trust	2	dicom	NumberOfPhaseEncodingSteps	insufficient_cross_era_coverage	E11	"""69"""			1	0	0
+trust	2	dicom	NumberOfTemporalPositions	identical_across_eras	XA30;XA60		"""280"""	"""280"""	0	1	1
+trust	2	dicom	OperatingMode	varies_within_era	XA30;XA60		"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	0	2	2
+trust	2	dicom	OperatingModeType	varies_within_era	XA30;XA60		"""GRADIENT"";""RF"""	"""GRADIENT"";""RF"""	0	2	2
+trust	2	dicom	OversamplingPhase	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	ParallelAcquisition	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+trust	2	dicom	ParallelAcquisitionTechnique	identical_across_eras	XA30;XA60		"""GRAPPA"""	"""GRAPPA"""	0	1	1
+trust	2	dicom	ParallelReductionFactorInPlane	identical_across_eras	XA30;XA60		"""2.0"""	"""2.0"""	0	1	1
+trust	2	dicom	ParallelReductionFactorOutOfPlane	identical_across_eras	XA30;XA60		"""1.0"""	"""1.0"""	0	1	1
+trust	2	dicom	PartialFourier	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+trust	2	dicom	PartialFourierDirection	identical_across_eras	XA30;XA60		"""PHASE"""	"""PHASE"""	0	1	1
+trust	2	dicom	PercentPhaseFieldOfView	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+trust	2	dicom	PercentSampling	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+trust	2	dicom	PhaseContrast	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	2	dicom	PhotometricInterpretation	identical_across_eras	E11;XA30;XA60	"""MONOCHROME2"""	"""MONOCHROME2"""	"""MONOCHROME2"""	1	1	1
+trust	2	dicom	PixelBandwidth	identical_across_eras	E11;XA30;XA60	"""2500"""	"""2500"""	"""2500"""	1	1	1
+trust	2	dicom	PixelRepresentation	identical_across_eras	E11;XA30;XA60	"""0"""	"""0"""	"""0"""	1	1	1
+trust	2	dicom	PixelSpacing	differs_systematically_by_era	E11;XA30;XA60	"""[2.7000000476837, 2.7000000476837]"""	"""[2.7, 2.7]"""	"""[2.7, 2.7]"""	1	1	1
+trust	2	dicom	PulseSequenceName	identical_across_eras	XA30;XA60		"""epfid2d4_80"""	"""epfid2d4_80"""	0	1	1
+trust	2	dicom	RFEchoTrainLength	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+trust	2	dicom	RectilinearPhaseEncodeReordering	identical_across_eras	XA30;XA60		"""LINEAR"""	"""LINEAR"""	0	1	1
+trust	2	dicom	RepetitionTime	identical_across_eras	E11;XA30;XA60	"""1615"""	"""1615"""	"""1615"""	1	1	1
+trust	2	dicom	RescaleIntercept	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+trust	2	dicom	RescaleSlope	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+trust	2	dicom	RescaleType	identical_across_eras	XA30;XA60		"""US"""	"""US"""	0	1	1
+trust	2	dicom	Rows	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+trust	2	dicom	SAR	insufficient_cross_era_coverage	E11	"""0.03188921419697"""			1	0	0
+trust	2	dicom	SamplesPerPixel	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+trust	2	dicom	SaturationRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	2	dicom	ScanOptions	insufficient_cross_era_coverage	E11	"""['PFP', 'FS']"""			1	0	0
+trust	2	dicom	ScanningSequence	insufficient_cross_era_coverage	E11	"""EP"""			1	0	0
+trust	2	dicom	SegmentedKSpaceTraversal	identical_across_eras	XA30;XA60		"""SINGLE"""	"""SINGLE"""	0	1	1
+trust	2	dicom	SequenceName	insufficient_cross_era_coverage	E11	"""epfid2d4_80"""			1	0	0
+trust	2	dicom	SequenceVariant	insufficient_cross_era_coverage	E11	"""['SK', 'SS']"""			1	0	0
+trust	2	dicom	SliceThickness	differs_systematically_by_era	E11;XA30;XA60	"""2.7000000476837"""	"""2.7"""	"""2.7"""	1	1	1
+trust	2	dicom	SoftwareVersions	differs_systematically_by_era	E11;XA30;XA60	"""syngo MR E11"""	"""syngo MR XA30"""	"""syngo MR XA60"""	1	1	1
+trust	2	dicom	SpacingBetweenSlices	differs_systematically_by_era	E11;XA30;XA60	"""2.9700000846123"""	"""2.97"""	"""2.97"""	1	1	1
+trust	2	dicom	SpatialPresaturation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	SpectrallySelectedExcitation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	SpectrallySelectedSuppression	identical_across_eras	XA30;XA60		"""FAT"""	"""FAT"""	0	1	1
+trust	2	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+trust	2	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249133"""	"""123.23706"""	0	1	1
+trust	2	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
+trust	2	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+trust	2	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
+ugr	1	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
+ugr	1	dicom	AcquisitionDuration	identical_across_eras	XA30;XA60		"""439.502"""	"""439.502"""	0	1	1
+ugr	1	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
+ugr	1	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
+ugr	1	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+ugr	1	dicom	BitsStored	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+ugr	1	dicom	BloodSignalNulling	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	1	dicom	Columns	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+ugr	1	dicom	ComplexImageComponent	identical_across_eras	XA30;XA60		"""MAGNITUDE"""	"""MAGNITUDE"""	0	1	1
+ugr	1	dicom	EchoNumbers	identical_across_eras	E11;XA60	"""1"""		"""1"""	1	0	1
+ugr	1	dicom	EchoPlanarPulseSequence	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+ugr	1	dicom	EchoPulseSequence	identical_across_eras	XA30;XA60		"""GRADIENT"""	"""GRADIENT"""	0	1	1
+ugr	1	dicom	EchoTime	insufficient_cross_era_coverage	E11	"""13.8"""			1	0	0
+ugr	1	dicom	EchoTrainLength	identical_across_eras	E11;XA30;XA60	"""34"""	"""34"""	"""34"""	1	1	1
+ugr	1	dicom	FlipAngle	identical_across_eras	E11;XA30;XA60	"""50"""	"""50"""	"""50"""	1	1	1
+ugr	1	dicom	FlowCompensation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	FrameAcquisitionDuration	identical_across_eras	XA30;XA60		"""438000.0"""	"""438000.0"""	0	1	1
+ugr	1	dicom	FrameType	identical_across_eras	XA30;XA60		"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	0	1	1
+ugr	1	dicom	GeometryOfKSpaceTraversal	identical_across_eras	XA30;XA60		"""RECTILINEAR"""	"""RECTILINEAR"""	0	1	1
+ugr	1	dicom	GradientEchoTrainLength	identical_across_eras	XA30;XA60		"""34"""	"""34"""	0	1	1
+ugr	1	dicom	HighBit	identical_across_eras	E11;XA30;XA60	"""15"""	"""15"""	"""15"""	1	1	1
+ugr	1	dicom	ImageType	differs_systematically_by_era	E11;XA30;XA60	"""['ORIGINAL', 'PRIMARY', 'M', 'MB', 'TE1', 'ND', 'NORM', 'MOSAIC']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	1	1	1
+ugr	1	dicom	ImagedNucleus	insufficient_cross_era_coverage	E11	"""1H"""			1	0	0
+ugr	1	dicom	ImagingFrequency	insufficient_cross_era_coverage	E11	"""123.255816"""			1	0	0
+ugr	1	dicom	InPlanePhaseEncodingDirection	differs_systematically_by_era	E11;XA30;XA60	"""COL"""	"""COLUMN"""	"""COLUMN"""	1	1	1
+ugr	1	dicom	InversionRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	1	dicom	KSpaceFiltering	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	LossyImageCompression	identical_across_eras	XA30;XA60		"""00"""	"""00"""	0	1	1
+ugr	1	dicom	MRAcquisitionFrequencyEncodingSteps	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+ugr	1	dicom	MRAcquisitionPhaseEncodingStepsInPlane	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+ugr	1	dicom	MRAcquisitionType	identical_across_eras	E11;XA30;XA60	"""2D"""	"""2D"""	"""2D"""	1	1	1
+ugr	1	dicom	MagneticFieldStrength	identical_across_eras	E11;XA30;XA60	"""3"""	"""3"""	"""3"""	1	1	1
+ugr	1	dicom	MagnetizationTransfer	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	Manufacturer	differs_systematically_by_era	E11;XA30;XA60	"""SIEMENS"""	"""Siemens Healthineers"""	"""Siemens Healthineers"""	1	1	1
+ugr	1	dicom	ManufacturerModelName	differs_systematically_by_era	E11;XA30;XA60	"""Prisma"""	"""MAGNETOM Prisma"""	"""MAGNETOM Prisma"""	1	1	1
+ugr	1	dicom	Modality	identical_across_eras	E11;XA30;XA60	"""MR"""	"""MR"""	"""MR"""	1	1	1
+ugr	1	dicom	MultiPlanarExcitation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	1	dicom	NumberOfAverages	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+ugr	1	dicom	NumberOfFrames	identical_across_eras	XA30;XA60		"""51"""	"""51"""	0	1	1
+ugr	1	dicom	NumberOfKSpaceTrajectories	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+ugr	1	dicom	NumberOfPhaseEncodingSteps	insufficient_cross_era_coverage	E11	"""69"""			1	0	0
+ugr	1	dicom	NumberOfTemporalPositions	identical_across_eras	XA30;XA60		"""240"""	"""240"""	0	1	1
+ugr	1	dicom	OperatingMode	varies_within_era	XA30;XA60		"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	0	2	2
+ugr	1	dicom	OperatingModeType	varies_within_era	XA30;XA60		"""GRADIENT"";""RF"""	"""GRADIENT"";""RF"""	0	2	2
+ugr	1	dicom	OversamplingPhase	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	ParallelAcquisition	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+ugr	1	dicom	ParallelAcquisitionTechnique	identical_across_eras	XA30;XA60		"""GRAPPA"""	"""GRAPPA"""	0	1	1
+ugr	1	dicom	ParallelReductionFactorInPlane	identical_across_eras	XA30;XA60		"""2.0"""	"""2.0"""	0	1	1
+ugr	1	dicom	ParallelReductionFactorOutOfPlane	identical_across_eras	XA30;XA60		"""1.0"""	"""1.0"""	0	1	1
+ugr	1	dicom	PartialFourier	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+ugr	1	dicom	PartialFourierDirection	identical_across_eras	XA30;XA60		"""PHASE"""	"""PHASE"""	0	1	1
+ugr	1	dicom	PercentPhaseFieldOfView	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+ugr	1	dicom	PercentSampling	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+ugr	1	dicom	PhaseContrast	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	1	dicom	PhotometricInterpretation	identical_across_eras	E11;XA30;XA60	"""MONOCHROME2"""	"""MONOCHROME2"""	"""MONOCHROME2"""	1	1	1
+ugr	1	dicom	PixelBandwidth	identical_across_eras	E11;XA30;XA60	"""2500"""	"""2500"""	"""2500"""	1	1	1
+ugr	1	dicom	PixelRepresentation	identical_across_eras	E11;XA30;XA60	"""0"""	"""0"""	"""0"""	1	1	1
+ugr	1	dicom	PixelSpacing	differs_systematically_by_era	E11;XA30;XA60	"""[2.7000000476837, 2.7000000476837]"""	"""[2.7, 2.7]"""	"""[2.7, 2.7]"""	1	1	1
+ugr	1	dicom	PulseSequenceName	identical_across_eras	XA30;XA60		"""epfid2d4_80"""	"""epfid2d4_80"""	0	1	1
+ugr	1	dicom	RFEchoTrainLength	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+ugr	1	dicom	RectilinearPhaseEncodeReordering	identical_across_eras	XA30;XA60		"""LINEAR"""	"""LINEAR"""	0	1	1
+ugr	1	dicom	RepetitionTime	identical_across_eras	E11;XA30;XA60	"""1615"""	"""1615"""	"""1615"""	1	1	1
+ugr	1	dicom	RescaleIntercept	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+ugr	1	dicom	RescaleSlope	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+ugr	1	dicom	RescaleType	identical_across_eras	XA30;XA60		"""US"""	"""US"""	0	1	1
+ugr	1	dicom	Rows	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+ugr	1	dicom	SAR	insufficient_cross_era_coverage	E11	"""0.03440589705988"""			1	0	0
+ugr	1	dicom	SamplesPerPixel	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+ugr	1	dicom	SaturationRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	1	dicom	ScanOptions	insufficient_cross_era_coverage	E11	"""['PFP', 'FS']"""			1	0	0
+ugr	1	dicom	ScanningSequence	insufficient_cross_era_coverage	E11	"""EP"""			1	0	0
+ugr	1	dicom	SegmentedKSpaceTraversal	identical_across_eras	XA30;XA60		"""SINGLE"""	"""SINGLE"""	0	1	1
+ugr	1	dicom	SequenceName	insufficient_cross_era_coverage	E11	"""epfid2d4_80"""			1	0	0
+ugr	1	dicom	SequenceVariant	insufficient_cross_era_coverage	E11	"""['SK', 'SS']"""			1	0	0
+ugr	1	dicom	SliceThickness	differs_systematically_by_era	E11;XA30;XA60	"""2.7000000476837"""	"""2.7"""	"""2.7"""	1	1	1
+ugr	1	dicom	SoftwareVersions	differs_systematically_by_era	E11;XA30;XA60	"""syngo MR E11"""	"""syngo MR XA30"""	"""syngo MR XA60"""	1	1	1
+ugr	1	dicom	SpacingBetweenSlices	differs_systematically_by_era	E11;XA30;XA60	"""2.9699999668568"""	"""2.97"""	"""2.97"""	1	1	1
+ugr	1	dicom	SpatialPresaturation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	SpectrallySelectedExcitation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	SpectrallySelectedSuppression	identical_across_eras	XA30;XA60		"""FAT"""	"""FAT"""	0	1	1
+ugr	1	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	1	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249152"""	"""123.249193"""	0	1	1
+ugr	1	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
+ugr	1	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	1	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
+ugr	2	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
+ugr	2	dicom	AcquisitionDuration	differs_systematically_by_era	XA30;XA60		"""439.5"""	"""439.502"""	0	1	1
+ugr	2	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
+ugr	2	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
+ugr	2	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+ugr	2	dicom	BitsStored	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
+ugr	2	dicom	BloodSignalNulling	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	2	dicom	Columns	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+ugr	2	dicom	ComplexImageComponent	identical_across_eras	XA30;XA60		"""MAGNITUDE"""	"""MAGNITUDE"""	0	1	1
+ugr	2	dicom	EchoNumbers	identical_across_eras	E11;XA60	"""1"""		"""1"""	1	0	1
+ugr	2	dicom	EchoPlanarPulseSequence	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+ugr	2	dicom	EchoPulseSequence	identical_across_eras	XA30;XA60		"""GRADIENT"""	"""GRADIENT"""	0	1	1
+ugr	2	dicom	EchoTime	insufficient_cross_era_coverage	E11	"""13.8"""			1	0	0
+ugr	2	dicom	EchoTrainLength	identical_across_eras	E11;XA30;XA60	"""34"""	"""34"""	"""34"""	1	1	1
+ugr	2	dicom	FlipAngle	identical_across_eras	E11;XA30;XA60	"""50"""	"""50"""	"""50"""	1	1	1
+ugr	2	dicom	FlowCompensation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	FrameAcquisitionDuration	identical_across_eras	XA30;XA60		"""438000.0"""	"""438000.0"""	0	1	1
+ugr	2	dicom	FrameType	identical_across_eras	XA30;XA60		"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	0	1	1
+ugr	2	dicom	GeometryOfKSpaceTraversal	identical_across_eras	XA30;XA60		"""RECTILINEAR"""	"""RECTILINEAR"""	0	1	1
+ugr	2	dicom	GradientEchoTrainLength	identical_across_eras	XA30;XA60		"""34"""	"""34"""	0	1	1
+ugr	2	dicom	HighBit	identical_across_eras	E11;XA30;XA60	"""15"""	"""15"""	"""15"""	1	1	1
+ugr	2	dicom	ImageType	differs_systematically_by_era	E11;XA30;XA60	"""['ORIGINAL', 'PRIMARY', 'M', 'MB', 'TE1', 'ND', 'NORM', 'MOSAIC']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	"""['ORIGINAL', 'PRIMARY', 'FMRI', 'NONE']"""	1	1	1
+ugr	2	dicom	ImagedNucleus	insufficient_cross_era_coverage	E11	"""1H"""			1	0	0
+ugr	2	dicom	ImagingFrequency	insufficient_cross_era_coverage	E11	"""123.255752"""			1	0	0
+ugr	2	dicom	InPlanePhaseEncodingDirection	differs_systematically_by_era	E11;XA30;XA60	"""COL"""	"""COLUMN"""	"""COLUMN"""	1	1	1
+ugr	2	dicom	InversionRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	2	dicom	KSpaceFiltering	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	LossyImageCompression	identical_across_eras	XA30;XA60		"""00"""	"""00"""	0	1	1
+ugr	2	dicom	MRAcquisitionFrequencyEncodingSteps	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+ugr	2	dicom	MRAcquisitionPhaseEncodingStepsInPlane	identical_across_eras	XA30;XA60		"""80"""	"""80"""	0	1	1
+ugr	2	dicom	MRAcquisitionType	identical_across_eras	E11;XA30;XA60	"""2D"""	"""2D"""	"""2D"""	1	1	1
+ugr	2	dicom	MagneticFieldStrength	identical_across_eras	E11;XA30;XA60	"""3"""	"""3"""	"""3"""	1	1	1
+ugr	2	dicom	MagnetizationTransfer	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	Manufacturer	differs_systematically_by_era	E11;XA30;XA60	"""SIEMENS"""	"""Siemens Healthineers"""	"""Siemens Healthineers"""	1	1	1
+ugr	2	dicom	ManufacturerModelName	differs_systematically_by_era	E11;XA30;XA60	"""Prisma"""	"""MAGNETOM Prisma"""	"""MAGNETOM Prisma"""	1	1	1
+ugr	2	dicom	Modality	identical_across_eras	E11;XA30;XA60	"""MR"""	"""MR"""	"""MR"""	1	1	1
+ugr	2	dicom	MultiPlanarExcitation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	2	dicom	NumberOfAverages	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+ugr	2	dicom	NumberOfFrames	identical_across_eras	XA30;XA60		"""51"""	"""51"""	0	1	1
+ugr	2	dicom	NumberOfKSpaceTrajectories	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+ugr	2	dicom	NumberOfPhaseEncodingSteps	insufficient_cross_era_coverage	E11	"""69"""			1	0	0
+ugr	2	dicom	NumberOfTemporalPositions	identical_across_eras	XA30;XA60		"""240"""	"""240"""	0	1	1
+ugr	2	dicom	OperatingMode	varies_within_era	XA30;XA60		"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	"""IEC_FIRST_LEVEL"";""IEC_NORMAL"""	0	2	2
+ugr	2	dicom	OperatingModeType	varies_within_era	XA30;XA60		"""GRADIENT"";""RF"""	"""GRADIENT"";""RF"""	0	2	2
+ugr	2	dicom	OversamplingPhase	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	ParallelAcquisition	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+ugr	2	dicom	ParallelAcquisitionTechnique	identical_across_eras	XA30;XA60		"""GRAPPA"""	"""GRAPPA"""	0	1	1
+ugr	2	dicom	ParallelReductionFactorInPlane	identical_across_eras	XA30;XA60		"""2.0"""	"""2.0"""	0	1	1
+ugr	2	dicom	ParallelReductionFactorOutOfPlane	identical_across_eras	XA30;XA60		"""1.0"""	"""1.0"""	0	1	1
+ugr	2	dicom	PartialFourier	identical_across_eras	XA30;XA60		"""YES"""	"""YES"""	0	1	1
+ugr	2	dicom	PartialFourierDirection	identical_across_eras	XA30;XA60		"""PHASE"""	"""PHASE"""	0	1	1
+ugr	2	dicom	PercentPhaseFieldOfView	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+ugr	2	dicom	PercentSampling	identical_across_eras	E11;XA30;XA60	"""100"""	"""100"""	"""100"""	1	1	1
+ugr	2	dicom	PhaseContrast	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	2	dicom	PhotometricInterpretation	identical_across_eras	E11;XA30;XA60	"""MONOCHROME2"""	"""MONOCHROME2"""	"""MONOCHROME2"""	1	1	1
+ugr	2	dicom	PixelBandwidth	identical_across_eras	E11;XA30;XA60	"""2500"""	"""2500"""	"""2500"""	1	1	1
+ugr	2	dicom	PixelRepresentation	identical_across_eras	E11;XA30;XA60	"""0"""	"""0"""	"""0"""	1	1	1
+ugr	2	dicom	PixelSpacing	differs_systematically_by_era	E11;XA30;XA60	"""[2.7000000476837, 2.7000000476837]"""	"""[2.7, 2.7]"""	"""[2.7, 2.7]"""	1	1	1
+ugr	2	dicom	PulseSequenceName	identical_across_eras	XA30;XA60		"""epfid2d4_80"""	"""epfid2d4_80"""	0	1	1
+ugr	2	dicom	RFEchoTrainLength	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+ugr	2	dicom	RectilinearPhaseEncodeReordering	identical_across_eras	XA30;XA60		"""LINEAR"""	"""LINEAR"""	0	1	1
+ugr	2	dicom	RepetitionTime	identical_across_eras	E11;XA30;XA60	"""1615"""	"""1615"""	"""1615"""	1	1	1
+ugr	2	dicom	RescaleIntercept	identical_across_eras	XA30;XA60		"""0"""	"""0"""	0	1	1
+ugr	2	dicom	RescaleSlope	identical_across_eras	XA30;XA60		"""1"""	"""1"""	0	1	1
+ugr	2	dicom	RescaleType	identical_across_eras	XA30;XA60		"""US"""	"""US"""	0	1	1
+ugr	2	dicom	Rows	differs_systematically_by_era	E11;XA30;XA60	"""640"""	"""80"""	"""80"""	1	1	1
+ugr	2	dicom	SAR	insufficient_cross_era_coverage	E11	"""0.02566822589314"""			1	0	0
+ugr	2	dicom	SamplesPerPixel	identical_across_eras	E11;XA30;XA60	"""1"""	"""1"""	"""1"""	1	1	1
+ugr	2	dicom	SaturationRecovery	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	2	dicom	ScanOptions	insufficient_cross_era_coverage	E11	"""['PFP', 'FS']"""			1	0	0
+ugr	2	dicom	ScanningSequence	insufficient_cross_era_coverage	E11	"""EP"""			1	0	0
+ugr	2	dicom	SegmentedKSpaceTraversal	identical_across_eras	XA30;XA60		"""SINGLE"""	"""SINGLE"""	0	1	1
+ugr	2	dicom	SequenceName	insufficient_cross_era_coverage	E11	"""epfid2d4_80"""			1	0	0
+ugr	2	dicom	SequenceVariant	insufficient_cross_era_coverage	E11	"""['SK', 'SS']"""			1	0	0
+ugr	2	dicom	SliceThickness	differs_systematically_by_era	E11;XA30;XA60	"""2.7000000476837"""	"""2.7"""	"""2.7"""	1	1	1
+ugr	2	dicom	SoftwareVersions	differs_systematically_by_era	E11;XA30;XA60	"""syngo MR E11"""	"""syngo MR XA30"""	"""syngo MR XA60"""	1	1	1
+ugr	2	dicom	SpacingBetweenSlices	differs_systematically_by_era	E11;XA30;XA60	"""2.9699999464334"""	"""2.97"""	"""2.97"""	1	1	1
+ugr	2	dicom	SpatialPresaturation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	SpectrallySelectedExcitation	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	SpectrallySelectedSuppression	identical_across_eras	XA30;XA60		"""FAT"""	"""FAT"""	0	1	1
+ugr	2	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
+ugr	2	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249154"""	"""123.24927"""	0	1	1
+ugr	2	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
+ugr	2	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
+ugr	2	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1

@@ -1,0 +1,24 @@
+{
+  "causal_claim_authorized": false,
+  "current_runs_sha256": "ca141dfe4b856a1dacaa55b8aa00fb701499211995819b464b9ee4ba5086d0a4",
+  "dicom_representative_paths_redacted": true,
+  "dicom_scientific_keyword_allowlist_enforced": true,
+  "generated_at": "2026-08-29T18:14:58.844778+00:00",
+  "identifiers_and_dates_excluded_from_metadata_tables": true,
+  "input_inventory_digest_path_size_mtime": "4aab746cca84750c7d058ff01e578c1b52396e98df5b033d6a232333e484b907",
+  "jobs": 4,
+  "outputs": {
+    "dicom_parameters.tsv": "405eac3b604da4beaf8c3b1f6907d2d2ed1df34bcdd36ad8f0df0ac9a1c7ee19",
+    "dicom_representatives.tsv": "bba6de08d1505b33a32e46ac5bab2bb3ba7d765b2a371ca278fdb1e7db103e10",
+    "echo_properties.tsv": "b8377d89c9ddf08e2df6b675e72bc7faea7a9bcfbe2769c5b9f69e6c109846a6",
+    "protocol_exceptions.tsv": "f68ac5b893bf42efc2b0765b4dfcbb8f6c3ddaf28ecedba377ecbba594d291dc",
+    "protocol_parameters.tsv": "1cb92bb6a1625b85d9bbf507af7eeece57d946a05f39fa3fcf89a22f61bed1e9",
+    "report.md": "88e8c1d047941557a305f4ea590524ae148cbce70b48af355c03a4679359907b",
+    "run_properties.tsv": "9a59325823d96d8387fa1fb01e72f8efe47f1fdb40955f99393b5876fa8672a0",
+    "within_subject_pairs.tsv": "24ca8c13ce26b79f4c2c0127bf834cb291cef12488c6291c62a3cacba90d1913"
+  },
+  "runs": 2737,
+  "schema_version": 3,
+  "skip_dicom_headers": false,
+  "skip_images": false
+}
