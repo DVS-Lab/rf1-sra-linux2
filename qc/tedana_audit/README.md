@@ -559,7 +559,9 @@ nohup setsid -f -w \
 
 BASE versus TEDANA-FULL measures the incremental artifact-control proxy;
 TEDANA-FULL versus TEDANA-NSS isolates NSS handling. All metrics use N:T, and
-N=0 pairs must be numerically identical.
+N=0 pairs must agree within the benchmark's tight floating-point tolerance
+(`rtol=1e-6`, `atol=1e-8`). A failure reports maximum absolute difference and
+normalized RMSE so a substantive discrepancy remains blocking.
 
 ### 4D. Canonical first-level design geometry
 

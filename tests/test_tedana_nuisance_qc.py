@@ -8,6 +8,7 @@ from pathlib import Path
 import nibabel as nib
 import numpy as np
 import pandas as pd
+import pytest
 
 
 CODE = Path(__file__).resolve().parents[1] / "code"
@@ -81,6 +82,24 @@ def test_nuisance_adjust_preserves_temporal_mean() -> None:
     adjusted, rank = qc.nuisance_adjust(data, nuisance)
     assert rank == 1
     assert np.allclose(np.mean(adjusted, axis=0), np.mean(data, axis=0))
+
+
+def test_n0_identity_uses_numerical_not_bitwise_equality() -> None:
+    full = np.arange(24, dtype=float).reshape(6, 4) + 100
+    numerically_same = full + 1e-7
+
+    qc.assert_n0_numerical_identity(
+        "sub-10001_ses-01_task-trust_run-1", full, numerically_same
+    )
+
+
+def test_n0_identity_rejects_meaningful_difference() -> None:
+    full = np.arange(24, dtype=float).reshape(6, 4) + 100
+
+    with pytest.raises(ValueError, match="max_abs_diff"):
+        qc.assert_n0_numerical_identity(
+            "sub-10001_ses-01_task-trust_run-1", full, full + 0.1
+        )
 
 
 def test_end_to_end_nuisance_qc(tmp_path: Path) -> None:

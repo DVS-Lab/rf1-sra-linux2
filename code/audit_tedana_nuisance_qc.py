@@ -59,6 +59,8 @@ OUTPUTS = (
     Path("run_metrics.tsv"), Path("paired_conditions.tsv"), Path("summary.tsv"),
     Path("figures/nuisance_qc.png"), Path("report.md"), Path("provenance.json"),
 )
+N0_IDENTITY_RTOL = 1e-6
+N0_IDENTITY_ATOL = 1e-8
 
 
 def utc_now() -> str:
@@ -121,6 +123,35 @@ def nuisance_adjust(data: np.ndarray, nuisance: np.ndarray) -> tuple[np.ndarray,
         return data.copy(), 0
     adjusted = data - basis @ (basis.T @ data)
     return adjusted, rank
+
+
+def assert_n0_numerical_identity(
+    key: str, full: np.ndarray, nss: np.ndarray
+) -> None:
+    """Require N=0 FULL/NSS residuals to agree within floating-point tolerance."""
+    if full.shape != nss.shape:
+        raise ValueError(
+            f"{key}: N=0 FULL/NSS audit residual shapes differ: "
+            f"{full.shape} != {nss.shape}"
+        )
+    if np.allclose(
+        full,
+        nss,
+        rtol=N0_IDENTITY_RTOL,
+        atol=N0_IDENTITY_ATOL,
+        equal_nan=False,
+    ):
+        return
+    difference = nss - full
+    maximum = float(np.max(np.abs(difference)))
+    rmse = float(np.sqrt(np.mean(difference**2)))
+    reference_rms = float(np.sqrt(np.mean(full**2)))
+    normalized_rmse = rmse / reference_rms if reference_rms else math.inf
+    raise ValueError(
+        f"{key}: N=0 FULL/NSS audit residuals differ beyond numerical "
+        f"tolerance (rtol={N0_IDENTITY_RTOL:g}, atol={N0_IDENTITY_ATOL:g}, "
+        f"max_abs_diff={maximum:.9g}, normalized_rmse={normalized_rmse:.9g})"
+    )
 
 
 def correlation(first: np.ndarray, second: np.ndarray) -> float:
@@ -337,8 +368,10 @@ def audit_run(
                 **current_metrics,
             }
         )
-    if nss == 0 and not np.array_equal(adjusted["tedana_full"], adjusted["tedana_nss"]):
-        raise ValueError(f"{key}: N=0 FULL/NSS audit residuals are not identical")
+    if nss == 0:
+        assert_n0_numerical_identity(
+            key, adjusted["tedana_full"], adjusted["tedana_nss"]
+        )
     pair_rows: list[dict[str, Any]] = []
     for reference, candidate in (("base", "tedana_full"), ("tedana_full", "tedana_nss")):
         pair_rows.append(

@@ -448,7 +448,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: Tracked run, pair, summary, figure, report, and provenance files under `qc/tedana_audit/nuisance_qc`; residual arrays remain in memory.
 - Typical command: `"$AUDIT_PYTHON" audit_tedana_nuisance_qc.py build --overwrite`; preview with `build --dry-run`.
 - Checker: `"$AUDIT_PYTHON" audit_tedana_nuisance_qc.py check` validates exact condition coverage, manifest checksum, and output checksums.
-- Notes: Metrics are evaluated on N:T. The NSS matrix has exactly N leading zero rows while fMRIPrep NSS spikes remain in BASE. N=0 FULL/NSS results must be numerically identical. These are nuisance-model QC comparisons, not reproductions of the simultaneous production task GLM.
+- Notes: Metrics are evaluated on N:T. The NSS matrix has exactly N leading zero rows while fMRIPrep NSS spikes remain in BASE. N=0 FULL/NSS residuals must agree within the benchmark's tight floating-point tolerance (`rtol=1e-6`, `atol=1e-8`); failures report maximum absolute difference and normalized RMSE. These are nuisance-model QC comparisons, not reproductions of the simultaneous production task GLM.
 
 ### `audit_tedana_l1_design.py`
 - Status: Audit-only; runs `feat_model` but never FEAT.
