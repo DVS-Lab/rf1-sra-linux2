@@ -569,10 +569,12 @@ normalized RMSE so a substantive discrepancy remains blocking.
 ### 4D. Canonical first-level design geometry
 
 The four downstream repositories must exist under `/ZPOOL/data/projects`.
-Use `--render-missing` to create any missing canonical activation FSFs through
-their authoritative `L1stats.sh --render-only` workers. Those workers validate
-the BOLD, confounds, and task EVs but do not run FEAT. The audit then runs
-`feat_model`, not FEAT:
+Use `--render-missing` to regenerate task EVs from canonical BIDS events and
+create missing activation FSFs through the repositories' authoritative
+`L1stats.sh --render-only` workers. EVs and FSFs are written under the
+audit-only derivative root, not into downstream repositories. The canonical
+fMRIPrep BOLD supplies TR and volume count. The audit then runs `feat_model`,
+not FEAT:
 
 ```bash
 "$AUDIT_PYTHON" audit_tedana_l1_design.py build --dry-run
@@ -591,8 +593,8 @@ The script fails if canonical FEAT temporal high-pass is enabled. It reports
 task-EV nuisance R-squared/VIF, task-subspace overlap, rank/DF, condition, and
 relative canonical contrast efficiency. It never evaluates whether a method
 produces a larger desired activation. `source_fsfs.tsv` records whether every
-canonical source FSF already existed or was rendered by the audit. Existing
-FEAT directories are never overwritten or removed.
+source FSF already existed downstream or was rendered in the audit workspace.
+Downstream repositories and existing FEAT directories are never modified.
 
 ### 4E. FastICA seed stability
 

@@ -84,6 +84,14 @@ def test_render_only_commands_match_downstream_interfaces(tmp_path: Path) -> Non
         "bash", str(tmp_path / "code" / "L1stats.sh"), "10785", "1", "0",
         "socialdoors", "--session", "01", "--render-only",
     ]
+    ugr_evs = audit.generate_evs_command(tmp_path, {**base, "task": "ugr"})
+    assert ugr_evs == [
+        "bash", str(tmp_path / "code" / "run_gen3colfiles.sh"),
+        "--subject", "10785", "--session", "01", "--run", "1",
+        "--overwrite", "--jobs", "1",
+    ]
+    doors_evs = audit.generate_evs_command(tmp_path, {**base, "task": "doors"})
+    assert doors_evs[-2:] == ["--task", "doors"]
 
 
 def test_render_missing_pins_project_and_derivative_roots(
@@ -91,6 +99,7 @@ def test_render_missing_pins_project_and_derivative_roots(
 ) -> None:
     project = tmp_path / "upstream"
     repo = tmp_path / "rf1-sra-sharedreward"
+    audit_fsl = project / "derivatives" / "tedana-audit" / "l1-design" / "source-models" / repo.name
     script = repo / "code" / "L1stats.sh"
     script.parent.mkdir(parents=True); script.write_text("#!/usr/bin/env bash\n")
     row = {
@@ -101,15 +110,17 @@ def test_render_missing_pins_project_and_derivative_roots(
     def fake_run(command, *, cwd, env, text, capture_output):
         assert cwd == repo
         assert env["RF1_SRA_UPSTREAM_ROOT"] == str(project)
-        assert env["FSL_DERIVATIVES_ROOT"] == str(repo / "derivatives" / "fsl")
-        target = (
-            repo / "derivatives" / "fsl" / "sub-10785" / "ses-01" /
+        assert env["FSL_DERIVATIVES_ROOT"] == str(audit_fsl)
+        if command[1].endswith("gen3colfiles.sh"):
+            return SimpleNamespace(returncode=0, stdout="Wrote EVs\n", stderr="")
+        target = audit_fsl / "sub-10785" / "ses-01" / (
             "L1_sub-10785_task-sharedreward_ses-01_model-1_type-act_run-1.fsf"
         )
+        assert "--bold" in command and "--confounds" in command
         target.parent.mkdir(parents=True); target.write_text("set fmri(temphp_yn) 0\n")
         return SimpleNamespace(returncode=0, stdout=f"Rendered: {target}\n", stderr="")
 
     monkeypatch.setattr(audit.subprocess, "run", fake_run)
-    models = audit.render_missing_activation_fsf(project, repo, row)
+    models = audit.render_missing_activation_fsf(project, repo, row, audit_fsl)
     assert len(models) == 1
     assert models[0].name.endswith("_type-act_run-1.fsf")

@@ -202,33 +202,73 @@ def confound_frames(project: Path, audit_root: Path, row: dict[str, str]) -> dic
     }
 
 
-def find_rendered_fsf(repo: Path, row: dict[str, str], include_ppi: bool) -> list[Path]:
+def find_rendered_fsf(fsl_root: Path, row: dict[str, str], include_ppi: bool) -> list[Path]:
     subject, session, task, run = (row[name] for name in ("subject", "session", "task", "run"))
     pattern = f"L1_sub-{subject}_task-{task}_ses-{session}_model-*_type-*_run-{run}*.fsf"
-    candidates = sorted((repo / "derivatives" / "fsl" / f"sub-{subject}" / f"ses-{session}").glob(pattern))
+    candidates = sorted((fsl_root / f"sub-{subject}" / f"ses-{session}").glob(pattern))
     canonical = [path for path in candidates if "_type-act_" in path.name]
     if include_ppi: canonical.extend(path for path in candidates if "_type-act_" not in path.name)
     return canonical
 
 
-def render_only_command(repo: Path, row: dict[str, str]) -> list[str]:
+def canonical_bold(project: Path, row: dict[str, str]) -> Path:
+    return (
+        project / "derivatives" / "fmriprep" / f"sub-{row['subject']}" /
+        f"ses-{row['session']}" / "func" /
+        f"{row['run_key']}_part-mag_space-MNI152NLin6Asym_desc-preproc_bold.nii.gz"
+    )
+
+
+def canonical_confounds(project: Path, row: dict[str, str]) -> Path:
+    return (
+        project / "derivatives" / "fsl" / "confounds_tedana" /
+        f"sub-{row['subject']}" / f"{row['run_key']}_desc-TedanaPlusConfounds.tsv"
+    )
+
+
+def generate_evs_command(repo: Path, row: dict[str, str]) -> list[str]:
+    common = [
+        "--subject", row["subject"], "--session", row["session"],
+        "--run", row["run"], "--overwrite",
+    ]
+    if row["task"] == "ugr":
+        return ["bash", str(repo / "code" / "run_gen3colfiles.sh"), *common, "--jobs", "1"]
+    command = ["bash", str(repo / "code" / "gen3colfiles.sh"), *common]
+    if row["task"] in ("doors", "socialdoors"):
+        command.extend(("--task", row["task"]))
+    return command
+
+
+def render_only_command(
+    repo: Path, row: dict[str, str], bold: Path | None = None,
+    confounds: Path | None = None,
+) -> list[str]:
     """Build the authoritative activation-only rendering command for one task."""
     command = [
         "bash", str(repo / "code" / "L1stats.sh"), row["subject"], row["run"], "0",
     ]
     if row["task"] in ("doors", "socialdoors"):
         command.append(row["task"])
-    command.extend(("--session", row["session"], "--render-only"))
+    command.extend(("--session", row["session"]))
+    if bold is not None:
+        command.extend(("--bold", str(bold)))
+    if confounds is not None:
+        command.extend(("--confounds", str(confounds)))
+    command.append("--render-only")
     return command
 
 
 def render_missing_activation_fsf(
-    project: Path, repo: Path, row: dict[str, str]
+    project: Path, repo: Path, row: dict[str, str], fsl_root: Path,
 ) -> list[Path]:
     script = repo / "code" / "L1stats.sh"
     if not script.is_file():
         raise ValueError(f"canonical L1 renderer missing: {script}")
-    command = render_only_command(repo, row)
+    ev_command = generate_evs_command(repo, row)
+    command = render_only_command(
+        repo, row, bold=canonical_bold(project, row),
+        confounds=canonical_confounds(project, row),
+    )
     environment = os.environ.copy()
     environment.update(
         {
@@ -236,10 +276,18 @@ def render_missing_activation_fsf(
             "BIDS_ROOT": str(project / "bids"),
             "FMRIPREP_ROOT": str(project / "derivatives" / "fmriprep"),
             "CONFOUNDS_ROOT": str(project / "derivatives" / "fsl" / "confounds_tedana"),
-            "FSL_DERIVATIVES_ROOT": str(repo / "derivatives" / "fsl"),
-            "HARMONIZED_ROOT": str(repo / "derivatives" / "harmonized"),
+            "FSL_DERIVATIVES_ROOT": str(fsl_root),
+            "HARMONIZED_ROOT": str(fsl_root / "harmonized"),
         }
     )
+    ev_result = subprocess.run(
+        ev_command, cwd=repo, env=environment, text=True, capture_output=True
+    )
+    if ev_result.returncode:
+        detail = (ev_result.stderr or ev_result.stdout).strip()
+        raise ValueError(
+            f"{row['run_key']}: canonical task-EV generation failed in {repo}: {detail}"
+        )
     result = subprocess.run(
         command, cwd=repo, env=environment, text=True, capture_output=True
     )
@@ -248,11 +296,11 @@ def render_missing_activation_fsf(
         raise ValueError(
             f"{row['run_key']}: canonical activation FSF render failed in {repo}: {detail}"
         )
-    models = find_rendered_fsf(repo, row, include_ppi=False)
+    models = find_rendered_fsf(fsl_root, row, include_ppi=False)
     if not models:
         raise ValueError(
             f"{row['run_key']}: render-only worker exited successfully but produced no "
-            f"canonical activation FSF in {repo}"
+            f"canonical activation FSF under {fsl_root}"
         )
     return models
 
@@ -382,6 +430,7 @@ def build(args: argparse.Namespace) -> int:
     project = args.project_root.resolve(); output = ensure_safe_child_path(project / "qc" / "tedana_audit", args.output_dir)
     audit_root = ensure_safe_child_path(project / "derivatives", args.audit_root)
     rendered_root = ensure_safe_child_path(project / "derivatives", args.rendered_root)
+    source_model_root = rendered_root / "source-models"
     rows = read_tsv(args.sentinel_tsv); repo_parent = args.repository_parent.resolve()
     repositories = {name: repo_parent / dirname for name, dirname in REPOSITORIES.items()}
     if args.dry_run:
@@ -401,12 +450,14 @@ def build(args: argparse.Namespace) -> int:
     for index, row in enumerate(rows, start=1):
         repo = repositories.get(row["task"])
         if repo is None or not repo.is_dir(): raise ValueError(f"downstream repository missing for {row['task']}: {repo}")
-        models = find_rendered_fsf(repo, row, args.include_ppi)
-        source_status = "existing"
+        models = find_rendered_fsf(repo / "derivatives" / "fsl", row, args.include_ppi)
+        source_status = "existing_downstream"
         if not models and args.render_missing:
-            print(f"Rendering missing canonical activation FSF for {row['run_key']}", flush=True)
-            models = render_missing_activation_fsf(project, repo, row)
-            source_status = "rendered_by_audit"
+            print(f"Preparing task EVs and activation FSF for {row['run_key']}", flush=True)
+            models = render_missing_activation_fsf(
+                project, repo, row, source_model_root / repo.name
+            )
+            source_status = "rendered_in_audit_workspace"
         if not models:
             command = " ".join(render_only_command(repo, row))
             raise ValueError(
@@ -439,8 +490,8 @@ def build(args: argparse.Namespace) -> int:
             "schema_version": 1, "generated_at": utc_now(), "sentinel_sha256": sha256(args.sentinel_tsv),
             "models": len(run_rows) // 3, "condition_rows": len(run_rows), "include_ppi": args.include_ppi,
             "feat_model_only": True, "full_feat_run": False, "production_derivatives_modified": False,
-            "downstream_source_fsfs_rendered": sum(
-                row["source_status"] == "rendered_by_audit" for row in source_rows
+            "audit_source_fsfs_rendered": sum(
+                row["source_status"] == "rendered_in_audit_workspace" for row in source_rows
             ),
             "downstream_feat_directories_modified": False,
             "task_effect_magnitude_inspected": False, "outputs": {},
@@ -473,10 +524,10 @@ def check(args: argparse.Namespace) -> int:
         source_rows = read_tsv(source_path)
         if len(source_rows) != provenance.get("models"):
             failures.append("source_fsf_coverage")
-        if any(row["source_status"] not in ("existing", "rendered_by_audit") for row in source_rows):
+        if any(row["source_status"] not in ("existing_downstream", "rendered_in_audit_workspace") for row in source_rows):
             failures.append("source_fsf_status")
-        rendered = sum(row["source_status"] == "rendered_by_audit" for row in source_rows)
-        if rendered != provenance.get("downstream_source_fsfs_rendered"):
+        rendered = sum(row["source_status"] == "rendered_in_audit_workspace" for row in source_rows)
+        if rendered != provenance.get("audit_source_fsfs_rendered"):
             failures.append("source_fsf_provenance")
     for item in OUTPUTS:
         path = output / item
