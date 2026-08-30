@@ -453,11 +453,11 @@ Each entry uses the same fields so operators can scan quickly.
 ### `audit_tedana_l1_design.py`
 - Status: Audit-only; runs `feat_model` but never FEAT.
 - Purpose: Measure rank, residual DF, condition number, task-EV nuisance R-squared/VIF, task-subspace overlap, and canonical contrast efficiency for BASE, TEDANA-FULL, and TEDANA-NSS in actual rendered RF1 first-level designs.
-- Inputs: Sentinel manifest, matched benchmark mixing/metrics, canonical rendered activation FSFs from the four downstream task repositories, and FSL `feat_model`.
-- Outputs: Audit-only copied FSFs/matrices under `derivatives/tedana-audit/l1-design` and tracked tables/report/provenance under `qc/tedana_audit/l1_design`.
-- Typical command: `"$AUDIT_PYTHON" audit_tedana_l1_design.py build --overwrite`; preview with `build --dry-run`.
+- Inputs: Sentinel manifest, matched benchmark mixing/metrics, four downstream task repositories and their canonical activation inputs, and FSL `feat_model`.
+- Outputs: Canonical source FSFs rendered only when requested and missing, audit-only copied FSFs/matrices under `derivatives/tedana-audit/l1-design`, and tracked tables/report/provenance under `qc/tedana_audit/l1_design`.
+- Typical command: `"$AUDIT_PYTHON" audit_tedana_l1_design.py build --render-missing --overwrite`; preview with `build --dry-run`.
 - Checker: `"$AUDIT_PYTHON" audit_tedana_l1_design.py check` validates three-condition coverage, sentinel checksum, and output checksums.
-- Notes: Only output and confound paths are replaced in copies of already rendered canonical FSFs. The script verifies that canonical template high-pass filtering is disabled, never examines task-effect magnitude, and fits task and nuisance columns simultaneously. Add `--include-ppi` only for a reviewed targeted extension.
+- Notes: `--render-missing` invokes only the downstream `L1stats.sh --render-only` activation workers and records their FSFs in `source_fsfs.tsv`; it never runs FEAT or overwrites an existing FEAT directory. Only output and confound paths are replaced in audit copies. The script verifies that canonical template high-pass filtering is disabled, never examines task-effect magnitude, and fits task and nuisance columns simultaneously. Add `--include-ppi` only for a reviewed targeted extension.
 
 ### `audit_tedana_scanner_era.py`
 - Status: Read-only forensic audit.

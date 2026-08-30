@@ -568,9 +568,11 @@ normalized RMSE so a substantive discrepancy remains blocking.
 
 ### 4D. Canonical first-level design geometry
 
-The four downstream repositories must exist under `/ZPOOL/data/projects` and
-their canonical activation FSFs must already have been rendered. This command
-runs `feat_model`, not FEAT:
+The four downstream repositories must exist under `/ZPOOL/data/projects`.
+Use `--render-missing` to create any missing canonical activation FSFs through
+their authoritative `L1stats.sh --render-only` workers. Those workers validate
+the BOLD, confounds, and task EVs but do not run FEAT. The audit then runs
+`feat_model`, not FEAT:
 
 ```bash
 "$AUDIT_PYTHON" audit_tedana_l1_design.py build --dry-run
@@ -579,7 +581,7 @@ STAMP=tedana-l1-design-$(date +%Y%m%d-%H%M%S)
 nohup setsid -f -w \
   bash run_logged.sh --label "$STAMP" --include-full-log -- \
     env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
-      audit_tedana_l1_design.py build --overwrite \
+      audit_tedana_l1_design.py build --render-missing --overwrite \
     --check env PYTHONUNBUFFERED=1 "$AUDIT_PYTHON" \
       audit_tedana_l1_design.py check \
   > "../logs/runs/${STAMP}.nohup.out" 2>&1 &
@@ -588,7 +590,9 @@ nohup setsid -f -w \
 The script fails if canonical FEAT temporal high-pass is enabled. It reports
 task-EV nuisance R-squared/VIF, task-subspace overlap, rank/DF, condition, and
 relative canonical contrast efficiency. It never evaluates whether a method
-produces a larger desired activation.
+produces a larger desired activation. `source_fsfs.tsv` records whether every
+canonical source FSF already existed or was rendered by the audit. Existing
+FEAT directories are never overwritten or removed.
 
 ### 4E. FastICA seed stability
 

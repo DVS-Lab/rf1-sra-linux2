@@ -4,12 +4,14 @@
   "outputs": {
     "figures/nuisance_qc.png": "0ee922973e151f5262b015b0d0cb09d256d80b15f84e79f4135ff62478a870e8",
     "paired_conditions.tsv": "3ab616e220726c89b5728593725dd7a9d3309fd96e66d62920f051297c1a05c5",
-    "report.md": "f83850003f283a8af24121e7bc33066995f13083789efef933dda160a07d8fb6",
+    "report.md": "942ce92672eca9bfc99f1f2be978b1fafe9915a5e853c78b4752ad69d1301323",
     "run_metrics.tsv": "c3061d3e12b9974c655d0263d68d85da1bcbcd31e73243aef08620e2a2b7f780",
     "summary.tsv": "8985e2c04adeb67cf51ec35321eb65cf5a680186b03085955cd0c3ff183cc8d1"
   },
   "production_bold_residualized": false,
   "production_derivatives_modified": false,
+  "report_interpretation_updated_at": "2026-08-30T19:35:50Z",
+  "report_interpretation_update": "Clarified that residual tSNR is mechanically favored by added regressors and is not primary denoising evidence.",
   "schema_version": 1,
   "sentinel_runs": 51,
   "sentinel_sha256": "9095bad26986f775cbc9d434ea0a22a929618aa2bdd2f63e0180511ed8c21391",

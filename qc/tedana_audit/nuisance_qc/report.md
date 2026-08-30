@@ -15,8 +15,8 @@ This audit compares nuisance spaces fitted to the same full-length canonical fMR
 - TEDANA-FULL: BASE plus rejected ICs from the matched full-volume decomposition.
 - TEDANA-NSS: BASE plus rejected ICs from the NSS-aware decomposition, with exactly N leading zero rows.
 
-Metrics are evaluated on N:T. Nuisance columns are mean-centered before projection so the adjusted series retains its temporal mean and tSNR remains interpretable. A standardized-DVARS value above 1.5 is a descriptive high-DVARS frame, not an exclusion rule.
+Metrics are evaluated on N:T. Nuisance columns are mean-centered before projection so the adjusted series retains its temporal mean. An increase in residual tSNR is mechanically favored whenever added regressors reduce residual variance, including irrelevant regressors, so it is a weak descriptive metric rather than evidence of effective artifact removal. A standardized-DVARS value above 1.5 is a descriptive high-DVARS frame, not an exclusion rule.
 
 ## Interpretation Gate
 
-Use BASE-vs-FULL to estimate artifact-control benefit and FULL-vs-NSS to isolate NSS handling. Combine these results with incremental rank and actual task-design efficiency. No single QC metric authorizes a production change.
+Use BASE-vs-FULL to estimate artifact-control benefit and FULL-vs-NSS to isolate NSS handling. Prioritize motion-linked residual structure, DVARS, incremental rank, residual degrees of freedom, and actual task/contrast efficiency over tSNR. No single QC metric authorizes a production change.

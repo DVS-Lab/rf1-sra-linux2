@@ -8,6 +8,7 @@ import csv
 import hashlib
 import json
 import math
+import os
 import re
 import shutil
 import subprocess
@@ -54,7 +55,12 @@ CONTRAST_COLUMNS = (
 )
 OUTPUTS = (
     Path("design_runs.tsv"), Path("task_ev_overlap.tsv"), Path("contrast_efficiency.tsv"),
-    Path("high_pass_audit.tsv"), Path("report.md"), Path("provenance.json"),
+    Path("source_fsfs.tsv"), Path("high_pass_audit.tsv"), Path("report.md"),
+    Path("provenance.json"),
+)
+SOURCE_FSF_COLUMNS = (
+    "subject", "session", "task", "run", "run_key", "repository",
+    "rendered_fsf", "source_status",
 )
 
 
@@ -205,6 +211,52 @@ def find_rendered_fsf(repo: Path, row: dict[str, str], include_ppi: bool) -> lis
     return canonical
 
 
+def render_only_command(repo: Path, row: dict[str, str]) -> list[str]:
+    """Build the authoritative activation-only rendering command for one task."""
+    command = [
+        "bash", str(repo / "code" / "L1stats.sh"), row["subject"], row["run"], "0",
+    ]
+    if row["task"] in ("doors", "socialdoors"):
+        command.append(row["task"])
+    command.extend(("--session", row["session"], "--render-only"))
+    return command
+
+
+def render_missing_activation_fsf(
+    project: Path, repo: Path, row: dict[str, str]
+) -> list[Path]:
+    script = repo / "code" / "L1stats.sh"
+    if not script.is_file():
+        raise ValueError(f"canonical L1 renderer missing: {script}")
+    command = render_only_command(repo, row)
+    environment = os.environ.copy()
+    environment.update(
+        {
+            "RF1_SRA_UPSTREAM_ROOT": str(project),
+            "BIDS_ROOT": str(project / "bids"),
+            "FMRIPREP_ROOT": str(project / "derivatives" / "fmriprep"),
+            "CONFOUNDS_ROOT": str(project / "derivatives" / "fsl" / "confounds_tedana"),
+            "FSL_DERIVATIVES_ROOT": str(repo / "derivatives" / "fsl"),
+            "HARMONIZED_ROOT": str(repo / "derivatives" / "harmonized"),
+        }
+    )
+    result = subprocess.run(
+        command, cwd=repo, env=environment, text=True, capture_output=True
+    )
+    if result.returncode:
+        detail = (result.stderr or result.stdout).strip()
+        raise ValueError(
+            f"{row['run_key']}: canonical activation FSF render failed in {repo}: {detail}"
+        )
+    models = find_rendered_fsf(repo, row, include_ppi=False)
+    if not models:
+        raise ValueError(
+            f"{row['run_key']}: render-only worker exited successfully but produced no "
+            f"canonical activation FSF in {repo}"
+        )
+    return models
+
+
 def render_audit_fsf(source: Path, confounds: Path, output_stem: Path) -> Path:
     text = source.read_text()
     if not re.search(r"set fmri\(temphp_yn\)\s+0(?:\s|$)", text):
@@ -337,7 +389,8 @@ def build(args: argparse.Namespace) -> int:
         for repo in sorted(set(repositories.values())): print(f"  downstream: {repo}")
         print("Only feat_model will run; FEAT and production derivatives will not."); return 0
     if output.exists() and not args.overwrite: raise ValueError(f"output exists; review it or use --overwrite: {output}")
-    run_rows = []; ev_rows = []; contrast_rows = []; inputs = [args.sentinel_tsv.resolve()]
+    run_rows = []; ev_rows = []; contrast_rows = []; source_rows = []
+    inputs = [args.sentinel_tsv.resolve()]
     high_pass = []
     for repo in sorted(set(repositories.values())):
         templates = sorted((repo / "templates").glob("L1*.fsf"))
@@ -349,8 +402,25 @@ def build(args: argparse.Namespace) -> int:
         repo = repositories.get(row["task"])
         if repo is None or not repo.is_dir(): raise ValueError(f"downstream repository missing for {row['task']}: {repo}")
         models = find_rendered_fsf(repo, row, args.include_ppi)
-        if not models: raise ValueError(f"{row['run_key']}: canonical rendered activation FSF not found in {repo}")
+        source_status = "existing"
+        if not models and args.render_missing:
+            print(f"Rendering missing canonical activation FSF for {row['run_key']}", flush=True)
+            models = render_missing_activation_fsf(project, repo, row)
+            source_status = "rendered_by_audit"
+        if not models:
+            command = " ".join(render_only_command(repo, row))
+            raise ValueError(
+                f"{row['run_key']}: canonical rendered activation FSF not found in {repo}; "
+                f"rerun with --render-missing or render it explicitly with: {command}"
+            )
         for source in models:
+            source_rows.append(
+                {
+                    **{name: row[name] for name in ("subject", "session", "task", "run", "run_key")},
+                    "repository": repo.name, "rendered_fsf": str(source),
+                    "source_status": source_status,
+                }
+            )
             current_runs, current_evs, current_contrasts, current_inputs = audit_model(
                 project, audit_root, rendered_root, repo, row, source, args.feat_model,
             )
@@ -362,12 +432,17 @@ def build(args: argparse.Namespace) -> int:
         write_tsv(stage / "design_runs.tsv", run_rows, RUN_COLUMNS)
         write_tsv(stage / "task_ev_overlap.tsv", ev_rows, EV_COLUMNS)
         write_tsv(stage / "contrast_efficiency.tsv", contrast_rows, CONTRAST_COLUMNS)
+        write_tsv(stage / "source_fsfs.tsv", source_rows, SOURCE_FSF_COLUMNS)
         write_tsv(stage / "high_pass_audit.tsv", high_pass, ("repository", "template", "temphp_yn"))
         make_report(run_rows, high_pass, stage / "report.md")
         provenance = {
             "schema_version": 1, "generated_at": utc_now(), "sentinel_sha256": sha256(args.sentinel_tsv),
             "models": len(run_rows) // 3, "condition_rows": len(run_rows), "include_ppi": args.include_ppi,
             "feat_model_only": True, "full_feat_run": False, "production_derivatives_modified": False,
+            "downstream_source_fsfs_rendered": sum(
+                row["source_status"] == "rendered_by_audit" for row in source_rows
+            ),
+            "downstream_feat_directories_modified": False,
             "task_effect_magnitude_inspected": False, "outputs": {},
         }
         for item in OUTPUTS:
@@ -391,6 +466,18 @@ def check(args: argparse.Namespace) -> int:
         rows = read_tsv(run_path); groups: dict[tuple[str, str], set[str]] = {}
         for row in rows: groups.setdefault((row["run_key"], row["analysis_type"]), set()).add(row["condition"])
         if any(value != set(CONDITIONS) for value in groups.values()): failures.append("condition_coverage")
+    source_path = output / "source_fsfs.tsv"
+    if not source_path.is_file():
+        failures.append("missing_source_fsfs")
+    else:
+        source_rows = read_tsv(source_path)
+        if len(source_rows) != provenance.get("models"):
+            failures.append("source_fsf_coverage")
+        if any(row["source_status"] not in ("existing", "rendered_by_audit") for row in source_rows):
+            failures.append("source_fsf_status")
+        rendered = sum(row["source_status"] == "rendered_by_audit" for row in source_rows)
+        if rendered != provenance.get("downstream_source_fsfs_rendered"):
+            failures.append("source_fsf_provenance")
     for item in OUTPUTS:
         path = output / item
         if not path.is_file(): failures.append(f"missing:{path}")
@@ -416,6 +503,10 @@ def parser() -> argparse.ArgumentParser:
         child.add_argument("--include-ppi", action="store_true")
     children.choices["build"].add_argument("--overwrite", action="store_true")
     children.choices["build"].add_argument("--dry-run", action="store_true")
+    children.choices["build"].add_argument(
+        "--render-missing", action="store_true",
+        help="Render missing canonical activation FSFs with downstream --render-only workers",
+    )
     return result
 
 
