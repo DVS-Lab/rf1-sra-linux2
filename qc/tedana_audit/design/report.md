@@ -4,9 +4,9 @@ This is a read-only scientific audit. It does not change production TEDANA, fMRI
 
 ## Coverage
 
-- Inventory rows: 2741
-- Complete design audits: 2737
-- Incomplete design audits: 4
+- Inventory rows: 2749
+- Complete design audits: 2749
+- Incomplete design audits: 0
 - Existing combined-confound files differing from exact reconstruction: 0
 
 ## Prespecified Descriptive Flags
@@ -22,8 +22,8 @@ The first two flags follow TEDANA 26.0.3 documentation as warning signs for unex
 ## Interpretation
 
 `tedana_incremental_rank` is the numerical rank of the exact BASE + rejected-ICA nuisance matrix minus the rank of BASE alone. This is the independent statistical cost attributable to TEDANA; raw rejected-component count remains descriptive only.
-The cohort median incremental TEDANA rank fraction is 0.050980392156862744; its 95th percentile is 0.20397058823529407.
-Rejected-on-accepted cross-component variance is available for 2730/2737 complete runs and is descriptive QC, not evidence of pre-GLM signal removal.
+The cohort median incremental TEDANA rank fraction is 0.050980392156862744; its 95th percentile is 0.20392156862745098.
+Rejected-on-accepted cross-component variance is available for 2742/2749 complete runs and is descriptive QC, not evidence of pre-GLM signal removal.
 `combined_rank_with_intercept` is the numerical rank of the exact production nuisance matrix plus a constant. `residual_df_before_task` subtracts that rank from the number of acquired volumes; actual task regressors and PPI/nPPI regressors consume additional degrees of freedom. Column count is reported because it affects model size, but rank is the relevant estimability quantity.
 
 AIC, KIC, and MDL counts are taken from each completed TEDANA run's saved MAPCA cross-component JSON. They permit a cohort-wide comparison of dimensionality criteria without rerunning ICA. Actual KIC/MDL denoising must still be benchmarked on the generated targeted manifest before any production decision.
