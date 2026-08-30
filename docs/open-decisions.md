@@ -40,6 +40,27 @@ detailed findings, or participant-by-participant reason associations. No
 additional public subject-level rationale is required, and this policy is not
 an open scientific adjudication question.
 
+## Settled Technical And Task Decisions
+
+- `10929` session 01 UGR run 2 has a complete magnitude series but an
+  unrecoverably short phase series in the available source (92 phase DICOMs
+  versus 960 magnitude DICOMs). The reviewed `warpkit_reuse.tsv` exception
+  reuses the UGR run-1 WarpKit fieldmap while retaining the run-2 magnitude
+  reference. WarpKit and fMRIPrep passed after the repair, and current TEDANA
+  auditing finds all seven available `10929` runs complete. Retain UGR run 2
+  as technically processed with an explicit acquisition/fieldmap-reuse flag;
+  do not treat the absent run-specific phase series as an unresolved pipeline
+  failure.
+- `11539` received the wrong friend image. This invalidates both Shared Reward
+  runs and Trust run 1 for their respective task analyses. Preserve the data
+  and provenance locally, but mark those three runs excluded in the canonical
+  run-disposition contract. Trust run 2 is not implicated by the available
+  note.
+- The active models intentionally use corrected canonical UGR cue timing,
+  actual Trust feedback duration, and the current Shared Reward miss handling
+  and 14-EV model. These conventions are settled and do not require further
+  sign-off before downstream processing.
+
 ## Decisions Requiring Team Review
 
 ### Conversion Versus Behavioral QC
@@ -95,6 +116,12 @@ combination can justify exclusion. The 7 incomplete rows require technical
 resolution or an explicit `unavailable` disposition. The four factual metrics
 and their cohort thresholds must remain separate from the final decision.
 
+Final imaging and response-QC adjudication will be performed at the task level
+after technically valid downstream outputs have been inventoried. These review
+flags do not block manifest construction, EV generation, or technically valid
+first-level processing in the meantime. Refresh the counts above before that
+review because the current evidence snapshot predates the newest sessions.
+
 ### Acquisition And Task Exceptions
 
 - `11116` session 02 was acquired across two visits separated by roughly one or
@@ -110,15 +137,6 @@ and their cohort thresholds must remain separate from the final decision.
   manifest row. Multiple T1w acquisitions will then receive `run-1`/`run-2`
   entities and all be defaced. This corrects the earlier note that mistakenly
   named `11078`.
-- `10929` session 01 UGR run 2 has a complete magnitude series but an
-  unrecoverably short phase series in the available source. WarpKit reused the
-  reviewed UGR run-1 fieldmap and fMRIPrep/TEDANA were regenerated. The team
-  should decide whether this run is included, retained with a sensitivity flag,
-  or excluded, while preserving the acquisition issue in the canonical record.
-- Session-note review in `sharedreward-aging` reports that `11539` saw the wrong
-  friend photo, invalidating both Shared Reward runs and Trust run 1. The team
-  should confirm whether this is an intrinsic RF1 task invalidation that belongs
-  in Linux2's canonical disposition rather than only in an aging-analysis table.
 - The 18 missing event sources and unresolved `12037` Trust mapping remain the
   authoritative source-repair queue in `docs/behavior-source-repairs.md`.
 
@@ -135,18 +153,6 @@ reports `>=25%` as a review flag. This conflict must be resolved explicitly.
 Analysis-specific harmonization, ratings, age, and covariate rules should remain
 downstream. Intrinsic RF1 acquisition or task-invalidity decisions should live
 in Linux2 and be consumed downstream.
-
-### Active Model Sign-Off
-
-The team should confirm that the current active models intentionally use:
-
-- corrected canonical UGR cue timing rather than the historical onset bug;
-- actual Trust feedback duration rather than the historical 1-second value;
-- the current Shared Reward miss handling and 14-EV model rather than the
-  historical 13-EV convention.
-
-These are documentation/sign-off decisions, not requests to reproduce known
-historical quirks.
 
 ## Proposed Implementation After Review
 
