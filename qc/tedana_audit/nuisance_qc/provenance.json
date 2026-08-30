@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-08-30T18:37:56.261912+00:00",
+  "input_inventory_digest_path_size_mtime": "c1783bb137e878d1fa55b5a6a67f70ebdcf1d2d0e635092a1e32aa30623a0211",
+  "outputs": {
+    "figures/nuisance_qc.png": "0ee922973e151f5262b015b0d0cb09d256d80b15f84e79f4135ff62478a870e8",
+    "paired_conditions.tsv": "3ab616e220726c89b5728593725dd7a9d3309fd96e66d62920f051297c1a05c5",
+    "report.md": "f83850003f283a8af24121e7bc33066995f13083789efef933dda160a07d8fb6",
+    "run_metrics.tsv": "c3061d3e12b9974c655d0263d68d85da1bcbcd31e73243aef08620e2a2b7f780",
+    "summary.tsv": "8985e2c04adeb67cf51ec35321eb65cf5a680186b03085955cd0c3ff183cc8d1"
+  },
+  "production_bold_residualized": false,
+  "production_derivatives_modified": false,
+  "schema_version": 1,
+  "sentinel_runs": 51,
+  "sentinel_sha256": "9095bad26986f775cbc9d434ea0a22a929618aa2bdd2f63e0180511ed8c21391",
+  "sentinel_tsv": "qc/tedana_audit/sentinel_runs.tsv",
+  "task_and_nuisance_fit_simultaneously_in_production": true
+}
