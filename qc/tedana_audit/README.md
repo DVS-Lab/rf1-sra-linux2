@@ -170,6 +170,9 @@ Progress is printed every 100 runs. Generated tracked outputs are installed
 atomically only after the complete scan succeeds, so `git status` remains clean
 while the audit is running. The ignored raw log is live; the tracked compact
 run record is written when `run_logged.sh` finishes.
+Only the baseline files listed above are replaced. Completed downstream audit
+directories such as `benchmark`, `design`, `motion`, and `scanner_era` are
+preserved when the cohort inventory is refreshed.
 
 Review `current_runs.tsv`, `sentinel_runs.tsv`, and `report.md` before starting
 the expensive benchmark. Then validate the exact plan:

@@ -460,6 +460,9 @@ def test_end_to_end_synthetic_audit_build_and_check(tmp_path: Path) -> None:
     output = project / "qc" / "tedana_audit"
     output.mkdir(parents=True)
     (output / "README.md").write_text("static documentation\n")
+    sibling = output / "benchmark" / "report.md"
+    sibling.parent.mkdir()
+    sibling.write_text("completed downstream audit\n")
     component_dir = project / "derivatives" / "tedana-audit" / "current"
     args = Namespace(
         project_root=project,
@@ -475,6 +478,7 @@ def test_end_to_end_synthetic_audit_build_and_check(tmp_path: Path) -> None:
     )
     assert audit.run_build(args) == 0
     assert (output / "README.md").read_text() == "static documentation\n"
+    assert sibling.read_text() == "completed downstream audit\n"
     rows = audit.read_tsv(output / "current_runs.tsv")
     assert len(rows) == 1
     assert rows[0]["audit_status"] == "complete"

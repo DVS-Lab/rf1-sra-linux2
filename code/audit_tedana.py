@@ -1044,6 +1044,11 @@ def run_build(args: argparse.Namespace) -> int:
     component_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="tedana-audit-", dir=output_dir.parent) as temporary:
         stage = Path(temporary)
+        # This directory also owns downstream benchmark/QC subdirectories.
+        # Carry them into the replacement tree so a cohort refresh updates only
+        # the baseline files listed in TRACKED_OUTPUTS.
+        if output_dir.exists():
+            shutil.copytree(output_dir, stage, dirs_exist_ok=True)
         write_tsv(stage / "current_runs.tsv", rows, RUN_COLUMNS)
         summary_columns = tuple(summaries[0]) if summaries else ("level", "group", "session", "n_runs")
         write_tsv(stage / "summary_by_task.tsv", summaries, summary_columns)
@@ -1086,9 +1091,6 @@ def run_build(args: argparse.Namespace) -> int:
             provenance["outputs"][path.as_posix()] = sha256(stage / path)
         (stage / "provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
         apply_umask_mode(stage / "provenance.json")
-        readme = output_dir / "README.md"
-        if readme.is_file():
-            shutil.copy2(readme, stage / "README.md")
         if output_dir.exists():
             shutil.rmtree(output_dir)
         os.replace(stage, output_dir)
