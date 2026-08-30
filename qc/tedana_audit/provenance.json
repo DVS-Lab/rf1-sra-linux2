@@ -1,8 +1,8 @@
 {
-  "complete_run_count": 2737,
-  "component_count": 98719,
+  "complete_run_count": 2749,
+  "component_count": 99149,
   "component_table": "derivatives/tedana-audit/current/current_components.tsv",
-  "component_table_sha256": "276f91db8db0407bab368694863b751acaeba9596c4201bbd1f327126278fcd1",
+  "component_table_sha256": "5bddfba1bbf75401d0829d51e3f02f10721ed0fe318fdf42c9c1c1f7ed2899e2",
   "constraints": {
     "classifications_changed": false,
     "nss_authority": "fMRIPrep non_steady_state_outlier regressors",
@@ -10,21 +10,21 @@
     "task_regressors_used": false
   },
   "fmriprep_version": "25.2.5",
-  "generated_at": "2026-08-27T02:36:15+00:00",
-  "incomplete_run_count": 4,
-  "input_inventory_digest_path_size_mtime": "b4ed1eefc9c2eab5495babc2098c22024b3fc5007d7c5c8eaa17ee0e2f79c059",
+  "generated_at": "2026-08-30T04:09:15+00:00",
+  "incomplete_run_count": 0,
+  "input_inventory_digest_path_size_mtime": "000c93521b79d3bf715bd545f720516afc4c88c418081419c2cf67747239ecf5",
   "outputs": {
-    "current_runs.tsv": "ca141dfe4b856a1dacaa55b8aa00fb701499211995819b464b9ee4ba5086d0a4",
-    "figures/dimensionality.png": "6d337324fb7b7919ff84af5cba0956affb7fde07281acff90fe5c660f9dbdbb1",
-    "figures/motion.png": "ae79171a1490ab542b3dca3235c0429fe6bff30cb8bbe8c48fe175599294a6e4",
-    "figures/nss.png": "92dbdcfd99c20fb669fc4c1a66843dd36be46eebe5e97dbfd28e2e1812943e04",
-    "report.md": "5bf374fa6040f88e36a6de21435032c736742450d4f16d9c8bfda71b6e36e000",
+    "current_runs.tsv": "36aba663b78159263278342e4d533a46c13f6df3896bb50fa9f3c848f1e56d61",
+    "figures/dimensionality.png": "e002ab6d1ebd36bfd89aa97c54fea6f0cbfa7651a9c37951a0196b7c014a3551",
+    "figures/motion.png": "8357c1819d5f1b994d385f960ade77e1fac656d2885d868f9d5ccec97d3181f3",
+    "figures/nss.png": "7ac8d0d1bfb2ff4a66c1dc45f6d11676d7dcb677b9ec87092309cf32237cf4d7",
+    "report.md": "c71bb9a5c5fd879572021009d141225305d4fda600e181ad986c90b1fdbec126",
     "sentinel_runs.tsv": "9095bad26986f775cbc9d434ea0a22a929618aa2bdd2f63e0180511ed8c21391",
-    "summary_by_task.tsv": "4bec20fce0e593f9e5d9752c484b12e9888e87c41a287ae6e09d1edb10d2a30e"
+    "summary_by_task.tsv": "7df1e35b2db48e9e33bc157d2e9b549970180fae2f1673c04df6e9d155ba196c"
   },
   "production_baseline": true,
   "project_root": "/ZPOOL/data/projects/rf1-sra-linux2",
-  "run_count": 2741,
+  "run_count": 2749,
   "schema_version": 1,
   "sentinel_cap": 64,
   "sentinel_count": 51,
