@@ -83,7 +83,7 @@ doors	1	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	
 doors	1	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 doors	1	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
 doors	1	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
-doors	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.24915"""	"""123.249144"""	0	1	1
+doors	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.24915"""	"""123.249133"""	0	1	1
 doors	1	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
 doors	1	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 doors	1	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
@@ -264,7 +264,7 @@ sharedreward	2	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N""
 sharedreward	2	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 sharedreward	2	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
 socialdoors	1	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
-socialdoors	1	dicom	AcquisitionDuration	differs_systematically_by_era	XA30;XA60		"""403.5"""	"""403.502"""	0	1	1
+socialdoors	1	dicom	AcquisitionDuration	identical_across_eras	XA30;XA60		"""403.5"""	"""403.5"""	0	1	1
 socialdoors	1	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
 socialdoors	1	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
 socialdoors	1	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
@@ -347,7 +347,7 @@ socialdoors	1	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE
 socialdoors	1	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 socialdoors	1	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
 socialdoors	1	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
-socialdoors	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249148"""	"""123.249147"""	0	1	1
+socialdoors	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249148"""	"""123.248963"""	0	1	1
 socialdoors	1	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
 socialdoors	1	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 socialdoors	1	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
@@ -611,12 +611,12 @@ ugr	1	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	
 ugr	1	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 ugr	1	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
 ugr	1	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
-ugr	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249152"""	"""123.249193"""	0	1	1
+ugr	1	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249152"""	"""123.248944"""	0	1	1
 ugr	1	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
 ugr	1	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 ugr	1	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1
 ugr	2	dicom	AcquisitionContrast	identical_across_eras	XA30;XA60		"""UNKNOWN"""	"""UNKNOWN"""	0	1	1
-ugr	2	dicom	AcquisitionDuration	differs_systematically_by_era	XA30;XA60		"""439.5"""	"""439.502"""	0	1	1
+ugr	2	dicom	AcquisitionDuration	identical_across_eras	XA30;XA60		"""439.5"""	"""439.5"""	0	1	1
 ugr	2	dicom	AcquisitionMatrix	insufficient_cross_era_coverage	E11	"""[80, 0, 0, 80]"""			1	0	0
 ugr	2	dicom	AngioFlag	insufficient_cross_era_coverage	E11	"""N"""			1	0	0
 ugr	2	dicom	BitsAllocated	identical_across_eras	E11;XA30;XA60	"""16"""	"""16"""	"""16"""	1	1	1
@@ -699,7 +699,7 @@ ugr	2	dicom	Spoiling	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	
 ugr	2	dicom	SteadyStatePulseSequence	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 ugr	2	dicom	T2Preparation	identical_across_eras	XA30;XA60		"""NO"""	"""NO"""	0	1	1
 ugr	2	dicom	Tagging	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
-ugr	2	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249154"""	"""123.24927"""	0	1	1
+ugr	2	dicom	TransmitterFrequency	differs_systematically_by_era	XA30;XA60		"""123.249154"""	"""123.249201"""	0	1	1
 ugr	2	dicom	VariableFlipAngleFlag	identical_across_eras	E11;XA60	"""N"""		"""N"""	1	0	1
 ugr	2	dicom	VolumeBasedCalculationTechnique	identical_across_eras	XA30;XA60		"""NONE"""	"""NONE"""	0	1	1
 ugr	2	dicom	VolumetricProperties	differs_systematically_by_era	XA30;XA60		"""VOLUME"""	"""DISTORTED"""	0	1	1

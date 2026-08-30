@@ -4,8 +4,8 @@ This audit separates nominal acquisition metadata from reconstructed-image prope
 
 ## Coverage
 
-- Run properties complete: 2737/2737
-- Within-subject cross-era pairs: 86
+- Run properties complete: 2749/2749
+- Within-subject cross-era pairs: 96
 - Prespecified within-era protocol exceptions: 1224
 - Representative DICOM mappings: 24/24
 
