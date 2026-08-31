@@ -8,15 +8,18 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
-As of 2026-08-26:
+As of 2026-08-30:
 
-- `qc/run_qc.tsv` inventories 2,729 acquired runs: 2,232 pass the cohort imaging
-  rules, 490 have one or more Tukey outlier flags, and 7 are incomplete. These
-  are measurements, not automatic exclusions.
+- `qc/run_qc.tsv` inventories 2,749 acquired runs: 2,253 pass the cohort imaging
+  rules, 492 have one or more Tukey outlier flags, and 4 are incomplete. All
+  four incomplete rows are from `11078` session 02 and lack MRIQC JSON; rerun
+  MRIQC for that session and rebuild this table. These measurements are not
+  automatic exclusions.
 - `qc/events/results/run_response_qc.tsv` inventories 2,718 events runs: 2,686
   pass the descriptive response rules and 32 require review. Twenty-five cross
   the current 25% miss threshold, 11 have a terminal miss streak, and 7 meet
-  the descriptive salvage-candidate rule.
+  the descriptive salvage-candidate rule. This response-QC snapshot predates
+  the newest sessions and must be refreshed before final adjudication.
 - `docs/behavior-source-repairs.md` lists 18 missing behavioral sources and one
   unresolved Trust mapping. Events must not be synthesized for these 19 runs.
 - Technical repairs for fMRIPrep geometry, `sub-10585`, `sub-11891`,
@@ -109,12 +112,12 @@ trimmed, and every salvage candidate remains `review`.
 
 ### Imaging-QC Adjudication
 
-The 490 imaging outlier rows are too numerous to treat as automatic exclusions
+The 492 imaging outlier rows are too numerous to treat as automatic exclusions
 without scientific review. The team should decide which metrics are descriptive
 sensitivity flags, which patterns require visual inspection, and whether any
-combination can justify exclusion. The 7 incomplete rows require technical
-resolution or an explicit `unavailable` disposition. The four factual metrics
-and their cohort thresholds must remain separate from the final decision.
+combination can justify exclusion. The four incomplete `11078` session-02 rows
+require the pending MRIQC refresh, not scientific adjudication. The four factual
+metrics and their cohort thresholds must remain separate from the final decision.
 
 Final imaging and response-QC adjudication will be performed at the task level
 after technically valid downstream outputs have been inventoried. These review

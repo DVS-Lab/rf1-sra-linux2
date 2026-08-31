@@ -25,25 +25,23 @@ streak, its first trial and onset, the miss fraction before that block, and the
 fraction of trials preceding it. `terminal_miss_start_onset_sec` describes the
 events timeline only. It is not yet an approved fMRI truncation boundary.
 
-Run on Linux2 with the production subject list:
+Run on Linux2 against the current production BIDS cohort:
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 
 QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
-PRODUCTION_LIST=../logs/runlists/full-confounds-20260821-203754_production.txt
 
-"$QC_PYTHON" build_events_qc.py build \
-  --sublist "$PRODUCTION_LIST" \
-  --dry-run
+"$QC_PYTHON" build_events_qc.py build --dry-run
 
-"$QC_PYTHON" build_events_qc.py build \
-  --sublist "$PRODUCTION_LIST" \
-  --overwrite
+"$QC_PYTHON" build_events_qc.py build --overwrite
 
-"$QC_PYTHON" build_events_qc.py check \
-  --sublist "$PRODUCTION_LIST"
+"$QC_PYTHON" build_events_qc.py check
 ```
+
+With no `--sublist`, the builder discovers the current BIDS cohort and omits
+subjects in the authoritative source-exclusions directory. Supply a subject
+list only when intentionally auditing a frozen, documented cohort snapshot.
 
 Review the generated TSV and PNG files before defining any image-trimming
 workflow. A future repair must preserve original fMRIPrep/TEDANA products and

@@ -718,25 +718,22 @@ trials before that block and a preterminal miss fraction below 25%.
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
 QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
-PRODUCTION_LIST=../logs/runlists/full-confounds-20260821-203754_production.txt
 
-"$QC_PYTHON" build_events_qc.py build \
-  --sublist "$PRODUCTION_LIST" \
-  --dry-run
+"$QC_PYTHON" build_events_qc.py build --dry-run
 
 STAMP=events-response-qc-$(date +%Y%m%d-%H%M%S)
 bash run_logged.sh --label "$STAMP" --include-full-log -- \
-  "$QC_PYTHON" build_events_qc.py build \
-    --sublist "$PRODUCTION_LIST" \
-    --overwrite \
-  --check "$QC_PYTHON" build_events_qc.py check \
-    --sublist "$PRODUCTION_LIST"
+  "$QC_PYTHON" build_events_qc.py build --overwrite \
+  --check "$QC_PYTHON" build_events_qc.py check
 ```
 
 The canonical tables, provenance, and figures are written under
 `qc/events/results/`. Review those outputs and confirm suspected button-box
 failures independently before designing a derivative-preserving functional
-trimming workflow. See the [events response-QC manual](qc/events/README.md).
+trimming workflow. By default, the builder discovers the current BIDS cohort
+and omits subjects in the authoritative source-exclusions directory. Use
+`--sublist` only for a deliberately frozen, documented cohort snapshot. See the
+[events response-QC manual](qc/events/README.md).
 
 ## How To Know Whether It Worked
 

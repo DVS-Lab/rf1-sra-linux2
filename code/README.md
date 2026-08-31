@@ -336,9 +336,9 @@ Each entry uses the same fields so operators can scan quickly.
 - Purpose: Quantify response misses in every supported BIDS events run, distinguish distributed misses from sustained terminal miss blocks, and identify runs that may merit reviewed terminal trimming.
 - Inputs: Canonical BIDS `_events.tsv` files, `qc/events/policy.json`, an optional production subject list, and the authoritative source-exclusions directory.
 - Outputs: `qc/events/results/run_response_qc.tsv`, `review_candidates.tsv`, `qc/events/results/provenance.json`, and two PNG summaries.
-- Typical command: `"$QC_PYTHON" build_events_qc.py build --sublist "$PRODUCTION_LIST" --dry-run`, followed by `build --overwrite` after review.
-- Checker: `"$QC_PYTHON" build_events_qc.py check --sublist "$PRODUCTION_LIST"`.
-- Notes: The historical 25% Social Doors/Doors rule is reported across tasks as a review threshold, not an automatic cross-task exclusion. Terminal-failure and salvage flags require human review. This script never edits BIDS or imaging data, and its onset fields are not approved trimming boundaries. The atomically replaced results directory preserves the permissions ordinary directory creation would receive under the inherited umask instead of retaining `mkdtemp()`'s private `0700` mode.
+- Typical command: `"$QC_PYTHON" build_events_qc.py build --dry-run`, followed by `build --overwrite` after review.
+- Checker: `"$QC_PYTHON" build_events_qc.py check`.
+- Notes: With no `--sublist`, the current BIDS cohort is discovered automatically and authoritative source exclusions are omitted; use a subject list only for a deliberately frozen cohort snapshot. The historical 25% Social Doors/Doors rule is reported across tasks as a review threshold, not an automatic cross-task exclusion. Terminal-failure and salvage flags require human review. This script never edits BIDS or imaging data, and its onset fields are not approved trimming boundaries. The atomically replaced results directory preserves the permissions ordinary directory creation would receive under the inherited umask instead of retaining `mkdtemp()`'s private `0700` mode.
 
 ### `run_fmriprep.sh`
 - Status: Production wrapper.
