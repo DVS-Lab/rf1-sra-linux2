@@ -127,6 +127,15 @@ review because the current evidence snapshot predates the newest sessions.
 
 ### Acquisition And Task Exceptions
 
+- `12032` Shared Reward run 2 contains two complete appended segments. Commit
+  provenance strongly suggests that the first segment belongs to the otherwise
+  missing `12036` run 2 and the second belongs to `12032`, but it does not prove
+  participant identity. The proposed source split remains reverted. Obtain an
+  independent acquisition/source confirmation before repairing either mapping
+  or reconverting events.
+- `12037` Trust run 2 also contains two complete appended segments, but current
+  evidence cannot identify the correct segment. Keep the run blocked until an
+  acquisition log, timestamp, or other independent record resolves the mapping.
 - `11116` session 02 was acquired across two visits separated by roughly one or
   two weeks. The return folder `Smith-SRA-11116-2-socialdoors` was intended to
   complete the missing Social Doors/Doors portion of the same scientific
@@ -140,8 +149,9 @@ review because the current evidence snapshot predates the newest sessions.
   manifest row. Multiple T1w acquisitions will then receive `run-1`/`run-2`
   entities and all be defaced. This corrects the earlier note that mistakenly
   named `11078`.
-- The 18 missing event sources and unresolved `12037` Trust mapping remain the
-  authoritative source-repair queue in `docs/behavior-source-repairs.md`.
+- The 18 missing event sources, including the unapproved `12036` candidate,
+  remain the authoritative source-repair queue in
+  `docs/behavior-source-repairs.md`.
 
 ### Downstream Contract
 
