@@ -69,6 +69,10 @@ an open scientific adjudication question.
   12:33:01.661 (252.806-second clock offset), and the Faces BOLD series at
   12:36:30.745 matches its completed trigger at 12:40:43.592 (252.847-second
   offset). This stable cross-clock offset rules out the earlier Doors execution.
+  The reviewed Doors source has SHA-256 `839795b4bf59a6f86ca1a2149af50b8b2819c87e96f2cb3c74d8d5cedc7b6466`
+  and trial fingerprint `667d68479c2b216d4aa9c20d44714c9a97dd40438434db85f2d2574a87012aea`;
+  the Social Doors source has SHA-256 `30e8a9cd7f852d7e96e7f9e1259aa54e90b588b3450c5b990ebfe3531812db7c`
+  and trial fingerprint `0635b53590701ffab7eb5d5097f18d499d9874ae43f9a061a666b9df35105110`.
   The return folder remains part of `ses-02`, and its reviewed supplemental
   source row is active.
 
