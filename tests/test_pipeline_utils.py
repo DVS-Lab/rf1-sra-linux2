@@ -276,26 +276,40 @@ def test_heuristic_filter_files_skips_only_scanner_generated_scan_dirs(heuristic
     assert heuristic.filter_files(filename) is expected
 
 
-def xa30_sequence(series_id: int, protocol_name: str = "other") -> SimpleNamespace:
+def xa30_sequence(
+    series_id: int,
+    protocol_name: str = "other",
+    *,
+    image_type: tuple[str, ...] = (),
+    dim4: int = 1,
+    series_description: str = "other",
+) -> SimpleNamespace:
     return SimpleNamespace(
         series_id=series_id,
         protocol_name=protocol_name,
-        image_type=(),
+        image_type=image_type,
         dim3=1,
-        dim4=1,
-        series_description="other",
+        dim4=dim4,
+        series_description=series_description,
     )
 
 
 def test_xa30_heuristic_keeps_single_t1w_unsuffixed() -> None:
     heuristic = load_heuristic("heuristics_XA30.py")
     info = heuristic.infotodict(
-        [xa30_sequence(1, "T1w-anat_mpg_07sag_iso")]
+        [
+            xa30_sequence(1, "T1w-anat_mpg_07sag_iso"),
+            xa30_sequence(
+                2,
+                "T1w-anat_mpg_07sag_iso",
+                image_type=("ORIGINAL", "NORM"),
+            ),
+        ]
     )
     by_template = {key[0]: value for key, value in info.items()}
     assert by_template[
         "sub-{subject}/{session}/anat/sub-{subject}_{session}_T1w"
-    ] == [1]
+    ] == [2]
     assert by_template[
         "sub-{subject}/{session}/anat/sub-{subject}_{session}_run-{item:d}_T1w"
     ] == []
@@ -306,7 +320,17 @@ def test_xa30_heuristic_numbers_multiple_t1w_acquisitions() -> None:
     info = heuristic.infotodict(
         [
             xa30_sequence(1, "T1w-anat_mpg_07sag_iso"),
+            xa30_sequence(
+                2,
+                "T1w-anat_mpg_07sag_iso",
+                image_type=("ORIGINAL", "NORM"),
+            ),
             xa30_sequence(20, "T1w-anat_mpg_07sag_iso"),
+            xa30_sequence(
+                21,
+                "T1w-anat_mpg_07sag_iso",
+                image_type=("ORIGINAL", "NORM"),
+            ),
         ]
     )
     by_template = {key[0]: value for key, value in info.items()}
@@ -315,7 +339,46 @@ def test_xa30_heuristic_numbers_multiple_t1w_acquisitions() -> None:
     ] == []
     assert by_template[
         "sub-{subject}/{session}/anat/sub-{subject}_{session}_run-{item:d}_T1w"
-    ] == [1, 20]
+    ] == [2, 21]
+
+
+@pytest.mark.parametrize(
+    ("task_fragment", "template_task"),
+    [("SocialDoors_face", "socialdoors"), ("SocialDoors_doors", "doors")],
+)
+def test_xa30_single_run_tasks_keep_sbref_for_selected_complete_series(
+    task_fragment: str, template_task: str
+) -> None:
+    heuristic = load_heuristic("heuristics_XA30.py")
+    sequences = []
+    for start in (1, 11):
+        sequences.extend(
+            [
+                xa30_sequence(start),
+                xa30_sequence(start + 1),
+                xa30_sequence(
+                    start + 2,
+                    dim4=872,
+                    series_description=f"task_{task_fragment}_TR1615",
+                ),
+                xa30_sequence(
+                    start + 3,
+                    dim4=872,
+                    series_description=f"task_{task_fragment}_TR1615_Pha",
+                ),
+            ]
+        )
+
+    by_template = {
+        key[0]: value for key, value in heuristic.infotodict(sequences).items()
+    }
+    stem = (
+        "sub-{subject}/{session}/func/sub-{subject}_{session}_"
+        f"task-{template_task}_run-{{item:d}}"
+    )
+    assert by_template[f"{stem}_part-mag_bold"] == [13]
+    assert by_template[f"{stem}_part-phase_bold"] == [14]
+    assert by_template[f"{stem}_sbref"] == [11]
 
 
 def make_bids_run(root: Path, sub: str, ses: str, task: str, run: str, echoes: int = 4) -> None:

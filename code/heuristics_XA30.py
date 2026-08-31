@@ -62,6 +62,7 @@ def infotodict(seqinfo):
     t1w_ids = [
         s.series_id for s in seqinfo
         if 'T1w-anat_mpg_07sag_iso' in s.protocol_name
+        and 'NORM' in s.image_type
     ]
     if len(t1w_ids) == 1:
         info[t1w] = t1w_ids
@@ -106,14 +107,14 @@ def infotodict(seqinfo):
         if (s.dim4 == 872) and ('SocialDoors_face' in s.series_description) and ('_Pha' not in s.series_description):
             info[srSocial_mag] = [s.series_id]
             idx = list_of_ids.index(s.series_id)
-            info[srSocial_sbref].append(list_of_ids[idx -2])
+            info[srSocial_sbref] = [list_of_ids[idx -2]]
         if (s.dim4 == 872) and ('SocialDoors_face' in s.series_description) and ('TR1615_Pha' in s.series_description):
             info[srSocial_phase] = [s.series_id]
 
         if (s.dim4 == 872) and ('SocialDoors_doors' in s.series_description) and ('_Pha' not in s.series_description):
             info[srDoors_mag] = [s.series_id]
             idx = list_of_ids.index(s.series_id)
-            info[srDoors_sbref].append(list_of_ids[idx -2])
+            info[srDoors_sbref] = [list_of_ids[idx -2]]
         if (s.dim4 == 872) and ('SocialDoors_doors' in s.series_description) and ('TR1615_Pha' in s.series_description):
             info[srDoors_phase] = [s.series_id]
 

@@ -97,14 +97,14 @@ def infotodict(seqinfo):
         if (s.dim4 == 872) and ('SocialDoors_face' in s.protocol_name) and ('NORM' in s.image_type):
             info[srSocial_mag] = [s.series_id]
             idx = list_of_ids.index(s.series_id)
-            info[srSocial_sbref].append(list_of_ids[idx -1])
+            info[srSocial_sbref] = [list_of_ids[idx -1]]
         if (s.dim4 == 872) and ('SocialDoors_face' in s.protocol_name) and ('NORM' not in s.image_type):
             info[srSocial_phase] = [s.series_id]
 
         if (s.dim4 == 872) and ('SocialDoors_doors' in s.protocol_name) and ('NORM' in s.image_type):
             info[srDoors_mag] = [s.series_id]
             idx = list_of_ids.index(s.series_id)
-            info[srDoors_sbref].append(list_of_ids[idx -1])
+            info[srDoors_sbref] = [list_of_ids[idx -1]]
         if (s.dim4 == 872) and ('SocialDoors_doors' in s.protocol_name) and ('NORM' not in s.image_type):
             info[srDoors_phase] = [s.series_id]
 
