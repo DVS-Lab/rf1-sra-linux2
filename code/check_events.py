@@ -250,6 +250,8 @@ def audit_subject_session(
                 continue
             if has_bold:
                 counts["BOLD runs found"] += 1
+                if not has_events:
+                    counts["BOLD runs without events files"] += 1
             if has_events:
                 counts["events files found"] += 1
             if source.status == "available":
@@ -491,6 +493,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     print("Events audit summary:")
     for status in (
         "BOLD runs found",
+        "BOLD runs without events files",
         "behavioral source runs found",
         "events files found",
         "OK",
@@ -513,6 +516,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(
             f"  ses-{session} task-{task}: "
             f"BOLD={subtotal['BOLD runs found']} "
+            f"BOLD-without-events={subtotal['BOLD runs without events files']} "
             f"source={subtotal['behavioral source runs found']} "
             f"events={subtotal['events files found']} "
             f"OK={subtotal['OK']} "

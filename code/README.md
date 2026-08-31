@@ -175,7 +175,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: A fail-closed input to `source_layout.py` and `prepdata.sh`.
 - Typical command: do not run directly; add a row only after acquisition identity and session assignment are reviewed.
 - Checker: `python3 source_layout.py count ...` and `prepdata.sh --dry-run`.
-- Notes: It does not authorize source modification or a new BIDS session. A `paused` row blocks conversion for the entire session. `sub-11116` remains paused until its completed post-fix behavior files are recovered and timestamp-matched; changing that row to `active` later enables the reviewed DICOM merge.
+- Notes: It does not authorize source modification or a new BIDS session. A `paused` row blocks conversion for the entire session. Full post-fix behavior for `sub-11116` was recovered in private-repository commit `7c6f768d0`; DICOM timestamps match the later completed Doors execution and the completed Faces execution with a stable approximately 252.8-second clock offset. Its reviewed `active` row enables the same-session DICOM merge.
 
 ### `convert_behavior.py`
 - Status: Canonical production converter.

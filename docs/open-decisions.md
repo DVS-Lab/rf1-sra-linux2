@@ -18,8 +18,9 @@ As of 2026-08-30:
   the current 25% miss threshold, 11 have a terminal miss streak, and 7 meet
   the descriptive salvage-candidate rule. The 12 newly added session-02 runs
   for `11075`, `11076`, and `11078` all pass with zero misses.
-- `docs/behavior-source-repairs.md` lists 18 missing behavioral sources and one
-  unresolved Trust mapping. Events must not be synthesized for these 19 runs.
+- `docs/behavior-source-repairs.md` lists 18 source-missing runs across 16
+  subjects plus one unresolved Trust mapping. These are 19 acquired BOLD runs
+  without usable events; events must not be synthesized for them.
 - Technical repairs for fMRIPrep geometry, `sub-10585`, `sub-11891`,
   `sub-12018`, and the `sub-10929` fieldmap exception are complete and
   provenance-preserving. They should not be reopened without new evidence.
@@ -61,6 +62,15 @@ an open scientific adjudication question.
   actual Trust feedback duration, and the current Shared Reward miss handling
   and 14-EV model. These conventions are settled and do not require further
   sign-off before downstream processing.
+- `11116` session 02 was acquired across a primary visit and an August 27 return
+  visit that completed its missing Doors and Social Doors runs. Private behavior
+  commit `7c6f768d0` contains full 40-decision, zero-miss outputs. The retained
+  Doors BOLD series at 12:28:48.855 matches the later completed Doors trigger at
+  12:33:01.661 (252.806-second clock offset), and the Faces BOLD series at
+  12:36:30.745 matches its completed trigger at 12:40:43.592 (252.847-second
+  offset). This stable cross-clock offset rules out the earlier Doors execution.
+  The return folder remains part of `ses-02`, and its reviewed supplemental
+  source row is active.
 
 ## Decisions Requiring Team Review
 
@@ -134,19 +144,6 @@ review because the current evidence snapshot predates the newest sessions.
 - `12037` Trust run 2 also contains two complete appended segments, but current
   evidence cannot identify the correct segment. Keep the run blocked until an
   acquisition log, timestamp, or other independent record resolves the mapping.
-- `11116` session 02 was acquired across two visits separated by roughly one or
-  two weeks. The return folder `Smith-SRA-11116-2-socialdoors` was intended to
-  complete the missing Social Doors/Doors portion of the same scientific
-  session and remains
-  `ses-02`, not `ses-03`. The reviewed `supplemental_sources.tsv` row preserves
-  the planned temporary merge of both immutable source folders, but its
-  `paused` status blocks conversion. The currently tracked private behavior
-  logs are the failed August 25 attempts: faces has four trials, Doors has one,
-  and neither timing record reached `RunStatus: completed`. Recover and
-  timestamp-match the completed post-fix behavior files before activating the
-  manifest row. Multiple T1w acquisitions will then receive `run-1`/`run-2`
-  entities and all be defaced. This corrects the earlier note that mistakenly
-  named `11078`.
 - The 18 missing event sources, including the unapproved `12036` candidate,
   remain the authoritative source-repair queue in
   `docs/behavior-source-repairs.md`.

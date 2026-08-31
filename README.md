@@ -301,8 +301,11 @@ provenance-visible:
   `ses-03` or alter sourcedata. If both visits contain a T1w, the XA30 heuristic
   writes stable `run-1` and `run-2` T1w files and defaces both. Conversion and
   behavioral validation must still establish which return-visit runs completed.
-  Its manifest row is `paused`, so `prepdata.sh` fails before conversion until
-  the completed post-fix behavior files are recovered and timestamp-matched.
+  Commit `7c6f768d0` recovered full August 27 behavior for both Doors and Social
+  Doors: each has 40 decisions and zero misses. The BOLD series match the later
+  completed Doors execution and the completed Faces execution with a stable
+  task-computer-minus-scanner offset of approximately 252.8 seconds. The
+  reviewed manifest row is therefore active.
 - The private `sub-10617` Shared Reward run-1 source is restored from the
   rectangular 25-column parent version of the damaged historical edit, with
   only the leading `?TrialNumber` header corrected to `TrialNumber`. That source

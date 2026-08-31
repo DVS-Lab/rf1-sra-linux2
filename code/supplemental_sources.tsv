@@ -1,2 +1,2 @@
 subject	session	status	source_relative	reason
-11116	02	paused	Smith-SRA-11116-2-socialdoors/Smith-SRA-11116-2-socialdoors	completed post-fix behavior files have not been recovered and timestamp-matched
+11116	02	active	Smith-SRA-11116-2-socialdoors/Smith-SRA-11116-2-socialdoors	August 27 Doors and Faces DICOM series timestamp-match the recovered completed behavior and remain part of ses-02

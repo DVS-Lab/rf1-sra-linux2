@@ -42,8 +42,12 @@ events. Trial-level data remain in the private `rf1-sra` repository.
 
 ## Remaining Source Questions
 
-These are missing or still ambiguous private behavior sources, not converter
-failures. Do not synthesize events for them. Re-run `check_events.py` on Linux2
+These are missing or still ambiguous private behavior sources, not ordinary
+converter omissions. The 18 source-missing entries below are **runs across 16
+subjects**, not 18 subjects. Together with the unresolved `12037` Trust run-2
+mapping, they account for 19 acquired BOLD runs that currently have no usable
+`_events.tsv`. Do not synthesize events for them. Recover and verify the source,
+then rerun conversion for the exact run. Re-run `check_events.py` on Linux2
 after pulling both repositories; that audit is authoritative for the live BIDS
 inventory.
 
@@ -59,9 +63,12 @@ inventory.
   the task's zero-based second run, not BIDS run 1.
 
 These expected blockers replace the earlier undifferentiated 71-row review
-count. The Linux2 post-resolution audit on 2026-08-23 confirmed exactly 19
-review rows: the 18 missing sources and one unresolved `12037` Trust mapping
-listed above. All 2,718 events files that can currently be resolved passed the
-checker. See
+count. The refreshed Linux2 audit on 2026-08-30 again confirmed exactly 19
+acquired runs without usable events: the 18 missing sources and one unresolved
+`12037` Trust mapping listed above. All 2,730 events files that can currently be
+resolved passed the checker. The checker's narrower `events missing` category
+counts only cases where a valid convertible source exists but its generated
+file is absent; it does not include source-missing or conversion-failed runs.
+See
 [`logs/records/20260823-084907_events-post-resolution.md`](../logs/records/20260823-084907_events-post-resolution.md)
 for the tracked audit summary.

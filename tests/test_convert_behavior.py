@@ -831,6 +831,7 @@ def test_events_audit_fails_when_source_exists_but_events_are_missing(
 
     assert failed == 1
     assert counts["events missing"] == 1
+    assert counts["BOLD runs without events files"] == 1
 
 
 def test_events_audit_diagnoses_bad_source_before_missing_output(
@@ -859,6 +860,7 @@ def test_events_audit_diagnoses_bad_source_before_missing_output(
     assert failed == 1
     assert counts["conversion failed"] == 1
     assert counts["events missing"] == 0
+    assert counts["BOLD runs without events files"] == 1
     assert findings[0]["issue"] == "conversion_failed"
 
 
