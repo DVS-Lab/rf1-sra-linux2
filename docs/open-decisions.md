@@ -21,6 +21,15 @@ As of 2026-08-30:
 - `docs/behavior-source-repairs.md` lists 18 source-missing runs across 16
   subjects plus one unresolved Trust mapping. These are 19 acquired BOLD runs
   without usable events; events must not be synthesized for them.
+- `11201` session 01 UGR run 1 has complete 240-volume imaging but only 12 of
+  48 expected canonical behavioral trials (events SHA-256
+  `8f91d12f92ab160d55b8b43322ff79d5b8e48eb79d170847bffd153f5b5a843c`).
+  Those trials contain no valid social-low condition, so the active UGR
+  model-3 design is not estimable. EV generation failed deterministically in
+  both the 2026-08-31 cohort catch-up and an immediate single-run retry. Treat
+  this run as blocked pending recovery and verification of a fuller behavioral
+  source; do not synthesize trials or empty EVs. Other technically valid runs
+  for the participant remain available for run-level analysis.
 - Technical repairs for fMRIPrep geometry, `sub-10585`, `sub-11891`,
   `sub-12018`, and the `sub-10929` fieldmap exception are complete and
   provenance-preserving. They should not be reopened without new evidence.
