@@ -473,7 +473,12 @@ in `code/supplemental_sources.tsv`; unlisted folders are never merged
 automatically, and a `paused` row blocks the entire session. The merge is a
 temporary symlink view in scratch, preserving the original source trees and
 causing conversion to fail if any declared source is missing or contains no
-DICOMs.
+DICOMs. Reviewed supplemental sessions may contain distinct DICOM
+`StudyInstanceUID` values because the source folders come from separate scanner
+visits. For those sessions only, `prepdata.sh` passes HeuDiConv
+`--grouping all`, which treats the explicitly reviewed combined inventory as
+one conversion session. Ordinary sessions retain HeuDiConv's default
+study-UID grouping.
 
 Historical task logs use task-specific run labels. Trust and UGR use raw
 `run-0/run-1` for BIDS runs 1/2; Shared Reward has explicitly prompted for

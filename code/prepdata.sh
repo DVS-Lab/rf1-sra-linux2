@@ -160,6 +160,7 @@ supplement_count="$(python3 "${scriptdir}/source_layout.py" count \
   --manifest "$SUPPLEMENTAL_SOURCES_FILE" \
   --subject "$sub" \
   --session "$ses")"
+heudiconv_grouping=()
 if ((supplement_count > 0)); then
   layout_cmd=(
     python3 "${scriptdir}/source_layout.py" prepare
@@ -171,6 +172,8 @@ if ((supplement_count > 0)); then
   ((!dry_run)) && layout_cmd+=(--output-root "$stage_root")
   dicom_template="$("${layout_cmd[@]}")"
   echo "Using ${supplement_count} reviewed supplemental DICOM source(s) for sub-${sub} ses-${ses}."
+  heudiconv_grouping=(--grouping all)
+  echo "HeuDiConv grouping: all (reviewed multi-study same-session source merge)."
 fi
 
 cmd=(
@@ -184,6 +187,7 @@ cmd=(
   -f "/project/code/${heuristic_name}"
   -s "$sub"
   -ss "$ses"
+  "${heudiconv_grouping[@]}"
   -c dcm2niix
   -b --minmeta --overwrite
 )

@@ -157,7 +157,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: One staged and then live BIDS subject/session tree.
 - Typical command: normally called by `run_prepdata.sh`.
 - Checker: `check_bids.sh`.
-- Notes: Stages all transformations and events validation before replacing live BIDS outputs; `--overwrite` is required for replacement. Matching existing events are preserved in the stage so missing private logs cannot silently erase curated behavior. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. Every generated T1w is defaced, including run-numbered T1w acquisitions. `sub-11891` session 01 uses its nested source-data path explicitly. Reviewed same-session return visits are combined only through `supplemental_sources.tsv` and a temporary scratch symlink view; sourcedata are not modified. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing.
+- Notes: Stages all transformations and events validation before replacing live BIDS outputs; `--overwrite` is required for replacement. Matching existing events are preserved in the stage so missing private logs cannot silently erase curated behavior. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. Every generated T1w is defaced, including run-numbered T1w acquisitions. `sub-11891` session 01 uses its nested source-data path explicitly. Reviewed same-session return visits are combined only through `supplemental_sources.tsv` and a temporary scratch symlink view; sourcedata are not modified. Because separate scanner visits legitimately have distinct `StudyInstanceUID` values, only these manifest-authorized combined sessions use HeuDiConv `--grouping all`; ordinary conversions keep the default study-UID grouping. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing.
 
 ### `source_layout.py`
 - Status: Production helper.
@@ -166,7 +166,7 @@ Each entry uses the same fields so operators can scan quickly.
 - Outputs: A scratch-only symlink inventory and HeuDiConv DICOM template.
 - Typical command: normally called by `prepdata.sh`; inspect a declaration with `python3 source_layout.py count --manifest supplemental_sources.tsv --subject 11116 --session 02`.
 - Checker: `tests/test_source_layout.py`, the `prepdata.sh --dry-run` plan, and `check_bids.sh` after conversion.
-- Notes: Manifest paths must be relative, every declared folder must contain DICOMs, and nothing under sourcedata is changed.
+- Notes: Manifest paths must be relative, every declared folder must contain DICOMs, and nothing under sourcedata is changed. A prepared multi-folder view authorizes `prepdata.sh` to use HeuDiConv `--grouping all` so distinct visit-level study UIDs can be converted as the single reviewed BIDS session.
 
 ### `supplemental_sources.tsv`
 - Status: Reviewed production exception registry.
