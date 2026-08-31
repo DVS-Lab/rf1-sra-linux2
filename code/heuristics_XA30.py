@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
 
+from heudiconv_grouping import group_multi_source_session
+
+
+grouping = group_multi_source_session
+
 
 def filter_files(filename):
     """Return False for XNAT scanner-generated series that should not be indexed."""

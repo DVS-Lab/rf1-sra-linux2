@@ -161,6 +161,7 @@ supplement_count="$(python3 "${scriptdir}/source_layout.py" count \
   --subject "$sub" \
   --session "$ses")"
 heudiconv_grouping=()
+supplemental_requirements=""
 if ((supplement_count > 0)); then
   layout_cmd=(
     python3 "${scriptdir}/source_layout.py" prepare
@@ -172,8 +173,12 @@ if ((supplement_count > 0)); then
   ((!dry_run)) && layout_cmd+=(--output-root "$stage_root")
   dicom_template="$("${layout_cmd[@]}")"
   echo "Using ${supplement_count} reviewed supplemental DICOM source(s) for sub-${sub} ses-${ses}."
-  heudiconv_grouping=(--grouping all)
-  echo "HeuDiConv grouping: all (reviewed multi-study same-session source merge)."
+  heudiconv_grouping=(--grouping custom)
+  supplemental_requirements="$(python3 "${scriptdir}/source_layout.py" requirements \
+    --manifest "$SUPPLEMENTAL_SOURCES_FILE" \
+    --subject "$sub" \
+    --session "$ses")"
+  echo "HeuDiConv grouping: custom collision-free reviewed-source grouping."
 fi
 
 cmd=(
@@ -208,6 +213,13 @@ staged_heudiconv="${stage_root}/bids/.heudiconv/${sub}/ses-${ses}"
 staged_dataset_description="${stage_root}/bids/dataset_description.json"
 target_dataset_description="${bidsroot}/dataset_description.json"
 rf1_require_dir "$staged_session"
+
+if [[ -n "$supplemental_requirements" ]]; then
+  while IFS=$'\t' read -r required_task required_run; do
+    rf1_check_multiecho_run \
+      "$staged_session" "$sub" "$ses" "$required_task" "$required_run"
+  done <<< "$supplemental_requirements"
+fi
 
 behavior_cmd=(
   python3 "${scriptdir}/convert_behavior.py"

@@ -18,11 +18,20 @@ class SupplementalSource:
     session: str
     status: str
     source_relative: PurePosixPath
+    required_runs: tuple[tuple[str, int], ...]
     reason: str
 
 
-REQUIRED_COLUMNS = {"subject", "session", "status", "source_relative", "reason"}
+REQUIRED_COLUMNS = {
+    "subject",
+    "session",
+    "status",
+    "source_relative",
+    "required_runs",
+    "reason",
+}
 VALID_STATUSES = {"active", "paused"}
+VALID_TASKS = {"doors", "sharedreward", "socialdoors", "trust", "ugr"}
 
 
 def load_supplemental_sources(path: Path) -> list[SupplementalSource]:
@@ -47,6 +56,7 @@ def load_supplemental_sources(path: Path) -> list[SupplementalSource]:
             session = (row.get("session") or "").strip().removeprefix("ses-").zfill(2)
             status = (row.get("status") or "").strip().lower()
             source_text = (row.get("source_relative") or "").strip()
+            required_runs_text = (row.get("required_runs") or "").strip()
             reason = (row.get("reason") or "").strip()
             if not re.fullmatch(r"\d+", subject):
                 raise ValueError(f"invalid subject at {path}:{line_number}: {subject!r}")
@@ -65,12 +75,38 @@ def load_supplemental_sources(path: Path) -> list[SupplementalSource]:
                 )
             if not reason:
                 raise ValueError(f"missing review reason at {path}:{line_number}")
+            required_runs: list[tuple[str, int]] = []
+            for item in required_runs_text.split(","):
+                task, separator, run_text = item.strip().partition(":")
+                if (
+                    not separator
+                    or task not in VALID_TASKS
+                    or not run_text.isdigit()
+                    or int(run_text) < 1
+                ):
+                    raise ValueError(
+                        f"invalid required_runs at {path}:{line_number}: "
+                        f"{required_runs_text!r}"
+                    )
+                required_runs.append((task, int(run_text)))
+            if not required_runs or len(required_runs) != len(set(required_runs)):
+                raise ValueError(
+                    f"invalid required_runs at {path}:{line_number}: "
+                    f"{required_runs_text!r}"
+                )
             key = (subject, session, source_relative)
             if key in seen:
                 raise ValueError(f"duplicate supplemental source at {path}:{line_number}")
             seen.add(key)
             specs.append(
-                SupplementalSource(subject, session, status, source_relative, reason)
+                SupplementalSource(
+                    subject,
+                    session,
+                    status,
+                    source_relative,
+                    tuple(required_runs),
+                    reason,
+                )
             )
     return specs
 
@@ -81,6 +117,19 @@ def supplemental_sources_for(
     subject = subject.removeprefix("sub-")
     session = session.removeprefix("ses-").zfill(2)
     return [spec for spec in specs if spec.subject == subject and spec.session == session]
+
+
+def required_runs_for(
+    specs: list[SupplementalSource], subject: str, session: str
+) -> list[tuple[str, int]]:
+    matching = supplemental_sources_for(specs, subject, session)
+    paused = [spec for spec in matching if spec.status == "paused"]
+    if paused:
+        reasons = "; ".join(spec.reason for spec in paused)
+        raise ValueError(
+            f"supplemental source is paused for sub-{subject} ses-{session}: {reasons}"
+        )
+    return sorted({run for spec in matching for run in spec.required_runs})
 
 
 def primary_source_dir(source_root: Path, subject: str, session: str) -> Path:
@@ -120,12 +169,7 @@ def prepare_merged_source(
     )
     if not specs:
         raise ValueError(f"no reviewed supplemental sources for sub-{subject} ses-{session}")
-    paused = [spec for spec in specs if spec.status == "paused"]
-    if paused:
-        reasons = "; ".join(spec.reason for spec in paused)
-        raise ValueError(
-            f"supplemental source is paused for sub-{subject} ses-{session}: {reasons}"
-        )
+    required_runs_for(specs, subject, session)
 
     sources = [primary_source_dir(source_root, subject, session)]
     sources.extend(source_root.joinpath(*spec.source_relative.parts) for spec in specs)
@@ -157,7 +201,7 @@ def prepare_merged_source(
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for command in ("count", "prepare"):
+    for command in ("count", "requirements", "prepare"):
         child = subparsers.add_parser(command)
         child.add_argument("--manifest", type=Path, required=True)
         child.add_argument("--subject", required=True)
@@ -175,6 +219,10 @@ def main(argv: list[str] | None = None) -> int:
         matching = supplemental_sources_for(specs, args.subject, args.session)
         if args.command == "count":
             print(len(matching))
+            return 0
+        if args.command == "requirements":
+            for task, run in required_runs_for(specs, args.subject, args.session):
+                print(f"{task}\t{run}")
             return 0
         template, sources = prepare_merged_source(
             args.source_root,

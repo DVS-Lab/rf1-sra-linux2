@@ -11,14 +11,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
 from source_layout import (  # noqa: E402
     load_supplemental_sources,
     prepare_merged_source,
+    required_runs_for,
     supplemental_sources_for,
 )
 
 
 def write_manifest(path: Path, source_relative: str, status: str = "active") -> None:
     path.write_text(
-        "subject\tsession\tstatus\tsource_relative\treason\n"
-        f"11116\t02\t{status}\t{source_relative}\tcompletes same session\n"
+        "subject\tsession\tstatus\tsource_relative\trequired_runs\treason\n"
+        f"11116\t02\t{status}\t{source_relative}\t"
+        "doors:1,socialdoors:1\tcompletes same session\n"
     )
 
 
@@ -38,6 +40,10 @@ def test_manifest_is_session_specific(tmp_path: Path) -> None:
     specs = load_supplemental_sources(manifest)
     assert len(supplemental_sources_for(specs, "sub-11116", "ses-02")) == 1
     assert supplemental_sources_for(specs, "11116", "01") == []
+    assert required_runs_for(specs, "11116", "02") == [
+        ("doors", 1),
+        ("socialdoors", 1),
+    ]
 
 
 @pytest.mark.parametrize("unsafe", ["/absolute/path", "../escape", "folder/../escape"])
@@ -45,6 +51,16 @@ def test_manifest_rejects_unsafe_paths(tmp_path: Path, unsafe: str) -> None:
     manifest = tmp_path / "sources.tsv"
     write_manifest(manifest, unsafe)
     with pytest.raises(ValueError, match="unsafe source_relative"):
+        load_supplemental_sources(manifest)
+
+
+def test_manifest_rejects_invalid_required_runs(tmp_path: Path) -> None:
+    manifest = tmp_path / "sources.tsv"
+    manifest.write_text(
+        "subject\tsession\tstatus\tsource_relative\trequired_runs\treason\n"
+        "11116\t02\tactive\treturn/return\tsocialdoors\tbad requirement\n"
+    )
+    with pytest.raises(ValueError, match="invalid required_runs"):
         load_supplemental_sources(manifest)
 
 

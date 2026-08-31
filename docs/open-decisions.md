@@ -74,9 +74,10 @@ an open scientific adjudication question.
   the Social Doors source has SHA-256 `30e8a9cd7f852d7e96e7f9e1259aa54e90b588b3450c5b990ebfe3531812db7c`
   and trial fingerprint `0635b53590701ffab7eb5d5097f18d499d9874ae43f9a061a666b9df35105110`.
   The return folder remains part of `ses-02`, and its reviewed supplemental
-  source row is active. The two scanner visits have distinct DICOM study UIDs;
-  this is expected, so the manifest-authorized combined conversion uses
-  HeuDiConv `--grouping all` while leaving both raw source trees unchanged.
+  source row is active. The two scanner visits have distinct DICOM study UIDs
+  and repeated series numbers; this is expected. The manifest-authorized
+  custom grouping keeps their in-memory series identifiers distinct, requires
+  both `doors:1` and `socialdoors:1`, and leaves both raw source trees unchanged.
 
 ## Decisions Requiring Team Review
 

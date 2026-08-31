@@ -474,10 +474,13 @@ automatically, and a `paused` row blocks the entire session. The merge is a
 temporary symlink view in scratch, preserving the original source trees and
 causing conversion to fail if any declared source is missing or contains no
 DICOMs. Reviewed supplemental sessions may contain distinct DICOM
-`StudyInstanceUID` values because the source folders come from separate scanner
-visits. For those sessions only, `prepdata.sh` passes HeuDiConv
-`--grouping all`, which treats the explicitly reviewed combined inventory as
-one conversion session. Ordinary sessions retain HeuDiConv's default
+`StudyInstanceUID` values and repeated scanner series numbers because the source
+folders come from separate visits. For those sessions only, `prepdata.sh` uses
+a custom HeuDiConv grouping hook that groups each immutable source separately
+and prefixes its in-memory series identifiers before combining the inventories.
+This prevents cross-visit series collisions while producing one BIDS session.
+The manifest also names exact task/run outputs that must exist before staged
+data can replace the live session. Ordinary sessions retain HeuDiConv's default
 study-UID grouping.
 
 Historical task logs use task-specific run labels. Trust and UGR use raw

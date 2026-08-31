@@ -92,6 +92,23 @@ while IFS= read -r sub; do
       echo "MISSING ${session_dir}/func/*_bold.nii.gz"
       failed=1
     fi
+    if ! supplemental_requirements="$(python3 "${scriptdir}/source_layout.py" requirements \
+      --manifest "$SUPPLEMENTAL_SOURCES_FILE" \
+      --subject "$sub" \
+      --session "$ses")"
+    then
+      failed=1
+      continue
+    fi
+    if [[ -n "$supplemental_requirements" ]]; then
+      while IFS=$'\t' read -r required_task required_run; do
+        if ! rf1_check_multiecho_run \
+          "$session_dir" "$sub" "$ses" "$required_task" "$required_run"
+        then
+          failed=1
+        fi
+      done <<< "$supplemental_requirements"
+    fi
   done
 done < <(rf1_read_subjects "$sublist")
 

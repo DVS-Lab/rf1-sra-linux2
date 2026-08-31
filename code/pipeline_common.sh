@@ -100,6 +100,26 @@ rf1_require_dir() {
   fi
 }
 
+rf1_check_multiecho_run() {
+  local session_dir="$1"
+  local sub="$2"
+  local ses="$3"
+  local task="$4"
+  local run="$5"
+  local echo part path failed=0
+
+  for echo in 1 2 3 4; do
+    for part in mag phase; do
+      path="${session_dir}/func/sub-${sub}_ses-${ses}_task-${task}_run-${run}_echo-${echo}_part-${part}_bold.nii.gz"
+      if [[ ! -f "$path" ]]; then
+        echo "MISSING reviewed supplemental-session output: $path"
+        failed=1
+      fi
+    done
+  done
+  return "$failed"
+}
+
 rf1_read_subjects() {
   local sublist="$1"
   local sub excluded_source
