@@ -59,11 +59,18 @@ def infotodict(seqinfo):
             UGR_mag: [], UGR_phase: [], UGR_sbref: []}
     
     list_of_ids = [s.series_id for s in seqinfo]
-    t1w_ids = [
+    t1w_candidates = [
         s.series_id for s in seqinfo
         if 'T1w-anat_mpg_07sag_iso' in s.protocol_name
-        and 'NORM' in s.image_type
     ]
+    normalized_t1w_ids = [
+        s.series_id for s in seqinfo
+        if s.series_id in t1w_candidates and 'NORM' in s.image_type
+    ]
+    # Older exports include original and NORM reconstructions; newer exports
+    # may contain no NORM image type at all. Prefer NORM when available, but do
+    # not discard every valid MPRAGE when that scanner marker is absent.
+    t1w_ids = normalized_t1w_ids or t1w_candidates
     if len(t1w_ids) == 1:
         info[t1w] = t1w_ids
     elif len(t1w_ids) > 1:

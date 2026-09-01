@@ -342,6 +342,36 @@ def test_xa30_heuristic_numbers_multiple_t1w_acquisitions() -> None:
     ] == [2, 21]
 
 
+def test_xa30_heuristic_falls_back_when_norm_reconstruction_is_absent() -> None:
+    heuristic = load_heuristic("heuristics_XA30.py")
+    info = heuristic.infotodict(
+        [
+            xa30_sequence(
+                2,
+                "T1w-anat_mpg_07sag_iso",
+                image_type=("ORIGINAL", "PRIMARY", "M", "NONE"),
+            ),
+            xa30_sequence(
+                3,
+                "T1w-anat_mpg_07sag_iso",
+                image_type=("ORIGINAL", "PRIMARY", "M", "NONE"),
+            ),
+            xa30_sequence(
+                32,
+                "t1_fl2d_sag_p2",
+                image_type=("ORIGINAL", "PRIMARY", "M", "NONE"),
+            ),
+        ]
+    )
+    by_template = {key[0]: value for key, value in info.items()}
+    assert by_template[
+        "sub-{subject}/{session}/anat/sub-{subject}_{session}_T1w"
+    ] == []
+    assert by_template[
+        "sub-{subject}/{session}/anat/sub-{subject}_{session}_run-{item:d}_T1w"
+    ] == [2, 3]
+
+
 @pytest.mark.parametrize(
     ("task_fragment", "template_task"),
     [("SocialDoors_face", "socialdoors"), ("SocialDoors_doors", "doors")],

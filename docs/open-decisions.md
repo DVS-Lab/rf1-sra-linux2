@@ -159,6 +159,18 @@ review because the current evidence snapshot predates the newest sessions.
 
 ### Acquisition And Task Exceptions
 
+- `12032`, `12033`, and `12036` have full 224 x 224 x 192
+  `T1w-anat_mpg_07sag_iso` series whose DICOM image type is `NONE` rather than
+  the older `NORM` marker. An August 31 heuristic restriction therefore caused
+  the subsequent `12032` conversion to omit both valid MPRAGE series. The
+  production heuristic now prefers `NORM` MPRAGEs when present and otherwise
+  retains all exact full-MPRAGE matches; the `12032` session must be
+  reconverted before downstream anatomical processing. Separately, `12032`
+  has one and `12036` has three low-resolution 288 x 288 x 25
+  `t1_fl2d_sag_p2` series. These are 2D T1 acquisitions, not FLAIRs or
+  analysis-grade MPRAGEs, and remain excluded from BIDS anatomy. The team may
+  confirm why these planning/reference series were acquired repeatedly, but
+  they do not block processing.
 - `12037` Trust run 2 also contains two complete appended segments, but current
   evidence cannot identify the correct segment. Keep the run blocked until an
   acquisition log, timestamp, or other independent record resolves the mapping.
