@@ -8,21 +8,22 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
-As of 2026-08-30:
+As of 2026-09-01:
 
-- `qc/run_qc.tsv` inventories 2,749 acquired runs: 2,257 pass the cohort imaging
-  rules, 492 have one or more Tukey outlier flags, and none are incomplete.
+- `qc/run_qc.tsv` inventories 2,761 acquired runs: 2,284 pass the cohort imaging
+  rules, 477 have one or more Tukey outlier flags, and none are incomplete.
   These measurements are not automatic exclusions.
-- `qc/events/results/run_response_qc.tsv` inventories 2,730 events runs: 2,698
+- `qc/events/results/run_response_qc.tsv` inventories 2,751 events runs: 2,719
   pass the descriptive response rules and 32 require review. Twenty-five cross
   the current 25% miss threshold, 11 have a terminal miss streak, and 7 meet
-  the descriptive salvage-candidate rule. The 12 newly added session-02 runs
-  for `11075`, `11076`, and `11078` all pass with zero misses.
-- `docs/behavior-source-repairs.md` lists 18 source-missing runs across 16
-  subjects plus one unresolved Trust mapping. These are 19 acquired BOLD runs
-  without usable events in the 2026-08-30 live audit. Team review on 2026-08-31
-  authorized nine history-supported recoveries; the count remains historical
-  until the private source patch is committed, pulled, and reconverted.
+  the descriptive salvage-candidate rule. The current imaging inventory has 10
+  more acquired BOLD runs than the events inventory; these are the six settled
+  unavailable or invalid sources and four recovery/adjudication cases listed
+  below.
+- Team review on 2026-08-31 authorized nine history-supported behavioral-source
+  recoveries. The private source patch has been committed, pulled, reconverted,
+  and re-audited. `docs/behavior-source-repairs.md` preserves the source evidence
+  and identifies the 10 remaining acquired runs without usable events.
 - `11201` session 01 UGR run 1 has complete 240-volume imaging but only 12 of
   48 expected canonical behavioral trials (events SHA-256
   `8f91d12f92ab160d55b8b43322ff79d5b8e48eb79d170847bffd153f5b5a843c`).
@@ -32,9 +33,10 @@ As of 2026-08-30:
   this run as blocked pending recovery and verification of a fuller behavioral
   source; do not synthesize trials or empty EVs. Other technically valid runs
   for the participant remain available for run-level analysis.
-- Technical repairs for fMRIPrep geometry, `sub-10585`, `sub-11891`,
-  `sub-12018`, and the `sub-10929` fieldmap exception are complete and
-  provenance-preserving. They should not be reopened without new evidence.
+- Technical repairs for fMRIPrep geometry, `sub-10585`, `sub-11116`,
+  `sub-11891`, `sub-12018`, `sub-12032`, and the `sub-10929` fieldmap exception
+  are complete and provenance-preserving. They should not be reopened without
+  new evidence.
 
 ## Settled Data-Governance Policy
 
@@ -95,6 +97,13 @@ an open scientific adjudication question.
   Trust run mappings for `10836`, `11432`, and `11772`; and the Doors identity
   swap between `11461` and `11493`. Exact evidence and operational status are
   recorded in `docs/behavior-source-repairs.md`.
+- The tracked TEDANA benchmark is a frozen, versioned 2,749-run evidence
+  snapshot created before the final `11116` and `12032` additions. Despite its
+  legacy filename, `qc/tedana_audit/current_runs.tsv` is not the live cohort
+  inventory. Rebuilding it would also change sentinel selection and invalidate
+  direct comparison with the existing benchmark. Retain the current production
+  TEDANA method and benchmark unchanged unless a deliberate new benchmark
+  version is authorized; no production-method migration has been approved.
 
 ## Decisions Requiring Team Review
 
@@ -144,7 +153,7 @@ trimmed, and every salvage candidate remains `review`.
 
 ### Imaging-QC Adjudication
 
-The 492 imaging outlier rows are too numerous to treat as automatic exclusions
+The 477 imaging outlier rows are too numerous to treat as automatic exclusions
 without scientific review. The team should decide which metrics are descriptive
 sensitivity flags, which patterns require visual inspection, and whether any
 combination can justify exclusion. No current imaging-QC row is technically
@@ -154,8 +163,7 @@ separate from the final decision.
 Final imaging and response-QC adjudication will be performed at the task level
 after technically valid downstream outputs have been inventoried. These review
 flags do not block manifest construction, EV generation, or technically valid
-first-level processing in the meantime. Refresh the counts above before that
-review because the current evidence snapshot predates the newest sessions.
+first-level processing in the meantime.
 
 ### Acquisition And Task Exceptions
 
@@ -164,9 +172,10 @@ review because the current evidence snapshot predates the newest sessions.
   the older `NORM` marker. An August 31 heuristic restriction therefore caused
   the subsequent `12032` conversion to omit both valid MPRAGE series. The
   production heuristic now prefers `NORM` MPRAGEs when present and otherwise
-  retains all exact full-MPRAGE matches; the `12032` session must be
-  reconverted before downstream anatomical processing. Separately, `12032`
-  has one and `12036` has three low-resolution 288 x 288 x 25
+  retains all exact full-MPRAGE matches. `12032` has been reconverted with two
+  run-numbered T1w images and has passed fMRIPrep, geometry, TEDANA, confound,
+  events, and canonical imaging-QC checks. Separately, `12032` has one and
+  `12036` has three low-resolution 288 x 288 x 25
   `t1_fl2d_sag_p2` series. These are 2D T1 acquisitions, not FLAIRs or
   analysis-grade MPRAGEs, and remain excluded from BIDS anatomy. The team may
   confirm why these planning/reference series were acquired repeatedly, but
