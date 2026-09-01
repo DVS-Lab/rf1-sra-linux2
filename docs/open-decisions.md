@@ -20,7 +20,9 @@ As of 2026-08-30:
   for `11075`, `11076`, and `11078` all pass with zero misses.
 - `docs/behavior-source-repairs.md` lists 18 source-missing runs across 16
   subjects plus one unresolved Trust mapping. These are 19 acquired BOLD runs
-  without usable events; events must not be synthesized for them.
+  without usable events in the 2026-08-30 live audit. Team review on 2026-08-31
+  authorized nine history-supported recoveries; the count remains historical
+  until the private source patch is committed, pulled, and reconverted.
 - `11201` session 01 UGR run 1 has complete 240-volume imaging but only 12 of
   48 expected canonical behavioral trials (events SHA-256
   `8f91d12f92ab160d55b8b43322ff79d5b8e48eb79d170847bffd153f5b5a843c`).
@@ -87,6 +89,12 @@ an open scientific adjudication question.
   and repeated series numbers; this is expected. The manifest-authorized
   custom grouping keeps their in-memory series identifiers distinct, requires
   both `doors:1` and `socialdoors:1`, and leaves both raw source trees unchanged.
+- Team review and private commit history resolved nine previously missing
+  behavioral run sources. The source patch corrects misidentified/appended
+  Shared Reward runs for `11969`, `11984`, `12020`, `12021`, `12032`, `12036`;
+  Trust run mappings for `10836`, `11432`, and `11772`; and the Doors identity
+  swap between `11461` and `11493`. Exact evidence and operational status are
+  recorded in `docs/behavior-source-repairs.md`.
 
 ## Decisions Requiring Team Review
 
@@ -151,18 +159,15 @@ review because the current evidence snapshot predates the newest sessions.
 
 ### Acquisition And Task Exceptions
 
-- `12032` Shared Reward run 2 contains two complete appended segments. Commit
-  provenance strongly suggests that the first segment belongs to the otherwise
-  missing `12036` run 2 and the second belongs to `12032`, but it does not prove
-  participant identity. The proposed source split remains reverted. Obtain an
-  independent acquisition/source confirmation before repairing either mapping
-  or reconverting events.
 - `12037` Trust run 2 also contains two complete appended segments, but current
   evidence cannot identify the correct segment. Keep the run blocked until an
   acquisition log, timestamp, or other independent record resolves the mapping.
-- The 18 missing event sources, including the unapproved `12036` candidate,
-  remain the authoritative source-repair queue in
-  `docs/behavior-source-repairs.md`.
+- Six imaging runs now have team-confirmed unavailable or intrinsically invalid
+  behavioral sources: Shared Reward `11450` run 2 and `12037` run 2; Trust
+  `10486`, `10617`, and `10668` run 2; and Trust `11450` run 1. Four further
+  runs still require recovery or adjudication: `10974` Trust run 2, `12037`
+  Trust run 2, `10590` session-02 Doors, and `10716` session-02 UGR run 1.
+  `docs/behavior-source-repairs.md` is the authoritative evidence record.
 
 ### Downstream Contract
 
