@@ -1,0 +1,28 @@
+{
+  "allowed_software_eras": [
+    "E11",
+    "XA30",
+    "XA60"
+  ],
+  "bids_sidecar_count": 2761,
+  "bids_sidecar_inventory_sha256": "878dea18bb770e7776e9fe39616e71839300991b2f5e7accc73efa57fc785926",
+  "causal_claim_authorized": false,
+  "era_specific_thresholds_calculated": false,
+  "generated_at": "2026-09-04T17:34:59+00:00",
+  "outputs": {
+    "figures/sharedreward_by_scanner_era.png": "532c5b2fd56188cef062139e740fd4e08520c7bd0e9dc220f3daf7ab5f73a443",
+    "figures/socialdoors_by_scanner_era.png": "30ca101dac4c827f0d2f2865ef30425b64370c114b6fc9786f7271734c38b100",
+    "figures/trust_by_scanner_era.png": "fa0344ee1493d00cec722b437d67a5dd37385968f97f2d8f8a1fef6ed04b4caf",
+    "figures/ugr_by_scanner_era.png": "a59f3fb5c69d890387e78e92b25cca1f865229e9bef0499c573c14833265c8fb",
+    "report.md": "7468ad06de693ce70a6209188e441b710a706c0930bda360b0a67d3d680ddb34",
+    "run_metrics.tsv": "7ba1da6c93571b93e1d5dfc2c0f6cda48301dcbca1b7b04d6846dc1e411bb3bd",
+    "summary.tsv": "5f3b15e0c8f21f78968786e6a90ae89700bb3b88d808735b7017ef3c460936bb"
+  },
+  "run_qc": "qc/run_qc.tsv",
+  "run_qc_sha256": "4d7952b7749e4582b766b4f0e21640d967746b617c77ff67e88b66d2b9206d84",
+  "schema_version": 1,
+  "software_era_source": "BIDS echo-2 part-mag SoftwareVersions",
+  "thresholds": "qc/thresholds.tsv",
+  "thresholds_sha256": "f43e79017d0189a8370a931c2bfe7786e0fd72f1e291aca9b15c34f898cfbe62",
+  "unknown_software_eras": 0
+}
