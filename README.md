@@ -633,6 +633,12 @@ STAMP=run-qc-$(date +%Y%m%d-%H%M%S)
 bash run_logged.sh --label "$STAMP" --include-full-log -- \
   "$QC_PYTHON" build_run_qc.py build \
   --check "$QC_PYTHON" build_run_qc.py check
+
+"$QC_PYTHON" build_scanner_era_qc.py build --dry-run
+STAMP=scanner-era-qc-$(date +%Y%m%d-%H%M%S)
+bash run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$QC_PYTHON" build_scanner_era_qc.py build \
+  --check "$QC_PYTHON" build_scanner_era_qc.py check
 ```
 
 The builder writes tracked outputs under `qc/`; rerunning over existing outputs
@@ -641,6 +647,13 @@ a primary metric, if live upstream inputs disagree with the table, or if the
 recorded thresholds and flags cannot be reproduced. Imaging outliers are
 run-level facts, not automatic participant exclusions. See [the QC
 manual](qc/README.md) for exact definitions and provenance.
+
+The scanner-era extension leaves the canonical run table and pooled thresholds
+unchanged. It stratifies the same four metrics by the privacy-safe BIDS
+`SoftwareVersions` categories E11, XA30, and XA60, writing shareable descriptive
+tables and figures under `qc/scanner_era/`. Treat era differences as
+associations until task/session composition and within-subject evidence have
+been reviewed.
 
 ## TEDANA Audit And Sentinel Benchmark
 

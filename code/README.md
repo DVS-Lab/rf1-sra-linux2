@@ -25,6 +25,7 @@ Raw DICOMs / XNAT
   -> rf1-sra-linux2 post-fMRIPrep geometry audit / reviewed repair
   -> rf1-sra-linux2 TEDANA / MRIQC / confounds
   -> rf1-sra-linux2 cohort-level run imaging QC
+  -> rf1-sra-linux2 descriptive scanner-era QC
   -> rf1-dwi QSIPrep / QSIRecon
 ```
 
@@ -50,6 +51,7 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 | 9 | `run_mriqc.sh` | `mriqc.sh` | BIDS data | `derivatives/mriqc` | Container run only; no raw-source edits. |
 | 10 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
 | 11 | `build_run_qc.py` | BIDS, MRIQC, fMRIPrep, TEDANA, and `qc/qc_policy.json` | Tracked canonical TSV/JSON, four workbooks, four histograms, and fixed coverage target under `qc/` | Cohort-level builder/checker; source exclusions are omitted by default, missing metrics remain incomplete, and canonical replacement requires `--overwrite`. |
+| 12 | `build_scanner_era_qc.py` | Canonical `qc/run_qc.tsv`, `qc/thresholds.tsv`, and BIDS echo-2 magnitude sidecars | Tracked run/summary TSVs, report, provenance, and four era-stratified figures under `qc/scanner_era/` | Descriptive extension only; uses BIDS `SoftwareVersions`, preserves pooled cohort thresholds, and fails closed on missing or unknown eras. |
 
 `audit_tedana.py`, `benchmark_tedana.py`, `audit_tedana_design.py`, and the
 TEDANA summarizers are an audit-only scientific
@@ -964,6 +966,12 @@ STAMP=run-qc-$(date +%Y%m%d-%H%M%S)
 bash run_logged.sh --label "$STAMP" --include-full-log -- \
   "$QC_PYTHON" build_run_qc.py build \
   --check "$QC_PYTHON" build_run_qc.py check
+
+"$QC_PYTHON" build_scanner_era_qc.py build --dry-run
+STAMP=scanner-era-qc-$(date +%Y%m%d-%H%M%S)
+bash run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$QC_PYTHON" build_scanner_era_qc.py build \
+  --check "$QC_PYTHON" build_scanner_era_qc.py check
 ```
 
 The builder discovers the complete acquired BIDS run inventory rather than
@@ -971,7 +979,10 @@ accepting a mutable subject list. It writes all canonical outputs under
 `qc/`; use `build --overwrite` only after reviewing existing tracked results.
 The checker recomputes source metrics, inventory coverage, thresholds, flags,
 paired Social Doors rows, and workbook row sets. It exits nonzero for any
-incomplete run. Review the four histograms and Git diffs before committing.
+incomplete run. The scanner-era extension then joins each canonical run to the
+non-identifying `SoftwareVersions` field in its BIDS echo-2 magnitude sidecar.
+It does not recompute thresholds by era or modify `run_qc.tsv`. Review the four
+canonical histograms, four era-stratified figures, and Git diffs before committing.
 The full summary is small enough to retain in the tracked Markdown run record;
 the duplicate raw log remains ignored.
 

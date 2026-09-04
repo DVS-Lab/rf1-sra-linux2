@@ -50,6 +50,12 @@ qc/
   reference/rf1-sra_MNI152NLin6Asym_desc-qctarget_mask.nii.gz
   spreadsheets/{sharedreward,trust,ugr,socialdoors}_qc.xlsx
   figures/{sharedreward,trust,ugr,socialdoors}_histograms.png
+  scanner_era/
+    run_metrics.tsv
+    summary.tsv
+    report.md
+    provenance.json
+    figures/{sharedreward,trust,ugr,socialdoors}_by_scanner_era.png
 ```
 
 The paired Social Doors table describes both run states and whether either run
@@ -91,3 +97,33 @@ Do not edit the spreadsheets manually. Do not combine behavioral exclusions
 with this imaging table. Downstream code should join on
 `subject + session + task + run` and inspect both `qc_status` and
 `imaging_qc_outlier`.
+
+## Scanner-Era Extension
+
+`build_scanner_era_qc.py` joins the canonical run table to the
+`SoftwareVersions` field in each BIDS echo-2 magnitude sidecar and recognizes
+only `E11`, `XA30`, and `XA60`. Missing, ambiguous, or unknown era metadata is a
+hard error. No raw DICOM headers, dates, private tags, or UID values are read or
+tracked.
+
+The four figures show run-level boxplots and all observed values by era for the
+same four canonical metrics. Existing pooled cohort fences are overlaid; no
+era-specific thresholds or exclusions are calculated. The tracked summary
+contains sample sizes, means, standard deviations, quartiles, ranges, pooled
+fence flag rates, and median differences from E11. Scanner era is confounded
+with acquisition time and cohort composition, so these outputs are descriptive.
+Follow large differences with task/session-stratified and, where possible,
+within-subject review before making a causal claim.
+
+```bash
+"$QC_PYTHON" build_scanner_era_qc.py build --dry-run
+
+STAMP=scanner-era-qc-$(date +%Y%m%d-%H%M%S)
+bash run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$QC_PYTHON" build_scanner_era_qc.py build \
+  --check "$QC_PYTHON" build_scanner_era_qc.py check
+```
+
+Regenerating an existing report requires `build --overwrite`. The checker
+verifies the canonical-QC and threshold hashes, every BIDS sidecar, all tables,
+and every output checksum.
