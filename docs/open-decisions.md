@@ -37,6 +37,11 @@ As of 2026-09-01:
   `sub-11891`, `sub-12018`, `sub-12032`, and the `sub-10929` fieldmap exception
   are complete and provenance-preserving. They should not be reopened without
   new evidence.
+- A 2026-09-11 reconciliation of older lab trackers found no new technical
+  completeness failure, but it recovered six historical acquisition,
+  stimulus-validity, or source-identity questions that technical QC cannot
+  settle. See `docs/historical-tracker-reconciliation.md`; those rows remain
+  review items until their exact run and contrast scope is confirmed.
 
 ## Settled Data-Governance Policy
 
