@@ -5,6 +5,13 @@ RF1-SRA Linux2 inventories and decisions current on 2026-09-11. The workbooks
 are historical evidence, not executable policy. They are not copied into this
 repository because they contain private operational notes and links.
 
+**2026-09-15 Shared Reward update:** see
+[the source-validity follow-up](sharedreward-source-validity.md). It supersedes
+the broad Shared Reward questions below: 10657 is run-1-specific with run-2
+correction still conditional; 10668 requires raw acquisition/attempt mapping;
+11913/11923 requires a source-date/identity audit. Trust is unchanged. Imaging-QC
+exclusions belong to Cooper, not this source-validity pass.
+
 Reviewed sources:
 
 - `RF1-SRA_localizer-missing-fieldmap_tracker.xlsx`

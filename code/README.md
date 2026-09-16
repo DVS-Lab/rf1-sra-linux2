@@ -162,6 +162,12 @@ Each entry uses the same fields so operators can scan quickly.
 - Notes: Stages all transformations and events validation before replacing live BIDS outputs; `--overwrite` is required for replacement. Matching existing events are preserved in the stage so missing private logs cannot silently erase curated behavior. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. Every generated T1w is defaced, including run-numbered T1w acquisitions. XA30 T1w selection keeps only scanner-normalized (`NORM`) MPRAGE representations when any are present, avoiding duplicate original/normalized BIDS runs. If a newer export has no `NORM` representation, it retains every full `T1w-anat_mpg_07sag_iso` acquisition instead of dropping all T1w inputs. `sub-11891` session 01 uses its nested source-data path explicitly. Reviewed same-session return visits are combined only through `supplemental_sources.tsv` and a temporary scratch symlink view; sourcedata are not modified. Only these manifest-authorized combined sessions use the custom HeuDiConv grouping hook, which preserves visit separation in collision-free in-memory series IDs; ordinary conversions keep the default study-UID grouping. For the single-run Doors and Social Doors tasks, duplicate complete acquisitions resolve consistently to the final selected BOLD, phase, and paired SBRef. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing.
 
 ### `source_layout.py`
+
+Related read-only follow-up: `audit_sharedreward_sources.py` inventories raw
+DICOM series, BIDS run labels and behavioral segments for the scoped 10668 and
+11913/11923 Shared Reward source questions. Exact metadata stays in ignored
+`work/`; redacted stdout can be captured by `run_logged.sh`. It makes no source,
+cohort or QC changes. See [instructions and decision scope](../docs/sharedreward-source-validity.md).
 - Status: Production helper.
 - Purpose: Validate reviewed supplemental DICOM folders and stage a temporary combined scan view for one BIDS session.
 - Inputs: Subject/session, source root, and `supplemental_sources.tsv`.
