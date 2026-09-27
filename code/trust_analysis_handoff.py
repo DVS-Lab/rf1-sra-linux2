@@ -18,7 +18,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from build_events_qc import source_excluded_subjects, sha256_file
 from check_events import audit_subject_session, _event_runs
-from convert_behavior import discover_bold_runs, event_path, load_curation_approvals
+from convert_behavior import (discover_bold_runs, event_path, load_curation_approvals,
+    resolve_sources, convert_source, issue_is_approved, ConversionError, _format_value)
 
 ROOT = Path(__file__).resolve().parents[1]
 ADDED = {"scheduled_reciprocation", "cLeft", "cRight"}
@@ -145,9 +146,77 @@ def compare_extension(before, after):
     return schema_check(after)
 
 
+
+def cohort_run_plan(bids, behavior, excluded, curation, subjects):
+    """Plan source-valid runs; unresolved BOLD-only runs remain explicit exclusions.
+
+An unresolved run with existing canonical events still stops for review: this
+migration must not silently demote or overwrite an existing behavioral dataset.
+"""
+    approvals = load_curation_approvals(curation)
+    rows = []
+    for sub in sorted(subjects):
+        bold = set(discover_bold_runs(bids, sub, '01', ['trust']))
+        keys = bold | _event_runs(bids, sub, '01', ['trust'])
+        resolutions = resolve_sources(behavior, sub, '01', 'trust', sorted(k.run for k in keys), approvals) if sub not in excluded else {}
+        for key in sorted(keys):
+            if key.run not in {1, 2}:
+                raise ValueError(f'unreviewed Trust run number: {key.event_name}')
+            reason = ''; digest = ''; fingerprint = ''
+            if sub in excluded:
+                reason = 'source_excluded'
+            elif key not in bold:
+                reason = 'bold_missing'
+            else:
+                source = resolutions[key.run]
+                if source.status != 'available' or source.path is None:
+                    reason = 'source_' + source.status
+                else:
+                    digest = sha256_file(source.path)
+                    try:
+                        converted = convert_source('trust', source.path)
+                    except ConversionError as exc:
+                        reason = 'invalid_source: ' + str(exc)
+                    else:
+                        fingerprint = converted.trial_fingerprint
+                        unapproved = [issue for issue in converted.review_issues if not issue_is_approved(key, issue, converted, approvals)]
+                        if unapproved:
+                            reason = 'unapproved_curation: ' + ','.join(unapproved)
+                        else:
+                            try:
+                                schema_check([{k: _format_value(v) for k,v in row.items()} for row in converted.rows])
+                            except ValueError as exc:
+                                reason = 'invalid_trial_semantics: ' + str(exc)
+            if reason and sub not in excluded and event_path(bids, key).exists():
+                raise ValueError(f'{key.event_name}: existing canonical events have unresolved source ({reason}); review before migration')
+            rows.append(dict(participant_id='sub-'+sub, session='01', run=key.run,
+                events_path=str(event_path(bids,key).relative_to(bids)),
+                conversion_status='excluded' if reason else 'ready', exclusion_reason=reason,
+                source_sha256=digest, trial_fingerprint=fingerprint))
+    return rows
+
+
+def checked_cohort_plan(a, excluded, *, create=False):
+    subjects = sorted(p.name[4:] for p in a.bids_root.glob('sub-*') if p.is_dir())
+    curation = ROOT/'code/behavior_curation.tsv'
+    rows = cohort_run_plan(a.bids_root, a.behavior_root, excluded, curation, subjects)
+    payload = dict(runs=rows, source_excluded_subjects=sorted(excluded),
+        converter_sha256=sha256_file(ROOT/'code/convert_behavior.py'),
+        curation_sha256=sha256_file(curation))
+    path = a.work/'cohort_run_plan.json'
+    if path.exists():
+        if json.loads(path.read_text()) != payload:
+            raise ValueError('cohort sources/curation changed since run planning; review before resuming')
+    elif create:
+        path.write_text(json.dumps(payload,indent=2)+'\n')
+    else:
+        raise ValueError('cohort run plan missing; run the cohort stage to create it')
+    return rows
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("command", choices=["snapshot", "check", "export"])
+    p.add_argument("command", choices=["snapshot", "plan", "check", "export"])
     p.add_argument("--scope", choices=["validation", "cohort"], default="validation")
     p.add_argument("--bids-root", type=Path, default=ROOT / "bids")
     p.add_argument("--behavior-root", type=Path, default=Path("/ZPOOL/data/projects/rf1-sra/stimuli"))
@@ -165,7 +234,20 @@ def main():
         p.name.split('_')[0][4:] for p in a.bids_root.glob('sub-*/ses-01/func/*_task-trust*_bold.nii*')}) - excluded)
     a.work.mkdir(parents=True, exist_ok=True)
     snap = a.work / (a.scope + '.json')
-    if a.command == "snapshot":
+    if a.command == 'plan':
+        rows = checked_cohort_plan(a, excluded, create=True)
+        ready = [r for r in rows if r['conversion_status']=='ready']
+        if not ready:
+            raise ValueError('no source-valid Trust runs')
+        write(a.output/'cohort_run_plan.tsv', rows, list(rows[0]))
+        for run in (1,2):
+            ids = sorted(r['participant_id'][4:] for r in ready if r['run']==run)
+            (a.work/f'cohort_run{run}_subjects.txt').write_text('\n'.join(ids)+('\n' if ids else ''))
+        print(f"COHORT PLAN: {len(ready)} source-valid runs; {len(rows)-len(ready)} excluded runs")
+        for r in rows:
+            if r['conversion_status']=='excluded':
+                print(f"EXCLUDED {r['events_path']}: {r['exclusion_reason']}")
+    elif a.command == "snapshot":
         if snap.exists():
             raise ValueError(f"snapshot already exists; retain it and use a new --work directory: {snap}")
         if a.scope == "cohort":
@@ -195,11 +277,25 @@ def main():
         if zeros == 0:
             raise ValueError("validation did not exercise an actual zero choice")
         approvals = load_curation_approvals(ROOT / 'code/behavior_curation.tsv')
-        for sub in saved['subjects']:
-            failed, _ = audit_subject_session(a.bids_root, a.behavior_root, sub, '01', ['trust'], approvals=approvals)
+        plan = checked_cohort_plan(a, excluded) if a.scope=='cohort' else None
+        if plan is not None:
+            ready = [r for r in plan if r['conversion_status']=='ready']
+            # Cover newly converted canonical runs as well as the original snapshot.
+            canonical = {r['events_path']: read(a.bids_root/r['events_path']) for r in ready}
+            for rel, rows in canonical.items():
+                try:
+                    schema_check(rows)
+                except ValueError as exc:
+                    raise ValueError(f'{rel}: {exc}') from exc
+        for sub in sorted(set(saved['subjects']) | ({r['participant_id'][4:] for r in ready} if plan is not None else set())):
+            runs = [r['run'] for r in ready if r['participant_id']=='sub-'+sub] if plan is not None else None
+            if runs == []:
+                continue
+            failed, _ = audit_subject_session(a.bids_root, a.behavior_root, sub, '01', ['trust'], approvals=approvals, runs=runs)
             if failed:
                 raise ValueError(f"check_events audit failed for sub-{sub}; inspect before advancing")
         report = dict(status='passed', subjects=saved['subjects'], runs=len(canonical), zero_choices=zeros,
+            excluded_runs=[r for r in plan if r['conversion_status']=='excluded'] if plan is not None else [],
             ignored_empty_imaging_templates=ignored,
             historical_columns_unchanged=True, imaging_stat_inventory_unchanged=True,
             bids_root=str(a.bids_root.resolve()), events_sha256={rel:sha256_file(a.bids_root/rel) for rel in canonical},
@@ -212,6 +308,8 @@ def main():
             raise ValueError('converter changed after cohort validation')
         if gate['bids_root'] != str(a.bids_root.resolve()) or any(sha256_file(a.bids_root/rel)!=digest for rel,digest in gate['events_sha256'].items()):
             raise ValueError('cohort events changed after validation')
+        plan = checked_cohort_plan(a, excluded)
+        planned_ready = {r['events_path'] for r in plan if r['conversion_status']=='ready'}
         # Revalidate the canonical QC against live data before exporting an analysis contract.
         subprocess.run([__import__('sys').executable, str(ROOT/'code/build_events_qc.py'), 'check',
                         '--bids-root', str(a.bids_root), '--excluded-source-root', str(a.excluded_source_root)], check=True)
@@ -230,6 +328,8 @@ def main():
                         failed, counts = audit_subject_session(a.bids_root, a.behavior_root, sub, '01', ['trust'],
                             approvals=approvals, runs=[key.run])
                     reasons = ';'.join(f'{k}={v}' for k,v in sorted(counts.items()) if v and k not in {'OK','events files found','BOLD runs found','behavioral source runs found'})
+                    if failed and str(event.relative_to(a.bids_root)) in planned_ready:
+                        raise ValueError(f'{key.event_name}: a planned source-valid run failed final certification')
                     if not failed:
                         schema_check(read(event))
                 rows.append(dict(participant_id='sub-'+sub, session='01', run=key.run,
@@ -241,6 +341,7 @@ def main():
         provenance = dict(schema_version=1, generated_at=datetime.now(timezone.utc).isoformat(),
             upstream_git_sha=subprocess.check_output(['git','-C',str(ROOT),'rev-parse','HEAD'],text=True).strip(),
             converter_sha256=sha256_file(ROOT/'code/convert_behavior.py'),
+            cohort_run_plan_sha256=sha256_file(a.output/'cohort_run_plan.tsv'),
             curation_sha256=sha256_file(ROOT/'code/behavior_curation.tsv'),
             qc_provenance_sha256=sha256_file(ROOT/'qc/events/results/provenance.json'),
             run_eligibility_sha256=sha256_file(a.output/'run_eligibility.tsv'),

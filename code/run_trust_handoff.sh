@@ -49,8 +49,24 @@ if [[ ! -f "$work/${stage}.json" ]]; then
 else
   echo "Reusing original $stage snapshot in $work (never overwritten)."
 fi
-bash code/run_convert_behavior.sh --sublist "$work/${stage}_subjects.txt" --sessions 01 --tasks trust --jobs 4 --dry-run --overwrite
-bash code/run_convert_behavior.sh --sublist "$work/${stage}_subjects.txt" --sessions 01 --tasks trust --jobs 4 --overwrite
+if [[ "$stage" == cohort ]]; then
+  # Bind exclusions and valid runs to live source hashes before writing anything.
+  python3 code/trust_analysis_handoff.py plan --scope cohort --work "$work"
+  for run in 1 2; do
+    if [[ -s "$work/cohort_run${run}_subjects.txt" ]]; then
+      bash code/run_convert_behavior.sh --sublist "$work/cohort_run${run}_subjects.txt" --run "$run" --sessions 01 --tasks trust --jobs "${TRUST_CONVERSION_JOBS:-12}" --dry-run --overwrite
+    fi
+  done
+  python3 code/trust_analysis_handoff.py plan --scope cohort --work "$work"
+  for run in 1 2; do
+    if [[ -s "$work/cohort_run${run}_subjects.txt" ]]; then
+      bash code/run_convert_behavior.sh --sublist "$work/cohort_run${run}_subjects.txt" --run "$run" --sessions 01 --tasks trust --jobs "${TRUST_CONVERSION_JOBS:-12}" --overwrite
+    fi
+  done
+else
+  bash code/run_convert_behavior.sh --sublist "$work/${stage}_subjects.txt" --sessions 01 --tasks trust --jobs 4 --dry-run --overwrite
+  bash code/run_convert_behavior.sh --sublist "$work/${stage}_subjects.txt" --sessions 01 --tasks trust --jobs 4 --overwrite
+fi
 python3 code/trust_analysis_handoff.py check --scope "$stage" --work "$work"
 if [[ "$stage" == cohort ]]; then
   python3 code/build_events_qc.py build --dry-run

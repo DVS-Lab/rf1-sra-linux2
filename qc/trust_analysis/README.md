@@ -18,9 +18,12 @@ imaging file-stat inventory, and invokes the existing source/events checker.
 The imaging check compares size/mtime/ctime/inode; it does not rehash image bytes.
 
 After validation passes, `bash code/run_trust_handoff.sh cohort` repeats the
-checks for the live cohort and rebuilds/checks canonical events QC. A failed
-conversion or checker stops the stage for review; it never automatically trims
-runs or weakens source curation. An already-resolved short run remains usable.
+checks for the live cohort and rebuilds/checks canonical events QC. A source-hash-bound run plan separates usable runs from unresolved BOLD-only
+runs. Missing sources, ambiguous/appended logs, and unapproved short runs receive
+explicit exclusion reasons in `cohort_run_plan.tsv`; their files are left alone.
+A problem in a run with existing canonical events still stops for review. An
+unexpected conversion failure in a planned usable run also stops the stage.
+No source trimming or new curation approval is inferred. An already-resolved short run remains usable.
 
 The export contains:
 
@@ -53,3 +56,20 @@ retry only the checks, with logging and without rewriting BIDS:
 ```bash
 bash code/run_trust_handoff.sh validation --check-only
 ```
+
+
+The cohort stage now uses run-specific subject lists with the existing converter
+(`run_convert_behavior.sh --run 1` or `--run 2`). A missing or malformed second
+run therefore does not discard a valid first run. Both run lists are dry-run
+before writes; the source plan is checked again before writes and certification.
+The default is 12 independent subject/run conversion processes for the cohort,
+configurable with `TRUST_CONVERSION_JOBS`. Validation remains at four.
+
+The failed 20260927T014643Z cohort dry-run accepted all 647 existing canonical
+Trust runs and found six additional BOLD-only unresolved runs: five missing
+sources (10486/2, 10617/2, 10668/2, 10974/2, 11450/1) and an appended/repeated-
+header log (12037/2). These are evidence from that run, not hard-coded exclusions.
+The cohort wrapper recomputes the plan from live sources on retry, preserving
+the original cohort snapshot. A successful cohort gate certifies the usable
+runs and reports the excluded runs separately; it does not certify excluded
+sources or infer a complete 344-participant behavioral cohort.

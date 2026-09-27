@@ -5,7 +5,7 @@ usage() {
   cat >&2 <<'USAGE'
 Usage: bash run_convert_behavior.sh [--sublist FILE] [--jobs N] [--sessions 01,02]
                                     [--tasks LIST] [--curation-file FILE]
-                                    [--dry-run] [--overwrite]
+                                    [--run N] [--dry-run] [--overwrite]
                                     [--include-source-excluded]
 
 Backfills canonical BIDS events without rerunning HeuDiConv. LIST is a
@@ -22,6 +22,7 @@ sublist="$BATCH_SUBLIST"
 max_jobs=4
 sessions="01,02"
 tasks="sharedreward,trust,ugr,socialdoors,doors"
+selected_run=""
 dry_run=0
 overwrite=0
 include_source_excluded=0
@@ -47,6 +48,11 @@ while (($#)); do
       ;;
     --curation-file)
       curation_file="$2"
+      shift 2
+      ;;
+    --run)
+      selected_run="$2"
+      [[ "$selected_run" =~ ^[1-9][0-9]*$ ]] || { echo 'Invalid --run value' >&2; exit 2; }
       shift 2
       ;;
     --dry-run)
@@ -81,6 +87,7 @@ echo "Using private behavior root: $BEHAVIOR_ROOT"
 echo "behavior conversion plan: up to ${max_jobs} subject/session job(s); sessions ${sessions}; tasks ${tasks}"
 
 args=(--tasks "$tasks" --behavior-root "$BEHAVIOR_ROOT" --bids-root "${PROJECT_ROOT}/bids" --curation-file "$curation_file")
+[[ -n "$selected_run" ]] && args+=(--run "$selected_run")
 ((dry_run)) && args+=(--dry-run)
 ((overwrite)) && args+=(--overwrite)
 
