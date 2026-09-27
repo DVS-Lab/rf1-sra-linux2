@@ -8,7 +8,14 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
-As of 2026-09-01:
+**2026-09-27 status:** [audit closeout](audit-status-20260927.md) distinguishes
+completed source collection from unresolved mapping, conditional decisions,
+and the newly confirmed participant-metadata handoff gap. The September 27
+Trust export passed structural certification for 647 runs across 343
+participants; missing `participants.tsv` still blocks its demographic analysis.
+Do not repeat the September 16 source inventory as though it never ran.
+
+Historical cohort-wide snapshot as of 2026-09-01 (not a new whole-cohort audit):
 
 - `qc/run_qc.tsv` inventories 2,761 acquired runs: 2,284 pass the cohort imaging
   rules, 477 have one or more Tukey outlier flags, and none are incomplete.
@@ -40,8 +47,9 @@ As of 2026-09-01:
 - A 2026-09-11 reconciliation of older lab trackers found no new technical
   completeness failure, but it recovered six historical acquisition,
   stimulus-validity, or source-identity questions that technical QC cannot
-  settle. See `docs/historical-tracker-reconciliation.md`; those rows remain
-  review items until their exact run and contrast scope is confirmed.
+  settle. See `docs/historical-tracker-reconciliation.md` and the newer
+  [closeout status](audit-status-20260927.md) for scoped next actions; these are
+  not six new pipeline failures or six uninvestigated human-review questions.
 
 ## Settled Data-Governance Policy
 

@@ -7,6 +7,12 @@ This note narrows the Shared Reward items in
 [historical-tracker-reconciliation.md](historical-tracker-reconciliation.md).
 Historical working workbooks are evidence, not an executable exclusion list.
 
+**Collection completed 2026-09-16:** the
+[run record](../logs/records/20260916-000438_sharedreward-source-validity-20260916-000438.md)
+contains the redacted inventory. See the [September 27 closeout](audit-status-20260927.md)
+for its interpretation and remaining actions. The collection commands below
+are retained for reproducibility, not a request to repeat the completed run.
+
 ## 10657: run-scoped, conditional PI agreement
 
 Ryan's supplied reply reports that the session notes identify **Shared Reward

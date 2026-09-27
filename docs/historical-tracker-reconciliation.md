@@ -5,6 +5,12 @@ RF1-SRA Linux2 inventories and decisions current on 2026-09-11. The workbooks
 are historical evidence, not executable policy. They are not copied into this
 repository because they contain private operational notes and links.
 
+**2026-09-27 update:** the [audit closeout](audit-status-20260927.md) incorporates
+the completed September 16 raw-source inventory, closes the old `10677` mask
+claim against current measurements, and diagnoses the separate missing
+participant-metadata handoff. The table below preserves historical claims;
+use the closeout for current actions and the limits of completed checks.
+
 **2026-09-15 Shared Reward update:** see
 [the source-validity follow-up](sharedreward-source-validity.md). It supersedes
 the broad Shared Reward questions below: 10657 is run-1-specific with run-2
