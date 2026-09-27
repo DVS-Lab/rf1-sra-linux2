@@ -214,6 +214,18 @@ staged_dataset_description="${stage_root}/bids/dataset_description.json"
 target_dataset_description="${bidsroot}/dataset_description.json"
 rf1_require_dir "$staged_session"
 
+# Validate baseline metadata before replacing any canonical session output.
+# Later visits must never replace age at the baseline visit.
+if [[ ! -d "$excluded_source" ]]; then
+  participant_preview=(python3 "${scriptdir}/participants.py" build
+    --bids-root "$bidsroot" --exclusions-root "$SOURCEDATA_EXCLUSIONS_ROOT"
+    --subject "$sub")
+  if [[ "$ses" == "01" ]]; then
+    participant_preview+=(--seqinfo-file "${staged_heudiconv}/info/dicominfo_ses-01.tsv")
+  fi
+  "${participant_preview[@]}"
+fi
+
 if [[ -n "$supplemental_requirements" ]]; then
   while IFS=$'\t' read -r required_task required_run; do
     rf1_check_multiecho_run \
@@ -306,4 +318,13 @@ if [[ -d "$staged_heudiconv" ]]; then
   fi
   mkdir -p "$(dirname "$target_heudiconv")"
   mv "$staged_heudiconv" "$target_heudiconv"
+fi
+
+if [[ ! -d "$excluded_source" ]]; then
+  python3 "${scriptdir}/participants.py" build --apply \
+    --bids-root "$bidsroot" --exclusions-root "$SOURCEDATA_EXCLUSIONS_ROOT" \
+    --subject "$sub"
+  python3 "${scriptdir}/participants.py" check \
+    --bids-root "$bidsroot" --exclusions-root "$SOURCEDATA_EXCLUSIONS_ROOT" \
+    --subject "$sub"
 fi

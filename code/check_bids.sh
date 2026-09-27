@@ -40,6 +40,13 @@ if [[ ! -f "${bidsroot}/dataset_description.json" ]]; then
   failed=1
 fi
 
+if ! python3 "${scriptdir}/participants.py" check \
+  --bids-root "$bidsroot" --exclusions-root "$SOURCEDATA_EXCLUSIONS_ROOT" \
+  --sublist "$sublist"
+then
+  failed=1
+fi
+
 source_has_dicoms() {
   local folder_sub="$1"
   local subdir

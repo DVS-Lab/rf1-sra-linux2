@@ -11,6 +11,12 @@ run imaging QC.
 `_events.tsv` files. Downstream scientific-analysis repositories consume these
 BIDS events and should not read raw behavioral logs directly.
 
+Baseline `bids/participants.tsv` and its JSON sidecar are maintained from
+saved session-01 HeuDiConv demographics. Existing datasets missing this metadata
+can use the [logged participants recovery](qc/participants/README.md) without
+reconverting images or events. Scanner-recorded age/sex and missingness are
+documented explicitly; QA flags do not determine participant-table inclusion.
+
 ## Scope And Privacy
 
 Raw DICOMs and private behavioral logs are not stored in GitHub. On Linux2 the

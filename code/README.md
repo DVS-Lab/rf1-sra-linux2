@@ -161,6 +161,15 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: `check_bids.sh`.
 - Notes: Stages all transformations and events validation before replacing live BIDS outputs; `--overwrite` is required for replacement. Matching existing events are preserved in the stage so missing private logs cannot silently erase curated behavior. Uses `PYDEFACE_CMD`, defaulting to `/ZPOOL/data/tools/anaconda/tug87422/envs/pydeface-2.1/bin/pydeface`; override that variable for another executable. Every generated T1w is defaced, including run-numbered T1w acquisitions. XA30 T1w selection keeps only scanner-normalized (`NORM`) MPRAGE representations when any are present, avoiding duplicate original/normalized BIDS runs. If a newer export has no `NORM` representation, it retains every full `T1w-anat_mpg_07sag_iso` acquisition instead of dropping all T1w inputs. `sub-11891` session 01 uses its nested source-data path explicitly. Reviewed same-session return visits are combined only through `supplemental_sources.tsv` and a temporary scratch symlink view; sourcedata are not modified. Only these manifest-authorized combined sessions use the custom HeuDiConv grouping hook, which preserves visit separation in collision-free in-memory series IDs; ordinary conversions keep the default study-UID grouping. For the single-run Doors and Social Doors tasks, duplicate complete acquisitions resolve consistently to the final selected BOLD, phase, and paired SBRef. Raw localizer and PhoenixZIPReport series remain in sourcedata, but HeuDiConv filters them during indexing.
 
+### `participants.py`
+- Status: Baseline demographic recovery and production helper.
+- Purpose: Reconstruct and maintain participant age/sex from saved session-01 HeuDiConv sequence metadata, without reconverting images or reading research demographics from downstream copies.
+- Inputs: Baseline sequence inventories, canonical BIDS subject directories, authoritative source-exclusions directory, and optional Trust eligibility export.
+- Outputs: Canonical participant table and sidecar in ignored BIDS, private backups, and sanitized hash/coverage/missingness reports in `qc/participants/`.
+- Typical command: `python3 participants.py build` previews; add `--apply` to install after validation. `prepdata.sh` maintains each converted subject automatically.
+- Checker: `python3 participants.py check`; called by `check_bids.sh` for the requested list.
+- Notes: Session 02 preserves baseline age. Conflicts stop; unknown values remain missing. No QA-based exclusions. See [logged recovery and downstream acceptance](../qc/participants/README.md).
+
 ### `source_layout.py`
 
 Related read-only follow-up: `audit_sharedreward_sources.py` inventories raw
