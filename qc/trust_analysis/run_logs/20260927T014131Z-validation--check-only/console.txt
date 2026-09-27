@@ -1,0 +1,48 @@
+a8a44e8aa8df5e91a742305c92ab3dcec1a14029
+bash code/check_shell_syntax.sh
+ShellCheck not installed; skipped shellcheck lint.
+PYTHONPYCACHEPREFIX=/tmp/rf1-sra-linux2-pycache /ZPOOL/data/projects/rf1-trust-socialvalue/.venv-linux2/bin/python3 -m compileall code tests
+Listing 'code'...
+Compiling 'code/trust_analysis_handoff.py'...
+Listing 'tests'...
+Compiling 'tests/test_trust_analysis_handoff.py'...
+/ZPOOL/data/projects/rf1-trust-socialvalue/.venv-linux2/bin/python3 -m pytest -q -p no:cacheprovider
+........................................................................ [ 33%]
+.................................................................s..s... [ 66%]
+........................................................................ [ 99%]
+.                                                                        [100%]
+215 passed, 2 skipped in 56.03s
+/ZPOOL/data/projects/rf1-trust-socialvalue/.venv-linux2/bin/python3 code/validate_repo.py
+Repository metadata validation passed.
+OK sub-10317_ses-01_task-trust_run-1_events.tsv: 77 event row(s)
+OK sub-10953_ses-01_task-trust_run-1_events.tsv: 72 event row(s)
+OK sub-10953_ses-01_task-trust_run-2_events.tsv: 72 event row(s)
+{
+  "status": "passed",
+  "subjects": [
+    "10317",
+    "10953"
+  ],
+  "runs": 3,
+  "zero_choices": 31,
+  "ignored_empty_imaging_templates": {
+    "sub-10317/ses-01/func/sub-10317_ses-01_task-trust_run-1_part-mag_events.tsv": "f49141d568d2bfebb7456958a33a9f3d67f923ec542a560f3c7cb6b2de599423",
+    "sub-10317/ses-01/func/sub-10317_ses-01_task-trust_run-1_part-phase_events.tsv": "f49141d568d2bfebb7456958a33a9f3d67f923ec542a560f3c7cb6b2de599423",
+    "sub-10953/ses-01/func/sub-10953_ses-01_task-trust_run-1_part-mag_events.tsv": "f49141d568d2bfebb7456958a33a9f3d67f923ec542a560f3c7cb6b2de599423",
+    "sub-10953/ses-01/func/sub-10953_ses-01_task-trust_run-1_part-phase_events.tsv": "f49141d568d2bfebb7456958a33a9f3d67f923ec542a560f3c7cb6b2de599423",
+    "sub-10953/ses-01/func/sub-10953_ses-01_task-trust_run-2_part-mag_events.tsv": "f49141d568d2bfebb7456958a33a9f3d67f923ec542a560f3c7cb6b2de599423",
+    "sub-10953/ses-01/func/sub-10953_ses-01_task-trust_run-2_part-phase_events.tsv": "f49141d568d2bfebb7456958a33a9f3d67f923ec542a560f3c7cb6b2de599423"
+  },
+  "historical_columns_unchanged": true,
+  "imaging_stat_inventory_unchanged": true,
+  "bids_root": "/ZPOOL/data/projects/rf1-sra-linux2/bids",
+  "events_sha256": {
+    "sub-10317/ses-01/func/sub-10317_ses-01_task-trust_run-1_events.tsv": "7e77b5785fb5d62e49aeb3eb3b2abc54a630924449e5cffcded2b9e27732e463",
+    "sub-10953/ses-01/func/sub-10953_ses-01_task-trust_run-1_events.tsv": "434e89daef36169b646a512e6077a40a55b3540bbd073fade3821900f85ff28d",
+    "sub-10953/ses-01/func/sub-10953_ses-01_task-trust_run-2_events.tsv": "b13ff3162212eeac251e58bc6cb8ae9542df448b590c64f4d5e8d1f531e78c0f"
+  },
+  "converter_sha256": "3cd52e980a37e5d42ec6a5c2197345891f371161f7ddfc1cd14f1546a9095121",
+  "generated_at": "2026-09-27T01:42:44.295150+00:00"
+}
+Validation check complete; existing converted BIDS and original snapshot preserved.
+Stage validation exit=0. Preserve qc/trust_analysis/run_logs/20260927T014131Z-validation--check-only when committing QC.
