@@ -12,6 +12,7 @@ import csv
 import hashlib
 import io
 import json
+import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,11 +22,58 @@ from convert_behavior import discover_bold_runs, event_path, load_curation_appro
 
 ROOT = Path(__file__).resolve().parents[1]
 ADDED = {"scheduled_reciprocation", "cLeft", "cRight"}
+TRUST_EVENT_RE = re.compile(r"^sub-\d+_ses-\d+_task-trust_run-\d+_events\.tsv$")
+IMAGING_TEMPLATE_RE = re.compile(r"^sub-\d+_ses-\d+_task-trust_run-\d+_part-(?:mag|phase)_events\.tsv$")
 
 
 def read(path):
     with path.open(newline="") as f:
         return list(csv.DictReader(f, delimiter="\t"))
+
+
+
+def canonical_trust_files(bids):
+    """Separate canonical behavior from known empty HeuDiConv templates."""
+    canonical = []
+    for path in sorted(bids.glob("sub-*/ses-01/func/*_task-trust*_events.tsv")):
+        if TRUST_EVENT_RE.fullmatch(path.name):
+            canonical.append(path)
+        elif IMAGING_TEMPLATE_RE.fullmatch(path.name) and not read(path):
+            continue
+        else:
+            raise ValueError(f"unreviewed or nonempty noncanonical Trust events file: {path}")
+    return canonical
+
+
+def canonical_snapshot_events(saved, bids):
+    """Read old snapshots without rewriting their pre-conversion evidence.
+
+The first handoff release also captured empty part-mag/part-phase templates.
+They are only omitted from behavioral schema checks if empty both before and now.
+"""
+    canonical, ignored = {}, {}
+    for rel, rows in saved['events'].items():
+        path = bids / rel
+        if TRUST_EVENT_RE.fullmatch(path.name):
+            canonical[rel] = rows
+        elif IMAGING_TEMPLATE_RE.fullmatch(path.name) and not rows and not read(path):
+            ignored[rel] = sha256_file(path)
+        else:
+            raise ValueError(f"snapshot contains unreviewed or nonempty noncanonical Trust events: {rel}")
+    if not canonical:
+        raise ValueError("snapshot contains no canonical Trust runs")
+    return canonical, ignored
+
+
+def check_snapshot_events(saved, bids):
+    canonical, ignored = canonical_snapshot_events(saved, bids)
+    zeros = 0
+    for rel, rows in canonical.items():
+        try:
+            zeros += compare_extension(rows, read(bids / rel))
+        except (ValueError, OSError, csv.Error) as exc:
+            raise ValueError(f"{rel}: {exc}") from exc
+    return zeros, canonical, ignored
 
 
 def write(path, rows, columns):
@@ -110,7 +158,7 @@ def main():
     if not a.excluded_source_root.is_dir():
         raise ValueError("authoritative source-exclusion directory is unavailable; refusing empty fallback")
     excluded = source_excluded_subjects(a.excluded_source_root)
-    files = sorted(a.bids_root.glob("sub-*/ses-01/func/*_task-trust*_events.tsv"))
+    files = canonical_trust_files(a.bids_root)
     if not files:
         raise ValueError("no live Trust events")
     subjects = sorted(({f.name.split('_')[0][4:] for f in files} | {
@@ -143,7 +191,7 @@ def main():
         saved = json.loads(snap.read_text())
         if saved['imaging'] != imaging_inventory(a.bids_root):
             raise ValueError("imaging stat inventory changed; investigate before proceeding")
-        zeros = sum(compare_extension(rows, read(a.bids_root / rel)) for rel, rows in saved['events'].items())
+        zeros, canonical, ignored = check_snapshot_events(saved, a.bids_root)
         if zeros == 0:
             raise ValueError("validation did not exercise an actual zero choice")
         approvals = load_curation_approvals(ROOT / 'code/behavior_curation.tsv')
@@ -151,9 +199,10 @@ def main():
             failed, _ = audit_subject_session(a.bids_root, a.behavior_root, sub, '01', ['trust'], approvals=approvals)
             if failed:
                 raise ValueError(f"check_events audit failed for sub-{sub}; inspect before advancing")
-        report = dict(status='passed', subjects=saved['subjects'], runs=len(saved['events']), zero_choices=zeros,
+        report = dict(status='passed', subjects=saved['subjects'], runs=len(canonical), zero_choices=zeros,
+            ignored_empty_imaging_templates=ignored,
             historical_columns_unchanged=True, imaging_stat_inventory_unchanged=True,
-            bids_root=str(a.bids_root.resolve()), events_sha256={rel:sha256_file(a.bids_root/rel) for rel in saved['events']},
+            bids_root=str(a.bids_root.resolve()), events_sha256={rel:sha256_file(a.bids_root/rel) for rel in canonical},
             converter_sha256=sha256_file(ROOT / 'code/convert_behavior.py'), generated_at=datetime.now(timezone.utc).isoformat())
         (a.work / (a.scope + '_passed.json')).write_text(json.dumps(report, indent=2)+'\n')
         print(json.dumps(report, indent=2))

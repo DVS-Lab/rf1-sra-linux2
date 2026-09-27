@@ -4,8 +4,13 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 stage="${1:-}"
-case "$stage" in validation|cohort) ;; *) echo 'Usage: bash code/run_trust_handoff.sh validation|cohort' >&2; exit 2;; esac
-stamp="$(date -u +%Y%m%dT%H%M%SZ)-${stage}"
+case "$stage" in validation|cohort) ;; *) echo 'Usage: bash code/run_trust_handoff.sh validation|cohort [--check-only]' >&2; exit 2;; esac
+mode="${2:-}"
+if [[ -n "$mode" && ( "$mode" != --check-only || "$stage" != validation ) ]]; then
+  echo '--check-only is supported only for the validation stage.' >&2
+  exit 2
+fi
+stamp="$(date -u +%Y%m%dT%H%M%SZ)-${stage}${mode}"
 record="qc/trust_analysis/run_logs/$stamp"
 mkdir -p "$record"
 # Console includes conversion diagnostics but never copies private source contents.
@@ -33,6 +38,12 @@ fi
 git rev-parse HEAD
 make test PYTHON="$(command -v python3)"
 work="${TRUST_HANDOFF_WORK:-$root/work/trust_schema}"
+if [[ "$mode" == --check-only ]]; then
+  # Reuse the original evidence; no snapshot creation or BIDS conversion.
+  python3 code/trust_analysis_handoff.py check --scope validation --work "$work"
+  echo 'Validation check complete; existing converted BIDS and original snapshot preserved.'
+  exit 0
+fi
 if [[ ! -f "$work/${stage}.json" ]]; then
   python3 code/trust_analysis_handoff.py snapshot --scope "$stage" --work "$work"
 else

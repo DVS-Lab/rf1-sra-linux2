@@ -39,3 +39,17 @@ The downstream scientist code consumes these products and BIDS only.
 Only session 01 Trust is in this migration. Ratings remain deferred; any future
 rating inventory or timing resolution belongs upstream and must use reliable
 metadata, never filename order or filesystem times.
+
+Canonical behavior uses the exact `sub-*_ses-*_task-trust_run-*_events.tsv`
+filename. Known empty `_part-mag_events.tsv` and `_part-phase_events.tsv`
+imaging templates are excluded from behavioral discovery. Nonempty templates
+or unrecognized Trust filenames still require review. Old snapshots containing
+empty templates are read compatibly without rewriting the original snapshot;
+templates must remain empty and are listed separately in the validation report.
+
+If conversion finished but schema validation failed because of those templates,
+retry only the checks, with logging and without rewriting BIDS:
+
+```bash
+bash code/run_trust_handoff.sh validation --check-only
+```
