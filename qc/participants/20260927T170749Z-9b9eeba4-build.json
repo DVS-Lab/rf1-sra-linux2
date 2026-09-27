@@ -1,0 +1,3193 @@
+{
+  "applied": true,
+  "backup": ".participants-backups/1162731402344ee68aee55dd34a81822",
+  "command": "build",
+  "created_utc": "2026-09-27T17:07:49.464632+00:00",
+  "eligibility_sha256": "4f838d4c13ad6562b0948a789addeb3b1509edbead0df92d02bbc176396a87b7",
+  "eligible_missing_age": 0,
+  "eligible_missing_rows": [],
+  "eligible_missing_sex": 0,
+  "eligible_participants": 343,
+  "exported_rows": 352,
+  "issues": [],
+  "missing_age": 0,
+  "missing_sex": 0,
+  "participants_sha256": "10004009f83ae3ffd9977941e6c222ac8f1aabfd70f41968470cfaa70ef35ca4",
+  "reference_session": "01",
+  "requested_subjects": 352,
+  "schema_version": 1,
+  "script_sha256": "4416cc1b6cab083fc91a670f8f721355834dcfb7c71f1b8999ebdc4b87f56d6c",
+  "source_excluded_subjects_omitted": 12,
+  "source_exclusion_ids_sha256": "7d08ddd418ae9ee88b7678d2a6c3b65b194f7ce956a80a6872b6f4f5a96d6d2d",
+  "status": "passed",
+  "subjects": {
+    "sub-10317": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "51ee851f166560e30bd42563c1927db26424f4dacb31b3fabb160b2532089964",
+      "source": ".heudiconv/10317/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10369": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 38,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "726bbb86720df7b186c58bcdea0ffb94436e6a7ba7249a993be158e9e0d2983b",
+      "source": ".heudiconv/10369/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10402": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "641384ba771845a345a7e56caa7195553a34dec62dba1c5db91d89e8de733a40",
+      "source": ".heudiconv/10402/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10418": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "4b22c62cb495692f3c8bbf80427ab7da2dc8c9c1264f70698c0be3fcee36f05b",
+      "source": ".heudiconv/10418/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10462": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 37,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2f5c63fa56db8b2b9d3d16b63f187f85e5b898664db12b143913069b6941cea9",
+      "source": ".heudiconv/10462/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10478": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "86ae06ac19b4277a456a243e1a9796094a290db60a1e4157e1293ae4007eb967",
+      "source": ".heudiconv/10478/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10486": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "92597f30bfcd41954f59d3b052529c1aaeea809a63298a824a88c42dedb2ab02",
+      "source": ".heudiconv/10486/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10529": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "22c7123d78f0de97bd0b7d1ed5b6e239e0b7e411e4d28118de4bb3946636f0b4",
+      "source": ".heudiconv/10529/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10541": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 46,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5336615e21e7dcc3e062776242fb9c582b3a7156e8f11d117285e6355a8a9720",
+      "source": ".heudiconv/10541/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10559": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ca46099df30af9944290a223e350bc5a8acbdbe2265c51218eca7e90ddf38a9e",
+      "source": ".heudiconv/10559/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10572": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 37,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "30e1d7c8d7ee990554d8542e56939053a70410afd87ee245dd6622fac0d3ae8a",
+      "source": ".heudiconv/10572/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10581": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c85d5685f16e8ab2029f2da827cfe7f7a9222503c3d14ceb0ecbb6bc0692a3fe",
+      "source": ".heudiconv/10581/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10584": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 26,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "37bf558114881e58f65c4c2d8ef4ff9a59389b0c078e8a722c33099e3c340453",
+      "source": ".heudiconv/10584/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10585": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3ff9997d9233103a0618e36b14eb1ebc8a39ee2fc92a9c3d23b463d68c912ed5",
+      "source": ".heudiconv/10585/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10589": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 45,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cc2576fe2bbc7d5ee405efac3ad60b9a207926a6e8296eb54940257a514b0821",
+      "source": ".heudiconv/10589/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10590": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ca48e5a0316d9a9236009026ab42f954bafd895cf4b2ce41c79cb001a27593d2",
+      "source": ".heudiconv/10590/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10596": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1a98d7af9d8a136b28edcd0433376b61390e4451e33f6d40217b725ce80d7355",
+      "source": ".heudiconv/10596/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10603": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 34,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "65252cbf743bed92a89ceaccde9d6279aa475c0d4e990b5debc9367ed99ead3b",
+      "source": ".heudiconv/10603/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10606": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "600dcd23f035d7036d9988c0726f455f31185d754d37ea440f5e91f981f8ed5f",
+      "source": ".heudiconv/10606/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10608": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "bdd04abb0ad8ad75f1eeedeefd999ca7f4822af3378ee39576dfc1156de723b9",
+      "source": ".heudiconv/10608/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10617": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 33,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d50b0e0eba080126a47b1e734ae40b221b3c199496c5a6ff6154d89c243b8fcc",
+      "source": ".heudiconv/10617/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10636": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "132fa577b67897b05b97a468d7645c0f15bc3abc3e821d3aacee3b4e4ee085ab",
+      "source": ".heudiconv/10636/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10638": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ea2c8e7b1c63b5952efef9d83e8c9baf96442f6302ab71144171e34c770844e4",
+      "source": ".heudiconv/10638/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10640": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "abd0ec950c8789a7b4fb0106a1325a3e0bc5a98d95cfbda3cbb18bff1ff56b87",
+      "source": ".heudiconv/10640/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10641": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 32,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3156e3ae94397392de40e4b121852d38a6ffad1d54d2d379e4732d4cbd97c829",
+      "source": ".heudiconv/10641/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10642": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e0fc21f65c41f4bdaedee27c6af677f423be001a9f02dbf78fbee7e90dbc9495",
+      "source": ".heudiconv/10642/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10644": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "214267c94119f357156e98e1455f82a8361eb9710cd2a43d37b73660657e33ae",
+      "source": ".heudiconv/10644/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10647": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d061a80a89ccd6f9b2190b82f8ac67f5bba212243d4c3b765f66efccc648846a",
+      "source": ".heudiconv/10647/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10649": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5fe7a83cf2581716e4b708632ba296dadd76ffd776ddc6100a29ae63b536ff46",
+      "source": ".heudiconv/10649/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10652": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e88613c197315af23fc066aa5c4360d3437780ca8ccad95df062e22926f33576",
+      "source": ".heudiconv/10652/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10656": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "72dbc9ff35963d4fe4b6222dc60e807912b54ff7adeea49474f32060978d2fb4",
+      "source": ".heudiconv/10656/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10657": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "9c87f72c393de1db48141fc13029e659253eb7ff9a456403ded4abe41f400237",
+      "source": ".heudiconv/10657/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10661": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 45,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ff4857902a3a2fa027dec2db179c43bb7431813d8c40993d3e13126ff36c13d8",
+      "source": ".heudiconv/10661/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10663": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "aa075587b545016ca200299305d235a3a179d38840bee3ce2188c49074550988",
+      "source": ".heudiconv/10663/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10668": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 34,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ab1000556a605b26103b56dc3f653f9c3415f644331ab67fddf8481aaaa25549",
+      "source": ".heudiconv/10668/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10673": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a7ceff8121d33a0fe11b8350753a7ef75b3562eb8253ee575afb0c0b38abcb3a",
+      "source": ".heudiconv/10673/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10674": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5abb2d386dcd3f9c2c8b53413973b8e8fd55cdf983a0daa67e5c2de8459a317a",
+      "source": ".heudiconv/10674/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10677": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a1dc414568aeb978cf84ad87f5780529c36419c43a003b6b7d6eec3b1c6746ad",
+      "source": ".heudiconv/10677/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10685": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 45,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7196c01d53de5f70da9d8d707b64d77aa032f0b2d76295d30e76027ae4942023",
+      "source": ".heudiconv/10685/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10690": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 38,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "26d42a456ce77cd1ede1a30bfe2efe70993c35d631d9a72bbbba8f82f25fd4f1",
+      "source": ".heudiconv/10690/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10691": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d7a1abf7e93f2e27fc93c38fad63194bd787fb04323f012f57b6932098ad0393",
+      "source": ".heudiconv/10691/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10700": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 36,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "fe156c7853e6d622a589dc953733f105bb3bfa9d36aadaed82e99ad6af84d1d7",
+      "source": ".heudiconv/10700/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10701": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "987622ff84eaafe7fee5f166364620f2f124c882de152a041e372292a6eec339",
+      "source": ".heudiconv/10701/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10713": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 36,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ade250b8d3e0845f657e685486ed95e2b74120a7a4f4f91da73da22435c80c64",
+      "source": ".heudiconv/10713/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10716": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f7cccbb765f990af59fec085d2ebdd62727dab945f9041041cd88ead69a37ea1",
+      "source": ".heudiconv/10716/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10718": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5b69051ac17d5cdb72156d23fc40dca9b434b33f81a72f27e7be45857e73dfab",
+      "source": ".heudiconv/10718/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10720": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "4fd5a83414c85a603d2968d53984f4dc95e235b21c80f3bf23ca57ce47f9f561",
+      "source": ".heudiconv/10720/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10723": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c4c888c934e39b18b3285f031cab1cfa45f4ffc0e6a7d575bebc128099b50676",
+      "source": ".heudiconv/10723/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10741": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "8b9ca4c30ebd4e8cb0a4174e34c223d498a98ed0e345a590d3d75c659f14057d",
+      "source": ".heudiconv/10741/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10748": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "79c284412a5fe672a5a56c67cdad6d0c44c48e24c3a074b17772e27340bb416d",
+      "source": ".heudiconv/10748/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10767": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "9cb33acbb4196420193206a4c1c7425133fdb00937ec7391c5c19d40b86c43b0",
+      "source": ".heudiconv/10767/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10770": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e858c6a52648178e98995ebe01c78434abf8b3e56d560c1b86330decc9f5860f",
+      "source": ".heudiconv/10770/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10777": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "155b91eaf79a8ce1d7721403bc4e61fd36e200483013e462d4b4998ce73c5e5c",
+      "source": ".heudiconv/10777/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10781": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e287fffdc743bc107e7104fbe5b40985c2b3b56d3868150902c8d52034b9d29f",
+      "source": ".heudiconv/10781/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10783": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ff2c13d8c3ef85f66bd9a830db10e54d80f5e5837d43b933cdaf76963e2a9bbc",
+      "source": ".heudiconv/10783/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10785": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e7e1c0b3eae9a5ebb4f4764e829958ba4000f806adf1d26c18eac2e9da353ecc",
+      "source": ".heudiconv/10785/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10794": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2ec774c967ad821be183e215db34ae9a6e16d9357edb12e90a9b48b7d029f5df",
+      "source": ".heudiconv/10794/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10800": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1f03e53b1b6113241678c6c7068e8984c7b762506bcfb5bc99f0a21058fd98d8",
+      "source": ".heudiconv/10800/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10801": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b7ebb21fa2aa58acc9f0e80c2cc8f3c53301c0790bf023b2a5b18204e8cc7bf6",
+      "source": ".heudiconv/10801/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10802": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "293213d06a9af4a223594143f485c0091feb37db5362272909c9a6d78d1d3178",
+      "source": ".heudiconv/10802/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10803": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 32,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "953a2dc502ea712a17952f9ba61d9a9ebb2252624cea849567bd493dc151421c",
+      "source": ".heudiconv/10803/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10804": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "da39b8e744890a632d24091a2310eeb578514da9e66097798dd38e1219e0b396",
+      "source": ".heudiconv/10804/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10806": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b2af37243dd4461bf1c67fb302c203953a709248866dddd483017596a57f16a8",
+      "source": ".heudiconv/10806/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10807": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d49f44644c152512395255c8d4f6729cba725e25d2f44392d62a4e73efa9cfa2",
+      "source": ".heudiconv/10807/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10809": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "8b26d0421d9e50b7bd7cf9735a53548207e9873c1086eae8b66ab77876a5e49c",
+      "source": ".heudiconv/10809/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10810": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a51e1c1c0e4759b106850ba639c95b8dec4b57a4afa7e3946d2ba6ba856adf12",
+      "source": ".heudiconv/10810/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10812": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5183480a933d58287b595af04d089b7bcb735c8ceea13aa7e47361d260fc726c",
+      "source": ".heudiconv/10812/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10817": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c8c300c4b16fcdc067fbb79b40d25a0e7266b7283c31391c51e94306d63ccead",
+      "source": ".heudiconv/10817/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10827": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0f2c9ba52662b33c1855b0edc72715fd1cb4f2002d27357df4731850d3d2a488",
+      "source": ".heudiconv/10827/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10831": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f0349612a1c2f05c1d2c6db79988c93e0758db1b77ba2306853322e658a75827",
+      "source": ".heudiconv/10831/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10834": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f48c8ea21ce49e0d4b281e2b0991524369d88c1f50cfe20ff797186df92a863f",
+      "source": ".heudiconv/10834/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10836": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 37,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "44922bb668952e506c9cf8f1b3e9195e86474e787c261ed28a22a1789858631c",
+      "source": ".heudiconv/10836/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10838": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2176314c4f684a7577b75bec8380951052148218ff442f1d8999d60abbb0df1a",
+      "source": ".heudiconv/10838/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10843": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "9f2051250085cf558189dc7b57f79be1eee266d57195a2a458c1968a773ae8e9",
+      "source": ".heudiconv/10843/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10850": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7f0771f94f8f8364ed8a1889c174dbf1d072e860bae7b034bffcf0613377ce16",
+      "source": ".heudiconv/10850/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10854": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "afe88e8b9e0579c0859b8bfeffed8b9347ceefc909af075f89bc3080b82bd9fd",
+      "source": ".heudiconv/10854/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10857": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "51d5ad123f82266b42adc8cf8896dadedbd170db2c53df2da0331e3361b2598a",
+      "source": ".heudiconv/10857/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10858": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "06344f600b363456b2df901b76bc504cee8d22e2569eaee4155708a6f7fb4dbd",
+      "source": ".heudiconv/10858/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10860": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "95f67ca811e966ae689aab492e91bad3df21c117a1204efa911e04f2c57d1606",
+      "source": ".heudiconv/10860/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10862": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "073e0c0d56d7c712818fecfb77ba9304c5f12bdc21f2aacb78baadd3c2c759c8",
+      "source": ".heudiconv/10862/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10863": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c95ba3b14acaf24d9830d7710ddddca76aee8e81af3df628c371854591348f47",
+      "source": ".heudiconv/10863/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10866": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 42,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2039ed46f106ccdc8442dd8a1c14c0c30f7fb2bb9e490ba9bdd0d08603c49ade",
+      "source": ".heudiconv/10866/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10875": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1b20eaf750c0df41c39adc9261e52720b5be00c0cdf0be6cf09d56e0333d9d17",
+      "source": ".heudiconv/10875/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10881": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 33,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1b56a5dc564def448fa02338b0a0f3b5c4231c826bb5605d2cd6503cefce9cde",
+      "source": ".heudiconv/10881/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10886": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 37,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0b3af46f964f39582ff9d59f68524d8760393f7695bce9b8f65309d1dd7c3f3b",
+      "source": ".heudiconv/10886/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10887": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 50,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5936e33be81766ad88e31af95bff344e645fb4282c954972c41345541932779f",
+      "source": ".heudiconv/10887/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10896": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7980510ebd2896841eac070b86625eaea0907d352f94864b2b796c097c502833",
+      "source": ".heudiconv/10896/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10897": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 35,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6a98badfceb4932e13cee45fa166350e226b98b43fd36fc940d1033e6ce61c4c",
+      "source": ".heudiconv/10897/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10898": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e4aa23ca6c21dc5f52759898b6109976be57e906ae848780bc6d4b63e97e3b6a",
+      "source": ".heudiconv/10898/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10908": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d7c7b0ffc712ca851479381a5e492c2c934f3c8c71f8a050506d85b20cd69016",
+      "source": ".heudiconv/10908/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10913": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 28,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "54015afc28806cdb9233564cef51b3321b5be428e63d5c6cfb845107b1bfcaef",
+      "source": ".heudiconv/10913/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10918": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "350b99c33a0f3b25cbcbd82082ad5ae100c6c6e9efb747f9c796436dbb52f8c5",
+      "source": ".heudiconv/10918/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10919": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5d17bf64b4fbd9d17b9274e048c86a6f6bcaa0cc9397fb2a05662f2ef1edbd68",
+      "source": ".heudiconv/10919/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10924": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6130855605a43a2710151be7544b16baba0be7f109bba1b04cae316c16899305",
+      "source": ".heudiconv/10924/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10926": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 31,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "09d876d2f541423fc54fdbedcec28b1c29466dc9a1e1da39a61808c1f1764c85",
+      "source": ".heudiconv/10926/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10928": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 38,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "359d908fb2dfad53970ed7fd5aea8530076c7d26c4a020c00413fe171f5c8579",
+      "source": ".heudiconv/10928/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10929": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 30,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7c5f9b325953591b9a4314bbfd33412ded606f0632f9424d7bcfa3538ef58842",
+      "source": ".heudiconv/10929/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10930": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2f9178f9b7bf5e680a09b02e2f033233bfdf4ba4ea92ca12c75efe4abe328dc6",
+      "source": ".heudiconv/10930/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10938": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "eb9866a5600ae6ec67ec230dd614bc33cd76defdf55aec2a4daea2293d0c6ccd",
+      "source": ".heudiconv/10938/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10940": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "8952822809dd98800c00136ed59a2749f132b49df6660457e0e1a3399b394eeb",
+      "source": ".heudiconv/10940/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10950": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3b4d84b78428fc15395617d0bc7bb344c7dd0e3293d5a40320a5bf137bbc601d",
+      "source": ".heudiconv/10950/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10951": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 26,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1e7e05ffe6e8ae2bbdc6cb6aa9f4f3f2486d6befadab36ef0595c93870193d5e",
+      "source": ".heudiconv/10951/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10952": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 42,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f5331b61a9afc043a6658b4eef176c163555ea1a7c7eb8732c59a6ce09df5e8e",
+      "source": ".heudiconv/10952/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10953": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d2ba9e963d024edc414f246033df909e49c72ce0741b327d4e4e4bc40241a12d",
+      "source": ".heudiconv/10953/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10954": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "463193d5bfe7170df0cf9c9d4a3ea32856001b6b3951609b25c8ad31c722314d",
+      "source": ".heudiconv/10954/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10956": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2ada09dcefae0f170c2550b4182a1673d6b1c70c141fb3288c7f86a6acd419d6",
+      "source": ".heudiconv/10956/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10958": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d70de3ee3b2a3cc3177da94bac40a31c6e6f077aacb5f9c5e0a2e456493429f2",
+      "source": ".heudiconv/10958/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10961": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ae44bd48ffbd11e5a6290d564d671d2796d6922e77e0b82ae354cf69a1a0b64d",
+      "source": ".heudiconv/10961/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10964": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "df849340f629ca50c1e1574d6c932f8790f694bb2204f2fd8def39ba809ae3f2",
+      "source": ".heudiconv/10964/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10966": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 45,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "43fd8ff3c3c4ec2839a469aca7a64b92af61092854d67afd942c5be2b6e2e04b",
+      "source": ".heudiconv/10966/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10969": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ba2a83f28790917aaecfc24779c2346bb216fed331d0e1151d157668644d6451",
+      "source": ".heudiconv/10969/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10974": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c1ca79719ebdbc3b38af04208e93e239300cd4662b37acf44732b3032f91fbb9",
+      "source": ".heudiconv/10974/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10977": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 38,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ea73f87ae0532bdd1ab80ecf176bcbe1bf240e549a986bd27e32faebac293364",
+      "source": ".heudiconv/10977/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10979": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 33,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e19fade59f355ccdc6af9b9bfa1630174d86054bc4ca86716a3597c0034cfc82",
+      "source": ".heudiconv/10979/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10983": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "420704c17cfd6233db91060d4f7de8e6a86bc063b53724d36fbe55dd18d74c48",
+      "source": ".heudiconv/10983/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10984": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "156e0a2fa12441821c6929c6423aa37743d6bc710097faaf3e56995a68b7871b",
+      "source": ".heudiconv/10984/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-10998": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 42,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f646f6ce4708bcc490c85f8dc3f0f533fd7f8d6bef026b83ea378387d8e3a23c",
+      "source": ".heudiconv/10998/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11005": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 36,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "9ea620de2945dd81c015e21822a3cc81a7a97762a9194e070c2fb64d6faed1fd",
+      "source": ".heudiconv/11005/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11007": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "30f2cfee836f866116d96b98ba8ff13014662eaea856d1247539cc5b387f6077",
+      "source": ".heudiconv/11007/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11012": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "df063285b706bf6c8d6bc580863be6090800434b7a274dedfe5a1daa80092f32",
+      "source": ".heudiconv/11012/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11016": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b9c1063220482335b3bbebe2baac2e8bd9f7f3b2044d1c81c9951905c6e26a96",
+      "source": ".heudiconv/11016/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11021": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2addb026f263e7dbde764b2e4b0735a62a65accd552ce7fd6388c31a10d2fa16",
+      "source": ".heudiconv/11021/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11030": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "8ea6dbe54734d486baaa02c8ef7ab5519c521562676bb3c57e075d1dc9028f6d",
+      "source": ".heudiconv/11030/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11031": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5fcfb4fac137f633df0ad697b36ae8db6df392ce16f3696c05fcdc31721e1b9c",
+      "source": ".heudiconv/11031/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11036": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3e021e08fcad40a5b3ea7ec83f283d960b4fca6bbfc272bf9ffe6cc6d0566074",
+      "source": ".heudiconv/11036/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11039": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "9d307c15ee049968c1a54185c0765376726de30182d65df24faa4bf4e5b365f9",
+      "source": ".heudiconv/11039/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11042": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5252c883b780146f99a6e08136ed8a3f4f037528673edac874ef96061a9e9749",
+      "source": ".heudiconv/11042/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11053": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a5c40e1753c14fe2c54541df102415b976f3d637883437f00489920311c940a4",
+      "source": ".heudiconv/11053/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11058": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d752763c93d197d5db4923871c221931d61c65fefd08b0795c61190b61f053ab",
+      "source": ".heudiconv/11058/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11060": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3393ae7ac4f5169fc6845f71a371186d97391a7d5209ef8502de8e570b3086df",
+      "source": ".heudiconv/11060/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11063": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "eee91face2c7ea714df7fb3eb5a525ab3983e40809107d7f2856fcdf6fb734f2",
+      "source": ".heudiconv/11063/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11064": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 42,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "93cf5b00a3068f13e7f64a6215dd33ef095c10db0b872a0fbe7b0c54c52b9488",
+      "source": ".heudiconv/11064/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11065": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "63f6c8d973abec171507d2a17a814b446abe3de3d56c3e256ef00980cb4be697",
+      "source": ".heudiconv/11065/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11066": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ab5bd3640e28830f3b0db4ee20384ee8478181c4594c21d47e91ed73f6cacd81",
+      "source": ".heudiconv/11066/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11068": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "fc420218c601d7a6c4e60978b6ea2a2cf313fba02add6511f32a9bb1d9d70003",
+      "source": ".heudiconv/11068/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11071": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "4b53cee78c1e6e32e595f1d82b153f2880f7f3f3fd0a984d6550457bddff11cc",
+      "source": ".heudiconv/11071/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11072": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7f2b681e50f4645877214bb1ed6a63a01cce98ae0cc980ee46920823d6ea43cc",
+      "source": ".heudiconv/11072/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11074": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d0d5347d82b571cb18bb1fc76d6d3c69a53b2fef6687fec229e489ac50da8a78",
+      "source": ".heudiconv/11074/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11075": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 34,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "334fcee09f7561a8f73b57f3a5582be2dc340531bfb4d4b3a9cf45762e586111",
+      "source": ".heudiconv/11075/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11076": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 34,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b743a40b5fd5e6de38d97665299b635730b7c63961d0f25b749c17027e55d0d9",
+      "source": ".heudiconv/11076/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11078": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "80d3608a858f73ad36277c1cd57b5885925d5ded7d28ed10ae09874f9a42f5de",
+      "source": ".heudiconv/11078/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11083": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 34,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "237512eb50485c0b03ca4c0dc16121476f54d93eef2a352b1f882eaf03abbc27",
+      "source": ".heudiconv/11083/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11084": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "fe6b55bd86b18440d6bc22fda438842e90814bf456b3675641801c4cdac96571",
+      "source": ".heudiconv/11084/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11085": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 27,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "bcdaa75a4bef14e6e1f950b3b8d795f684bd29e4026e38dde90689b8d56c8020",
+      "source": ".heudiconv/11085/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11090": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "15efbe4d3cb69ed2c021a8e1d07ab25b3c5dfa1aaee3cb73ab530b7130e463ae",
+      "source": ".heudiconv/11090/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11110": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 29,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "790c884b7c8316f35726c7e5bcd44501963cd5e08ff1ebb6c884e72063b21c35",
+      "source": ".heudiconv/11110/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11113": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "72daa9b86b5236473de91051e34be248eba5bba8574c87dafde1f0f9fc431d1d",
+      "source": ".heudiconv/11113/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11116": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5f8a7bf9e36aca4d821596624103a5fc3f2814fa06537791804ff4c6ee003739",
+      "source": ".heudiconv/11116/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11120": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "75bd21897ea2abac8ea3f6d7cd6987ef8c030cb0ac32f689d7c8d17b3a2fe0da",
+      "source": ".heudiconv/11120/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11125": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 33,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "79d3b2e1ce48111cac300c20c4c00d2608c707c6ae2cb91b4623e45f0a0079fa",
+      "source": ".heudiconv/11125/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11126": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "54106445c60db8d4c526b9e2f7f1988322143ef22b368ac0e41e06ebb91aa88d",
+      "source": ".heudiconv/11126/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11128": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 35,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a8eafc1f1c2914b328b77d3acabbb264cd80fec229bc8009e885a931529b5963",
+      "source": ".heudiconv/11128/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11134": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c9a6a7f25228a9dcad80e8538b06f85043829f7903cabfcab1faace78677a8ce",
+      "source": ".heudiconv/11134/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11139": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0d466db6ad25efdee85885e9d9cc1dad877589d9c99373444d352fa221399889",
+      "source": ".heudiconv/11139/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11145": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 32,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1fe52c46e180fa30478d7258ccab31781db13d40226b2ecd9b68416251a216e3",
+      "source": ".heudiconv/11145/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11164": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6d7c52e2c29c04ccb4d7db7f9d5ddecc18556258be6c7dd9ca7e0e6453181a94",
+      "source": ".heudiconv/11164/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11167": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d5751d45b7195f2e313f66236a6b81db2ed123d272e24e11e773e8db350e8110",
+      "source": ".heudiconv/11167/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11168": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2056c561d8b00b53d8a50c7307504c4c29d0986a65af9fc77bd04e580b7476a9",
+      "source": ".heudiconv/11168/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11171": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 19,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "9779aa7b2cf1fbbed752c86d6da21d43b518cbee92bf26e15e9cb5e0437cb5ad",
+      "source": ".heudiconv/11171/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11177": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "819e86c1027eaacb5c0b164cb1522d890813ef0aa379d2fd2211d61a80747486",
+      "source": ".heudiconv/11177/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11192": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "50827615746a02e5db0403b4880b3eba6208022963b71c524ccb26082555b4b0",
+      "source": ".heudiconv/11192/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11193": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "795f9f6836672bb4fffa9f33ac87e2910300c4767ed4f09ad7e8ffea74cd3dd3",
+      "source": ".heudiconv/11193/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11201": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 35,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "14f74c6195c7aaba57506988dd89de5c531d02725198ceb885f8c6c577827164",
+      "source": ".heudiconv/11201/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11203": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 33,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "63acbe66a61ef2a85356570026b938a5cad1bb3e5bd00be0b8a0d0a1d8af110e",
+      "source": ".heudiconv/11203/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11209": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "692a6b7477d73c546d53f0b573b66cadff8bb9c46b2cdd3ea1657b7c4d672a53",
+      "source": ".heudiconv/11209/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11227": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "fec52e5029edb4cedb83d0786f577da022704f27e019c489d663453211ce1591",
+      "source": ".heudiconv/11227/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11238": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 42,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "bb8cbc4e08815334213237cbfa8da3bd9f83031546a53af9d84780feae39920a",
+      "source": ".heudiconv/11238/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11241": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 42,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "43c579d0b616558647a403a6afa42fe344c4d2773dc5d4acd8eadb0788d2bb6b",
+      "source": ".heudiconv/11241/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11246": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cad10001b58369e57e4831d847a54452c9a5a13bcc6e0f4d65760401379e00df",
+      "source": ".heudiconv/11246/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11276": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0047612ac4ac0bb244274b81628e29b85f3fed76a4df5652105cb88bbb235374",
+      "source": ".heudiconv/11276/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11286": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 35,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cfdc56aefe5eceb6896202b72cafb250979c012d388e383412f147afc3b622a1",
+      "source": ".heudiconv/11286/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11301": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "bbdcdd9491e4c8e55b9d449359fdc894cde1bf930916b6f31baa4f4aec95c3b4",
+      "source": ".heudiconv/11301/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11311": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "8686a13d71904e29c42d825288ccd3f8c82144c749f9f0749e7e9f07a5e0bffa",
+      "source": ".heudiconv/11311/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11312": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "904c002080065d45028343a95dc5b2d10a6724085862e248cbbfd5d4516727cb",
+      "source": ".heudiconv/11312/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11316": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "064792e861661ad4eb312b6edfa56c79466ebfa2d2c54ce0d692b23ccae36574",
+      "source": ".heudiconv/11316/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11317": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 13,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a45cb89046f6fd017ae14278a6e14ee52314c42805ebb7579fc6433c3ed2c0ca",
+      "source": ".heudiconv/11317/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11318": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2f86819aa0a15f56b590bb56bd9fa7b4eda829c0af2e861001f74d59899fceb5",
+      "source": ".heudiconv/11318/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11321": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "35185bbf8f87447e49948e12e33996332e5949b076fbbcaf4cc4b538c3735879",
+      "source": ".heudiconv/11321/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11325": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "fb9f583bdeaff4a861b2592dca55bd09b2c9362b3f8c874b4ecbbc948a2c95dc",
+      "source": ".heudiconv/11325/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11326": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "52f3cac8689971191d91fcc062802502459caabd9cf0687a0053158ed2184ce0",
+      "source": ".heudiconv/11326/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11329": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "48c7d1855b4ccf1fdfc427dc291fd1a5be28257631ce7d5e58e413693ef456b0",
+      "source": ".heudiconv/11329/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11330": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f7f37ffce75cb1df73eaffb764a080ac75dde0d11dbf172b3da98320481d869b",
+      "source": ".heudiconv/11330/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11337": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "edf8e05241b72c328cbd00d09e5a5f70318d319e2d8958450b4894952517f7bc",
+      "source": ".heudiconv/11337/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11338": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a6e4d220a0beba27ab12b8e7582b83f2a48007107cef556864d876fe7c536115",
+      "source": ".heudiconv/11338/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11340": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 45,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b56bd5298435453e448006eaf48c0a6d802e9babaf50f9c37c1734dcbcf3db19",
+      "source": ".heudiconv/11340/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11343": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "caac30a6e2e29df580943994e0779fe031eeb9ace721fc45c97f231eff8e837a",
+      "source": ".heudiconv/11343/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11345": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f6fe5f7848169ee7213e9cda2426129be4729aae934a5e0427ea39ed09c5b40e",
+      "source": ".heudiconv/11345/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11348": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 36,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3f99594187c19601f6e6292bf57b1b933c16976387c0eca32e1bddaac21d6321",
+      "source": ".heudiconv/11348/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11358": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 38,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "25d7df7d0781f7d5bebf681e55e0b06bd4f6ce0db0c64f6c951f83cd2b982ad0",
+      "source": ".heudiconv/11358/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11364": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 34,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7c469efa4376211e13eb6d327d0a2cc0b70fdb002c2a6936da4bdadb8bd162db",
+      "source": ".heudiconv/11364/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11367": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "bd3aa0aac2a1a4a0374c9383badeab53d1f05128880a651e7d7ad14ac160fed0",
+      "source": ".heudiconv/11367/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11374": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 37,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a687d20f697c286890fca98113eb604329820adf247d4b9004eb481677fddd2c",
+      "source": ".heudiconv/11374/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11376": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "51a615bac485615da2b0c2948721b4c4178159055c7720f21840eb3cb640427d",
+      "source": ".heudiconv/11376/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11377": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b31df72672e5a3d1b9a39bf6fba186fb17de94edff33fc503c898837d444f1e3",
+      "source": ".heudiconv/11377/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11387": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ead34251e69c9dda50fa6dfe3f97ba5e3dad76fe4ae9c39a39449ff87d7b1734",
+      "source": ".heudiconv/11387/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11396": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 19,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b87f2e2f4a916f737be5f5c7ca329faac4e8e7bcda4df658196cc44e30c7068c",
+      "source": ".heudiconv/11396/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11410": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "118bcea3038329b05b33c713554e36a4eecced62d40c41e615952429bb4b063f",
+      "source": ".heudiconv/11410/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11416": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 35,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "4560e47487bb36b22130777ef255a46f39bbce7f5f1130bbfcd03024d83c7f6b",
+      "source": ".heudiconv/11416/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11426": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 32,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ec97df64d4addadeedaa989f33399d8e867bfb431de20608a05c962f0d7d366c",
+      "source": ".heudiconv/11426/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11430": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 35,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f06998cfe78087a9f491ac4ac67fe4ed265fd3f0a00ce99bad0dea0bfc4d1e45",
+      "source": ".heudiconv/11430/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11432": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5caa461f07d858933f14a6617cc5a2e558a61ec1e073933d6275fea890097924",
+      "source": ".heudiconv/11432/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11433": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "dee022afb89677db76878e8421033ad501fcffb8c84344d47e897f03eb32c6a4",
+      "source": ".heudiconv/11433/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11435": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "16bbfd6f6630526a9c2d05322196fba1271e12ed701d4ddbf9c28ec66d1063da",
+      "source": ".heudiconv/11435/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11439": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 26,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "fbb01ec042d49a375d8bbe2f240a71f4c8f11c5d81c13069e48010dd0bc7e071",
+      "source": ".heudiconv/11439/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11440": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e15326ebb48f1c630be626d250773794b4df76e2c4b314652874f58565ef7db4",
+      "source": ".heudiconv/11440/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11443": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 22,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7d687aef5a6b15f94cb5c4952125b39b9c1d73f594741bc8a1a17c5568b8f454",
+      "source": ".heudiconv/11443/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11450": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0695e8eaeff4b639eaf837cd0b80f7ce8e676576e2b46aadf59f40027fc18ec3",
+      "source": ".heudiconv/11450/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11451": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f8de77edab5fd1ce8bb69ec5f39a397a91c54fec01bbb79ef2bd5ee48f848d22",
+      "source": ".heudiconv/11451/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11461": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6f18857e5763ec26871f74f776438100ac94a246e3f5ab26888c575420ec4ac8",
+      "source": ".heudiconv/11461/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11462": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 22,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c8e79cbfee18addd9582178028b8b0a8c1af88e1cf57647438cc121f1d972326",
+      "source": ".heudiconv/11462/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11472": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 38,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b82ea689bbb08dbba21a5821d8b953c48d76b974020b92adf0c6072cb6f4d2b5",
+      "source": ".heudiconv/11472/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11492": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 49,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3d4d61a6897599f2d915fa2649d0f6f5e1210f1134603555f77e7371c327b773",
+      "source": ".heudiconv/11492/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11493": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cdcf80c43aa786c4e2c92414d172f9486c0285b9036e1cb3d4265b2a7d2c82ea",
+      "source": ".heudiconv/11493/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11498": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 32,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "4c70fedb188ee33e4f4ab1e95972fe9d11fe9871de1f4b8258a18a1b396c1dd3",
+      "source": ".heudiconv/11498/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11517": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 49,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b2c337e2a48eb14291f51a8eb8d20c9a93602d687403f992a223c882160badc8",
+      "source": ".heudiconv/11517/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11518": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6cf38ec11c885d04fe071fdf07779ec0a6b73f0dedd95dceb27773dc708c282a",
+      "source": ".heudiconv/11518/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11523": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 45,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cc6e4afef36beca453978207cc2b0800bd7bd83c8530cc0b9de305d4ba89be72",
+      "source": ".heudiconv/11523/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11526": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 46,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e33b2ba81723b2e0ee15597e57ea93a8c4e2640fa01771d8308f5680981479f0",
+      "source": ".heudiconv/11526/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11527": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "8eecb88533a8842880360221578bbfde8178403a528b070972925435c3da2432",
+      "source": ".heudiconv/11527/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11529": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 37,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f8fc2508311822f5739f7a694385e9f3728089ecb64c9a056bea76591eec3640",
+      "source": ".heudiconv/11529/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11530": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 54,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "285666661f4c7f4039c621483fe7229cd0e47af65b878edb3f8e6d8333545881",
+      "source": ".heudiconv/11530/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11532": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6ffa4a7030f70832bc14a92c363c9b5a0c2339446d26cf7f7295ff8ea7cfa823",
+      "source": ".heudiconv/11532/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11533": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 49,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a3f2ce3c1f81a1626b925eb4ba93dcca1104e394d157b940964b9c1935549c4d",
+      "source": ".heudiconv/11533/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11534": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "638f49c433331692d8118f980d677451eb4cbc1981dc5924c2c79f543f2be78a",
+      "source": ".heudiconv/11534/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11535": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 46,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "09eb76e3967cd0bcb51a2a93c8a69b19720faf5020acd75e0922219ad8798c98",
+      "source": ".heudiconv/11535/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11536": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 49,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f3f7e997cbdba057dbec978f44e2715330f6ea87770d5a69b682cc6103198b37",
+      "source": ".heudiconv/11536/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11539": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e697319ab9c94d8169a3f2240828c85ccac4a7022d609f3a990f12a6c1a269e7",
+      "source": ".heudiconv/11539/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11540": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cfed42328ac0beed5c47ca91f97b6a7b0073f1d4d89e3d1df84602f0d64df8e7",
+      "source": ".heudiconv/11540/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11542": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 54,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1116b728a2635d691bb749b9c2a207bb7412f0e3413433297a9ff8a4f068825e",
+      "source": ".heudiconv/11542/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11545": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cc3a5876bfd8dae64fabbceb2316a4e62261b155bf762ce559cd781106902a12",
+      "source": ".heudiconv/11545/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11551": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 46,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "60fd0385460be4fc397258ee7c333bee733a59c223389906cc17f2daadc1630c",
+      "source": ".heudiconv/11551/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11559": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "74d4436c914c339d4015762d9c28ff19a7701d37edf03c499a09527911a7c941",
+      "source": ".heudiconv/11559/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11560": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e701b4ebc832ccf691508a647e231ca26426eec7df8b1d9ab23f3d91f0f385db",
+      "source": ".heudiconv/11560/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11563": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 49,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d893979fcd96b936de4d4339a3c4aad0b7b881254ea428e86a606a81e2ed4dcd",
+      "source": ".heudiconv/11563/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11565": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7f60ab9acbdafdbf461c9298ec0dec75b73e229edab309303559633118f34365",
+      "source": ".heudiconv/11565/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11570": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1a55c94fc33b5eb23504aa3c0f587babdb9f69250f3e7a203dc3d58c80cd02fb",
+      "source": ".heudiconv/11570/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11572": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1b45752feeb62e967350529f709cf09958f554500eadabda0ef989154e9fe2b9",
+      "source": ".heudiconv/11572/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11579": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "aa17810d7793d2d3ca853ce51ea2be1048186ba8bfeca19dd927c8247232e46f",
+      "source": ".heudiconv/11579/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11586": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 36,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "59ead8533c3db8ff9635f4c6fccf95880f174c49acecbde4e7e3c42e51ab6202",
+      "source": ".heudiconv/11586/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11587": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 42,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "68f380d711d919620bd8bdaa702d5ee50afc23beeadb49868146b05fd650985e",
+      "source": ".heudiconv/11587/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11588": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 52,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1413ecd280714315274089e7f478944b4d931bfb4b01278e479bf0af70a65946",
+      "source": ".heudiconv/11588/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11591": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 46,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b8008fe5ccafafbeb75d1bfb8de06f7378fed0272e9f6af74decb5d9220d60af",
+      "source": ".heudiconv/11591/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11597": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "caadbae4344f62cc5dcc0f2457606363119d31e5b3f4144868f3da0eeeec488b",
+      "source": ".heudiconv/11597/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11598": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "204f65d54371a0bf444201eaba33ea0018ab0b071a28d1ca4d3f29129a0c393b",
+      "source": ".heudiconv/11598/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11599": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c767f04666ff43372acda51402b0565e5a581404a7bd214dc99157918674eec1",
+      "source": ".heudiconv/11599/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11600": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f9607c740595af9e92b37573f1d4d11181766dfcecf8ff6caf905d1e733719f3",
+      "source": ".heudiconv/11600/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11606": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 45,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0c341e0595553d1825bded62405808a30789f09e7809563079f4537a2c3c1de5",
+      "source": ".heudiconv/11606/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11614": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "dd5f753f4468f2428076d1f00b0039c3b2d6f399e88fb09612df3ed746d3a2b0",
+      "source": ".heudiconv/11614/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11622": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "22e7ed308944f059c261521b3c794c4747a81b8452d6d37f3bf19ad3928ebf72",
+      "source": ".heudiconv/11622/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11623": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1dcd99fd36106d7bee2df4b2dd1799026a439fba583577a7a46007f1dc22b64c",
+      "source": ".heudiconv/11623/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11625": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "4bb8dd4651e03b4501c9b3c309c8b3c658e6803d77bbb9ac5ba94053b9f7d2e8",
+      "source": ".heudiconv/11625/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11626": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "218feb16ac06f60da504a80eae6e52d4c038fc47da5709f4dab7e52166182204",
+      "source": ".heudiconv/11626/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11628": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "9d3d5c049fdbee26ca9edbfe1b3c3d58de4f981a83b3f07118679d5d09309042",
+      "source": ".heudiconv/11628/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11631": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "bb7f88f5534a1f0964e0bcf646c02d28002370362e28b5124febaaea374700fd",
+      "source": ".heudiconv/11631/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11651": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 52,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5263a13a6aa834d59c941afaa4986e2c2f78af098f8d2216b6f5e74b99f8551a",
+      "source": ".heudiconv/11651/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11660": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 54,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a1c4fcccd4a818c48a39d4b0dfc672114be852df8362327523b38002f6eb6837",
+      "source": ".heudiconv/11660/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11670": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c63e7dcf7cc265745c2efd0e8500028066520e9b9e2b72f1fc92b61f55183d08",
+      "source": ".heudiconv/11670/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11674": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 40,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b64eebc16f101cb591fd88cc8400a915bfdd8fe3b644679997062cb5b1c59a4b",
+      "source": ".heudiconv/11674/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11679": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cb59563f144fe9fbb2d30899d0235e7be89b744175ec86497ccaef368702cf19",
+      "source": ".heudiconv/11679/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11681": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3500c99f79589985a7fc6a82984c78edb24dad927b17640d11423641efff2336",
+      "source": ".heudiconv/11681/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11692": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "9bc86096f6cc818f3ca55394a94988b364b3a38e00aba36eb1f080bc930e9af0",
+      "source": ".heudiconv/11692/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11694": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 25,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e558deea69cca6827dc5656996882e4d3988c3519b906b366cf51d5a325933e9",
+      "source": ".heudiconv/11694/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11701": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b0f8ded0855413497398b5efb1421f9c7181462bf136849681b99bc65f694741",
+      "source": ".heudiconv/11701/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11703": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "308d718678ce5cd3276d9d5d16cd68b9e3950ac3437044f5a0c56231ed43baa8",
+      "source": ".heudiconv/11703/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11705": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 44,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5d53855ba890c47a62a9a587f271d29536c00eeaaff862ca0ff2e07c6b48836b",
+      "source": ".heudiconv/11705/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11709": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "38dd043990d76976e36d63bd2364715518b173878fbae55975814d265f838de8",
+      "source": ".heudiconv/11709/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11710": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0029dbbe4f3eef577d9bba691a174ff170c8fd0513376ff1fddd744d51223b25",
+      "source": ".heudiconv/11710/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11714": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "eea4b787dc92d779614ad1c4a7548021d7758137f2cd67916fb8439930d66a62",
+      "source": ".heudiconv/11714/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11719": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 33,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2b259a0197919195c5521e0310efd2c1402d5fdef8380f4da216999622294cc8",
+      "source": ".heudiconv/11719/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11720": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 48,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "532a519b0de11e28700abec7cf6262b2c231ae307f1e268a345a100c563c85ed",
+      "source": ".heudiconv/11720/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11722": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "566eca912db37a94c457f865bb89f22b9bda7066af831ba872fd948c675495a1",
+      "source": ".heudiconv/11722/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11723": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "488d457e6ef92a664b501ee4d3401b27790f597ab0ce29c4cfa0f74ed52c6614",
+      "source": ".heudiconv/11723/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11736": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0b91102884f867c69a652a0343a0f4dad6cbf7ca16a4934ca844a85c138e053e",
+      "source": ".heudiconv/11736/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11744": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 49,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c8720129bb06f7fed52f05870c309b4f65b47efee297f0e4a062ec9506b1346d",
+      "source": ".heudiconv/11744/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11746": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3d75d820ea4c8de91843c945c50e6a2dc35bf65e2fc3929dd38f829a85a5ddf0",
+      "source": ".heudiconv/11746/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11748": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2cd4650444352d97ae272c4e03e85ad7e5efaa1761b65c4a88e568c76e07b8df",
+      "source": ".heudiconv/11748/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11756": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "dd56f47e016bb81e5ba8e3ab6402e260d90e4c84b2c27fad7aa5c597f9f31abf",
+      "source": ".heudiconv/11756/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11764": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2986f66a7c3209ffff89a38fb039356790d10b47bb57a37d692a15aaa9577936",
+      "source": ".heudiconv/11764/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11772": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 39,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "bda2e6e8b57e7333b6e19a096eff6d9b39038c2f65fb2c834db8b951ac3b7dcb",
+      "source": ".heudiconv/11772/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11773": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 45,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d992c48cfcb198dd92ed15c625836420b14b38dc23f855326586ff931f8799bc",
+      "source": ".heudiconv/11773/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11774": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "980b717d9035d3e3db26d6a6a0f539349147d4160bd1b52d95f7f4bb60b24cfc",
+      "source": ".heudiconv/11774/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11784": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "de1a3f979d2e27d8b6f57f6c8449da1aa9c87990650154cd9523c5d8c2833407",
+      "source": ".heudiconv/11784/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11787": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "954a2b77783eca879a562abe6dcfa0756a7a4f49c2eb1bf62cf86eef231bd7df",
+      "source": ".heudiconv/11787/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11788": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 46,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "28ef2bdb4538660ba381905769aec59260445b8b6aab124e4de3851635e65dc4",
+      "source": ".heudiconv/11788/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11789": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5725e3fbf3aa54d337ef5853037628725e06b1d59dbc58a06576a097619d3a1f",
+      "source": ".heudiconv/11789/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11790": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d3412a4d30e2c5f714217864aaf697b7b8932d1e70e0d04ac249201f5da8c864",
+      "source": ".heudiconv/11790/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11793": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 58,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "70670d3001d5730c71003fb683748e8e14800b141832cc5656ea6730b8459707",
+      "source": ".heudiconv/11793/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11795": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6cc76136d92c9d98e27f24b7796b9c4de906f0f3ec3ee07631a17a3eda505ee8",
+      "source": ".heudiconv/11795/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11815": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 37,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "dddcbd4197c259ad91462e7116fc385a51d8224a8b0aee2abcd60d99a81bf320",
+      "source": ".heudiconv/11815/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11822": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "120539f9f1a763b8f032359539526880f0cae547c712ed9229d5eb09858309f6",
+      "source": ".heudiconv/11822/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11823": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cdd0ba6f0c4f9105d648f0990216fbccf843f92746ed8829e717c64dc3970bed",
+      "source": ".heudiconv/11823/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11824": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2a59c22b204988851b2dc3712afa5c2ada3b762cad542d9064c737bf755a4852",
+      "source": ".heudiconv/11824/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11828": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 46,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f669931b681977138ef6264198f1689b20d1b974f302f0c80a10bd5ab4fccd82",
+      "source": ".heudiconv/11828/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11829": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5cc160d320562e5692245dc4824191fac7b758df34a7d4c14b3fba6d03fc091d",
+      "source": ".heudiconv/11829/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11840": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "209a1f3fe41f25dd0cc8b2ab98f7be611a8d8ed05ecb7a11d4cddae7792b23de",
+      "source": ".heudiconv/11840/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11847": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "522b38170d10e63ee1e4f308a7d6945205a0fd80473faddddf4b5925e0a11375",
+      "source": ".heudiconv/11847/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11853": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 50,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "95570291335f749d9c201527957b19c6fbe4cce1132fd0c0338ad4538ff557d2",
+      "source": ".heudiconv/11853/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11854": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "aa97dc87a3db4fb909646e12337f988c8839d946f6827bd9ab0452c3b61a5f58",
+      "source": ".heudiconv/11854/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11861": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6b5de1953d991b3ac618e169b262a4914d9df2b14224ff3a8b345f675338d3b2",
+      "source": ".heudiconv/11861/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11866": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "96e4ddb67ce41a09580c00d6e0e04c42350a93cddd87be02399540c38632f967",
+      "source": ".heudiconv/11866/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11867": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1a0d313923d4b2e7b11bdb86027672d084930e7c05f85b3063324fee3affae98",
+      "source": ".heudiconv/11867/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11870": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6ed0fc2634163e4848db33117165297e130e473049bf2778e5958d5962d0ee75",
+      "source": ".heudiconv/11870/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11872": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7adc4f156c6729e3dd1dec46b7cd0c589814fd9ee9e2f455fcb9b37e20546c7b",
+      "source": ".heudiconv/11872/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11876": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3cd492b04890988e3b9291674eaaf0e98df2bbfe2c2459729b8e9f89d2e316e1",
+      "source": ".heudiconv/11876/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11877": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b9be964a1a2bf890c67c5a07fb28de989cb0cf60cf4c5d07141d4e386c7bffe9",
+      "source": ".heudiconv/11877/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11881": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a810757bcfb5dc48d5a9fdd0e47a48e211da9c3eb37182457a0e1909ede936f1",
+      "source": ".heudiconv/11881/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11885": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "f572fbfc89d94f9ed734e608bd9004c3703efb44a06964ae0d65476b30f24452",
+      "source": ".heudiconv/11885/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11891": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "59274bf1691f62eaeda2222411fad0b3e78165a92712c59af8cb634021b38626",
+      "source": ".heudiconv/11891/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11897": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "1741002ea5887e82b3f9d78301dcf59eb79a3b8e8df5011482f638be832bc95a",
+      "source": ".heudiconv/11897/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11900": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "8a424e78cde2cbc8ab0726f334d60867b8df5a419587ae0fc800b73820e8b539",
+      "source": ".heudiconv/11900/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11902": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "2bf554be316cd6cd114fc18305ef31f37621ad6abb7a1b3ab8af0080b77ba902",
+      "source": ".heudiconv/11902/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11909": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "c6adbfc51c15d15ee464002493ea24aa14f7435e46e4a4d203d17883f32a6830",
+      "source": ".heudiconv/11909/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11913": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "cc0be33d2804e3567dca4da73f95f20efd903a422eb373250c6dbb114658b3fa",
+      "source": ".heudiconv/11913/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11914": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "72b7c5ec3bf6171a4f6d02d84739888c09c96683d3f1c4f0933f0497f796418a",
+      "source": ".heudiconv/11914/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11920": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "058c86ebb684309bb1383ea41b0e327f8b83b424d1fa3803f2af53e9c28f218b",
+      "source": ".heudiconv/11920/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11922": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 56,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "dffaae414fb2652ff4256fb80047af9e6cb737a0d9895382b56579e57ab0031a",
+      "source": ".heudiconv/11922/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11923": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 62,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "de1e85d445a259da2eba5799cba22a1cef1289155d1e2d69e0fc8e15910b617e",
+      "source": ".heudiconv/11923/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11924": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3dec904a4faf74006f3bdbbfa8835e6588c67e94327c21186b95fb6b726fb007",
+      "source": ".heudiconv/11924/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11926": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 50,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "d91fef60cf905de9f91ff7a1caa3badb601edf7e77c52cebce9dcc1ae8d75e4a",
+      "source": ".heudiconv/11926/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11928": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b10900688edabc7f9cfc03d071091cb131e6b16f758245ddb2b3c088df7bd8f7",
+      "source": ".heudiconv/11928/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11929": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 37,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "90042822de984e38a8f121485954285b7f06afa5adbdc1cfc19f888be265e8b1",
+      "source": ".heudiconv/11929/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11931": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 49,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0a83caa1605bec1c96f0f6ce29f92f57a371e04552d2d16c0b2311e29e4bf1df",
+      "source": ".heudiconv/11931/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11935": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "8725406bbeee67f31b18c2adc9b6d7b9b83da0182c101e33291f4ee3f4332d1b",
+      "source": ".heudiconv/11935/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11939": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "849de3e322b54bd6f8e2c79424dfda21e9627a54e379f670ebe591986a25f73b",
+      "source": ".heudiconv/11939/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11943": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "75cc1dfee8ea7cf3289270b0982542396b49341ad607221e4af2b3962ad3b1ab",
+      "source": ".heudiconv/11943/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11949": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3acb5b711e066c9de88e76c85ebfa3eebc72f268538f6d0cee9984e007babcfc",
+      "source": ".heudiconv/11949/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11960": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5bdf21eea39c344f2618b36d46b9009a9e82795bbdc09d6b89d02be1eebec968",
+      "source": ".heudiconv/11960/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11969": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "62db166016934e2388db0428719c30576b38b7c72ca6ee82f42a938eac268d24",
+      "source": ".heudiconv/11969/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11974": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "0f63fbc2fb21f568b53f180256b7e6b582de585d562574e2a18ee8ad2cee20a6",
+      "source": ".heudiconv/11974/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11976": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "85a7671c1b968bcd72f80b068957d2fb973bb170c719447ef31e4a369f9dd713",
+      "source": ".heudiconv/11976/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11982": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e433dbd60eca9b3d98a8f34b4ff71bd488cdd9a6b0f8b7fe80ed25acc609236f",
+      "source": ".heudiconv/11982/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-11984": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7c7f508495cbc1b7f82ae33cdc4afd873109f18677d81ea0f49f0aa832acdfe7",
+      "source": ".heudiconv/11984/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12008": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "adddbf83a7d3f61cb7ed9f278a71a0ebdf77d52a292d108036a1fedec0e3b282",
+      "source": ".heudiconv/12008/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12011": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 52,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "56d80bfec1d5ee9028d51cdd88aca10e6efac397361a88a008b701b345606837",
+      "source": ".heudiconv/12011/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12013": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "71e2c19e14a2d0055b5d44d8a3d6d53a14c2f80fa182d4a11a5b4a8e3f8c5c90",
+      "source": ".heudiconv/12013/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12018": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e76f1a015b1db113c150f7ff2ae93e45b64d3fa11112512e4e5457017d54d599",
+      "source": ".heudiconv/12018/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12020": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "39dd910e060288527002fd21181a32ace85a31c669b0802230c8347ae68f7529",
+      "source": ".heudiconv/12020/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12021": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "732590c563eb025cbda0f0a5d22d4794a2559ec0883b3e119883660ed2646449",
+      "source": ".heudiconv/12021/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12031": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "6729f6c37ce492a8d16291a8c2a3d245fccd2085a4de15f88af30fb6a7eb0443",
+      "source": ".heudiconv/12031/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12032": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "3b846816de9d4b5bc324fdf323e4b3b47768ebe1d06a90606820b25d53dc7ca1",
+      "source": ".heudiconv/12032/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12033": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ca096e869a8f079dc1f76a7a23ed4d3fcb91d7ee8411c5b5fb9aef33c62ade03",
+      "source": ".heudiconv/12033/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12036": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 59,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "641c26f17ea7712705593dcade81b721e09d718c61ce6a2ec23f909b423ee5fe",
+      "source": ".heudiconv/12036/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12037": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 50,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "5e5e1a4c8f5e3b1770a6bfdc7b483a75438a02ac19e298e4e9d3eeceb7fd553c",
+      "source": ".heudiconv/12037/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12038": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b3ddeb08d06f02bb1e5cb8bff5d366d3a4cf7d4265c8ebbf531da09fbe089475",
+      "source": ".heudiconv/12038/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12039": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "7ba7edb9119c1827cd91d628775c366d09334a4d94d4d5c875d5944606ed62a0",
+      "source": ".heudiconv/12039/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12041": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ac92d8e16d13d5899acf7ac79ef53bbafa68e081579fff16b306a878a60de11c",
+      "source": ".heudiconv/12041/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12047": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "4912a83d525f5edd18dc04ff1af51b23f5a95b51ae2578cfbd36c57b559ab4f5",
+      "source": ".heudiconv/12047/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12049": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "b4bd1d8a98cd949c0f56554a1b306b53bc2f19284bbdd774f36ad5809d030eb4",
+      "source": ".heudiconv/12049/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12051": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e8be45bca68f268c292fafb6f839445e073575dbcb0c94ba337bfb12d2f814dd",
+      "source": ".heudiconv/12051/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12054": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 43,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "067716559c4439f51f9dd160e154e327735003a6f09a86ed1ee227aa99290d5f",
+      "source": ".heudiconv/12054/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12055": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 47,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "a63d16757d7fffb2fd346634697fbcf56ac8bf9a3b39fa047a6d26c4391ad5a9",
+      "source": ".heudiconv/12055/ses-01/info/dicominfo_ses-01.tsv"
+    },
+    "sub-12057": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 51,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "e3a9cb0d52bdd8d28cfd0a059f05d2b2f2634f80cf89b3d327d03910540aeee6",
+      "source": ".heudiconv/12057/ses-01/info/dicominfo_ses-01.tsv"
+    }
+  }
+}
