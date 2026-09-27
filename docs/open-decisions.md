@@ -12,7 +12,10 @@ decision is resolved.
 completed source collection from unresolved mapping, conditional decisions,
 and the newly confirmed participant-metadata handoff gap. The September 27
 Trust export passed structural certification for 647 runs across 343
-participants; missing `participants.tsv` still blocks its demographic analysis.
+participants. Participant metadata recovery subsequently passed for 352 rows,
+including all 343 eligible Trust participants with zero missing age/sex.
+Downstream preflight still needs a retry with the Trust environment; its first
+attempt used base Conda and failed at package import.
 Do not repeat the September 16 source inventory as though it never ran.
 
 Historical cohort-wide snapshot as of 2026-09-01 (not a new whole-cohort audit):

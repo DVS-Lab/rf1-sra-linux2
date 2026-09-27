@@ -9,7 +9,7 @@ not establish stimulus identity or demographic coverage.
 
 | Item | What is established | Smallest remaining action |
 | --- | --- | --- |
-| Participant demographics | [Issue #1](https://github.com/DVS-Lab/rf1-sra-linux2/issues/1) reports missing live `bids/participants.tsv`. The September 27 Trust handoff certified 647 structurally valid runs across 343 participants; it did not certify demographics. Recovery from saved baseline HeuDiConv fields is now implemented with provenance and conflict checks. | Run the [logged repair and downstream preflight](../qc/participants/README.md), review coverage/missingness, then close issue #1. Code tests alone do not establish live recovery. |
+| Participant demographics | Linux2 recovery and verification passed: 352 rows, zero missing age/sex, and coverage of all 343 eligible Trust participants. The first downstream attempt failed at package import under base Conda, before reading the export. | Retry only the [downstream preflight](../qc/participants/README.md#downstream-acceptance) with the documented `.venv-linux2/bin/python`; retain issue #1 until acceptance is verified. |
 | `10657` Shared Reward | The September 15 follow-up establishes that the entered friend name was displayed. Ryan identifies run 1; PI agreement to exclude run 1 and retain run 2 remains conditional on run-2 correction. The old metadata-only hypothesis is superseded. | Team: confirm whether the name was corrected before run 2. Then record and propagate the approved run-specific decision. Do not infer a wrong photograph or a Trust exclusion. |
 | `10668` Shared Reward | The September 16 raw inventory contains two Trust-labeled acquisition episodes followed by one Shared Reward episode, and two complete behavioral attempts with the same run-1 design. | Team/source review: establish which behavioral attempt was synchronized with the Shared Reward acquisition, including whether the other attempt ran during a Trust-labeled acquisition. Current filename selection of the first segment is not independent evidence. |
 | `11913`/`11923` | The collected headers separate the two folders by study, patient-registration token, and acquisition-day token. Each contains two full Shared Reward acquisitions. Late repeated acquisitions in the `11923` inventory are Trust run 2. No mixed registration is evident in the published inventory. | Engineering: inspect the already-collected private JSON to link canonical BIDS images to exact source series and identify the scope of the historical registration note. No new blanket human question or Shared Reward exclusion is justified yet. |
@@ -68,9 +68,14 @@ their policies or rerun TEDANA.
 `prepdata.sh`/`check_bids.sh` now implement recovery, future maintenance, and
 verification from saved baseline HeuDiConv metadata. See the
 [Linux2 recovery commands](../qc/participants/README.md). The diagnosis below
-describes the pre-fix behavior. Live recovery and downstream acceptance remain
-pending until those commands run successfully; issue #1 is not closed by code
-tests alone. QA-based exclusions are outside this repair.
+describes the pre-fix behavior. Live execution status is recorded below.
+QA-based exclusions are outside this repair.
+
+**Live recovery verified:** the September 27 13:07 installation/check both
+passed (352 rows; zero missing age/sex; all 343 eligible Trust participants
+covered). The 13:08 preflight failed only because base Conda Python could not
+import the Trust package. Retry with its explicit `.venv-linux2/bin/python` as
+shown in the recovery guide. Keep issue #1 open until that acceptance check passes.
 
 The pre-fix `code/prepdata.sh` creates a scratch BIDS dataset and invokes
 HeuDiConv there. Installation carries over the session tree, per-session
@@ -107,5 +112,5 @@ Recovery and prevention must handle these distinct requirements:
 The implemented recovery uses the same scanner-recorded fields saved by
 HeuDiConv, with baseline reference time and field definitions in the sidecar.
 This establishes provenance for the reconstructed scanner-demographic product,
-not independent validation against research records. The live participants table
-is not claimed restored until the operator run and downstream preflight pass.
+not independent validation against research records. Live restoration is now
+verified by the operator run; downstream preflight remains to be completed.

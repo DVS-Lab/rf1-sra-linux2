@@ -55,14 +55,16 @@ affect the downstream age-analysis sample and must be reviewed in the report.
 
 ## Downstream Acceptance
 
-Using the same Python environment as the previous Trust full-sample run:
+Use the explicit interpreter from the Trust repository's documented Linux2
+environment. An unqualified `python3` in a base Conda shell may not have the
+analysis package installed even when recovery succeeded.
 
 ```bash
 cd /ZPOOL/data/projects/rf1-trust-socialvalue
 bash ../rf1-sra-linux2/code/run_logged.sh \
   --label "participants-trust-preflight-$(date +%Y%m%d-%H%M%S)" \
   --include-full-log -- \
-  python3 -m rf1_trust_socialvalue.full_sample preflight
+  "$PWD/.venv-linux2/bin/python" -m rf1_trust_socialvalue.full_sample preflight
 ```
 
 This writes the preflight evidence into upstream `logs/records/`, without
@@ -71,6 +73,21 @@ freezing the cohort or launching models. After verification, the existing
 Issue #1 remains open until the Linux2 export, missingness report, and downstream
 preflight have been reviewed. Passing preflight does not establish later
 scientific/model parity checks.
+
+### Verified Recovery, 2026-09-27
+
+The [Linux2 installation and check](../../logs/records/20260927-130749_participants-recovery-20260927-130745.md)
+both exited 0: 352 exported rows, no unknown ages or sex values, and all 343
+eligible Trust participants covered. The
+[independent check report](20260927T170749Z-a28c78ee-check.json) records zero
+issues. The exported TSV SHA-256 is
+`10004009f83ae3ffd9977941e6c222ac8f1aabfd70f41968470cfaa70ef35ca4`.
+
+The [first downstream preflight](../../logs/records/20260927-130812_participants-trust-preflight-20260927-130812.md)
+used base Conda Python and failed to import `rf1_trust_socialvalue`; it never
+reached demographic validation. Retry only the preflight with the interpreter
+above, preserving that failed log. No participant reconstruction or imaging/event
+conversion retry is indicated. Issue #1 remains open pending downstream acceptance.
 
 Commit only `qc/participants/` reports and the relevant `logs/records/` Markdown
 files. The TSV, sidecar, and backups stay in the ignored BIDS tree. Reports
