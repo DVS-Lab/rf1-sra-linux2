@@ -791,6 +791,14 @@ def _convert_trust(path: Path) -> ConvertedRun:
             right = _integer(row.get("cRight"), "cRight")
             low, high = min(left, right), max(left, right)
             trial_id = _trial_id(row, index)
+            reciprocate = _integer(row.get("Reciprocate"), "Reciprocate")
+            if reciprocate not in {0, 1}:
+                raise ConversionError("unknown Trust reciprocation code")
+            design = {
+                "cLeft": left,
+                "cRight": right,
+                "scheduled_reciprocation": "recip" if reciprocate else "defect",
+            }
             if response == 999:
                 isi_onset_text = row.get("ISI_onset", "").strip()
                 if isi_onset_text:
@@ -814,6 +822,7 @@ def _convert_trust(path: Path) -> ConvertedRun:
                         "partner": partner,
                         "reciprocate": "n/a",
                         "trial_id": trial_id,
+                        **design,
                     }
                 )
             else:
@@ -829,6 +838,7 @@ def _convert_trust(path: Path) -> ConvertedRun:
                     "cHigh": high,
                     "partner": partner,
                     "trial_id": trial_id,
+                    **design,
                 }
                 output.append(
                     {
@@ -844,9 +854,6 @@ def _convert_trust(path: Path) -> ConvertedRun:
                     outcome_offset = _number(
                         row.get("outcome_offset"), "outcome_offset"
                     )
-                    reciprocate = _integer(row.get("Reciprocate"), "Reciprocate")
-                    if reciprocate not in {0, 1}:
-                        raise ConversionError("unknown Trust reciprocation code")
                     outcome_label = "recip" if reciprocate else "defect"
                     output.append(
                         {
@@ -888,6 +895,9 @@ def _convert_trust(path: Path) -> ConvertedRun:
             "partner",
             "reciprocate",
             "trial_id",
+            "scheduled_reciprocation",
+            "cLeft",
+            "cRight",
         ),
         trial_count,
         expected_trial_count=42,
@@ -1222,6 +1232,12 @@ def _sidecars() -> dict[str, dict[str, object]]:
             },
             "cLow": {"Description": "Lower displayed investment option."},
             "cHigh": {"Description": "Higher displayed investment option."},
+            "cLeft": {"Description": "Investment option displayed on the left."},
+            "cRight": {"Description": "Investment option displayed on the right."},
+            "scheduled_reciprocation": {
+                "Description": "Programmed task outcome, including zero investments and missed decisions. This is latent design information, not observed feedback; reveal only after a simulated positive investment.",
+                "Levels": {"recip": "Programmed reciprocation", "defect": "Programmed defection"},
+            },
             "partner": {"Description": "Partner type."},
             "reciprocate": {
                 "Description": "Partner outcome for positive investments; n/a otherwise.",

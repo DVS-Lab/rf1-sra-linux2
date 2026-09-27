@@ -943,3 +943,33 @@ def test_events_audit_can_target_one_exact_run(tmp_path: Path) -> None:
     assert failed == 0
     assert counts["OK"] == 1
     assert counts["events missing"] == 0
+
+
+def test_trust_latent_schedule_and_sides_do_not_invent_feedback(tmp_path):
+    source = tmp_path / "trust.csv"
+    write_delimited(source, [
+        trust_row(),
+        trust_row(TrialNumber=2, onset=20, resp=0, cLeft=2, cRight=0,
+                  highlow="low", Reciprocate=0),
+        trust_row(TrialNumber=3, onset=30, resp=999, ISI_onset=33),
+    ])
+    converted = convert_source("trust", source)
+    decisions = [r for r in converted.rows if not str(r["trial_type"]).startswith("outcome_")]
+    assert [r["trial_id"] for r in decisions] == ["1", "2", "3"]
+    assert [r["scheduled_reciprocation"] for r in decisions] == ["recip", "defect", "recip"]
+    assert all(r["reciprocate"] == "n/a" for r in decisions)
+    assert [(r["cLeft"], r["cRight"]) for r in decisions] == [(2, 4), (2, 0), (2, 4)]
+    for r in decisions:
+        assert sorted([r["cLeft"], r["cRight"]]) == [r["cLow"], r["cHigh"]]
+    outcomes = [r for r in converted.rows if str(r["trial_type"]).startswith("outcome_")]
+    assert len(outcomes) == 1
+    assert outcomes[0]["reciprocate"] == outcomes[0]["scheduled_reciprocation"] == "recip"
+    assert outcomes[0]["cLeft"] == 2
+
+
+@pytest.mark.parametrize("response", [0, 999, 4])
+def test_trust_rejects_invalid_latent_schedule_even_if_unobserved(tmp_path, response):
+    source = tmp_path / "trust.csv"
+    write_delimited(source, [trust_row(resp=response, cLeft=0, Reciprocate=7)])
+    with pytest.raises(ConversionError, match="reciprocation code"):
+        convert_source("trust", source)
