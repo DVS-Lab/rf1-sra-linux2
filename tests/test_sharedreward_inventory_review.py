@@ -1,5 +1,6 @@
 """Offline linkage never turns an unproven candidate into a source decision."""
 import copy
+import csv
 from contextlib import redirect_stderr, redirect_stdout
 import io
 import json
@@ -7,6 +8,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
 import review_sharedreward_inventory as review
@@ -19,6 +21,85 @@ def series(uid="PRIVATE-UID", folder="11913"):
 
 
 class InventoryReviewTests(unittest.TestCase):
+    def conversion_fixture(self, root):
+        info = root / ".heudiconv/11913/ses-01/info"
+        info.mkdir(parents=True)
+        template = ("sub-{subject}/{session}/func/sub-{subject}_{session}_"
+                    "task-sharedreward_run-{item:d}_part-mag_bold")
+        table = {(template, ("nii.gz",), None): ["25-shared", "29-shared"]}
+        edit = info / "11913_ses-01.edit.txt"
+        edit.write_text(repr(table))
+        seqfile = info / "dicominfo_ses-01.tsv"
+        with seqfile.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, delimiter="\t", fieldnames=["series_id", "series_uid", "series_files"])
+            writer.writeheader()
+            writer.writerows([{"series_id": "25-shared", "series_uid": "PRIVATE-UID", "series_files": 2},
+                              {"series_id": "29-shared", "series_uid": "PRIVATE-RUN2", "series_files": 1}])
+        filegroup = info / "filegroup_ses-01.json"
+        filegroup.write_text(json.dumps({"25-shared": ["PRIVATE-PATH/a", "PRIVATE-PATH/b"],
+                                        "29-shared": ["PRIVATE-PATH/c"]}))
+        return edit, seqfile, filegroup
+
+    def test_conversion_provenance_disambiguates_same_series_number(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.conversion_fixture(root)
+            sources = [series(), series("OTHER-UID", "11923"), series("PRIVATE-RUN2")]
+            status, matches, bad, hashes = review.conversion_match(root, "11913", "1", {"SeriesNumber": 25}, sources)
+            self.assertEqual(status, "PROVENANCE_UID_LINKED")
+            self.assertEqual(matches[0]["series_uid"], "PRIVATE-UID")
+            self.assertFalse(bad)
+            self.assertEqual(len(hashes), 3)
+            self.assertEqual(review.conversion_match(root, "11913", "2", {}, sources)[1][0]["series_uid"], "PRIVATE-RUN2")
+
+    def test_provenance_never_falls_back_to_auto_or_executes_code(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            edit, _, _ = self.conversion_fixture(root)
+            edit.rename(edit.with_name("11913_ses-01.auto.txt"))
+            self.assertEqual(review.conversion_match(root, "11913", "1", {}, [series()])[0], "PROVENANCE_MISSING")
+            marker = root / "should-not-exist"
+            edit.write_text(f"__import__('pathlib').Path({str(marker)!r}).touch()")
+            self.assertEqual(review.conversion_match(root, "11913", "1", {}, [series()])[0], "PROVENANCE_INVALID")
+            self.assertFalse(marker.exists())
+
+    def test_provenance_conflicts_and_duplicate_output_fail_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            edit, _, filegroup = self.conversion_fixture(root)
+            self.assertEqual(review.conversion_match(root, "11913", "1", {"SeriesInstanceUID": "OTHER"}, [series()])[0],
+                             "PROVENANCE_SIDECAR_UID_CONFLICT")
+            filegroup.write_text('{"25-shared": ["PRIVATE-PATH/a"]}')
+            self.assertEqual(review.conversion_match(root, "11913", "1", {}, [series()])[0], "PROVENANCE_FILECOUNT_CONFLICT")
+            edit.write_text(repr({("sub-{subject}/{session}/func/sub-{subject}_{session}_task-sharedreward_run-1_part-mag_bold",
+                                  ("nii.gz",), None): ["25-shared", "29-shared"]}))
+            self.assertEqual(review.conversion_match(root, "11913", "1", {}, [series()])[0], "PROVENANCE_OUTPUT_NOT_UNIQUE")
+
+    def test_integrated_provenance_report_is_private_and_read_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.conversion_fixture(root)
+            name = review.stem("11913", "1")
+            func = root / "sub-11913/ses-01/func"
+            func.mkdir(parents=True)
+            path = func / (name + ".json")
+            meta = {"SeriesNumber": 25}
+            path.write_text(json.dumps(meta))
+            (func / (name + ".nii.gz")).write_bytes(b"unchanged-test-image")
+            inventory = {"series": [series(), series("OTHER-UID", "11923")],
+                         "header_errors": [], "missing": [],
+                         "bids_sidecars": [{"path": str(path), "metadata": meta}]}
+            before = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}
+            with patch.object(review, "EXPECTED", (("11913", "1"),)):
+                report, result = review.review(inventory, root, True)
+            self.assertEqual(result, 0)
+            self.assertIn("PROVENANCE_UID_LINKED", report)
+            self.assertIn("Exact UID links: 1/1", report)
+            self.assertNotIn("PRIVATE", report)
+            self.assertNotIn(str(root), report)
+            for p, data in before.items():
+                self.assertEqual(p.read_bytes(), data)
+
     def test_unique_metadata_candidate_is_not_proof(self):
         status, matches, _ = review.source_match({"SeriesNumber": 25}, [series()])
         self.assertEqual(status, "CANDIDATE_ONLY")

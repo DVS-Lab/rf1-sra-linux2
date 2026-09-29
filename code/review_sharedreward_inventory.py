@@ -7,6 +7,8 @@ approval. A unique metadata candidate is not an exact source-series link.
 from __future__ import annotations
 
 import argparse
+import ast
+import csv
 import hashlib
 import json
 from pathlib import Path
@@ -17,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED = (("10668", "1"), ("11913", "1"), ("11913", "2"),
             ("11923", "1"), ("11923", "2"))
 CONSTRAINTS = ("SeriesNumber", "ProtocolName", "SeriesDescription")
+LINKED = {"UID_LINKED", "PROVENANCE_UID_LINKED"}
 
 
 def stem(subject, run):
@@ -68,14 +71,89 @@ def safe_series(series):
     return "folders=" + ",".join(sorted(folders)) + ";series=" + ",".join(sorted(numbers))
 
 
-def review(inventory, bids_root):
+def conversion_match(bids_root, subject, run, metadata, series):
+    """Follow the saved edit table, not today's heuristic or list ordering guesses.
+
+    HeuDiConv 1.4.0 conversion_info uses the outer item's one-based position
+    as `item`; echoes are added to output names later by the converter.
+    Parse literal records only: never import/execute the saved heuristic.
+    """
+    info = bids_root / ".heudiconv" / subject / "ses-01" / "info"
+    files = {"edit": info / f"{subject}_ses-01.edit.txt",
+             "seqinfo": info / "dicominfo_ses-01.tsv",
+             "filegroup": info / "filegroup_ses-01.json"}
+    hashes = {name: hashlib.sha256(path.read_bytes()).hexdigest()
+              for name, path in files.items() if path.is_file()}
+    if len(hashes) != len(files):
+        return "PROVENANCE_MISSING", [], [], hashes
+    try:
+        table = ast.literal_eval(files["edit"].read_text())
+        filegroup = json.loads(files["filegroup"].read_text())
+        with files["seqinfo"].open(newline="") as handle:
+            reader = csv.DictReader(handle, delimiter="\t")
+            if not {"series_id", "series_uid"}.issubset(reader.fieldnames or []):
+                return "PROVENANCE_COLUMNS_MISSING", [], [], hashes
+            seqinfo = list(reader)
+        expected = f"sub-{subject}/ses-01/func/" + stem(subject, run)
+        prefixes = {expected, expected.replace("_echo-1", "")}
+        selected = []
+        for key, items in table.items():
+            if not isinstance(key, tuple) or len(key) < 2:
+                raise ValueError("unsupported conversion key")
+            template, outtypes = key[:2]
+            if "task-sharedreward" not in template or "nii.gz" not in outtypes:
+                continue
+            for index, group in enumerate(items, 1):
+                group = group if isinstance(group, list) else [group]
+                for subindex, item in enumerate(group, 1):
+                    parameters = dict(item) if isinstance(item, dict) else {}
+                    seqid = parameters.pop("item") if parameters else item
+                    parameters.update(item=index, subject=subject, seqitem=seqid,
+                                      subindex=subindex, session="ses-01",
+                                      bids_subject_session_prefix=f"sub-{subject}_ses-01",
+                                      bids_subject_session_dir=f"sub-{subject}/ses-01")
+                    if template.format(**parameters) in prefixes:
+                        selected.append(str(seqid))
+        if len(selected) != 1:
+            return "PROVENANCE_OUTPUT_NOT_UNIQUE", [], [], hashes
+        seqid = selected[0]
+        rows = [r for r in seqinfo if r["series_id"] == seqid]
+        if len(rows) != 1 or rows[0]["series_uid"] in ("", "None", "n/a"):
+            return "PROVENANCE_SEQUENCE_NOT_UNIQUE", [], [], hashes
+        group = filegroup.get(seqid)
+        if not isinstance(group, list) or not group or not all(isinstance(p, str) for p in group):
+            return "PROVENANCE_FILEGROUP_MISSING", [], [], hashes
+        count = rows[0].get("series_files")
+        if count and int(count) != len(group):
+            return "PROVENANCE_FILECOUNT_CONFLICT", [], [], hashes
+        uid = rows[0]["series_uid"]
+        if metadata.get("SeriesInstanceUID") and metadata["SeriesInstanceUID"] != uid:
+            return "PROVENANCE_SIDECAR_UID_CONFLICT", [], [], hashes
+        status, matches, bad = source_match({**metadata, "SeriesInstanceUID": uid}, series)
+        if status == "UID_LINKED":
+            # Identity-bearing conversion metadata must agree with the raw
+            # inventory too. Do not publish any of the compared values.
+            for seqkey, rawkey in (("patient_id", "PatientID"),
+                                   ("protocol_name", "ProtocolName"),
+                                   ("series_description", "SeriesDescription")):
+                value = rows[0].get(seqkey)
+                values = matches[0]["fields"].get(rawkey, [])
+                if value and values and value not in values:
+                    bad.append(rawkey)
+            status = "PROVENANCE_METADATA_CONFLICT" if bad else "PROVENANCE_UID_LINKED"
+        return status, matches, bad, hashes
+    except (ValueError, SyntaxError, TypeError, KeyError, AttributeError):
+        return "PROVENANCE_INVALID", [], [], hashes
+
+
+def review(inventory, bids_root, use_conversion_provenance=False):
     lines = ["# Shared Reward saved-inventory source-link review", "",
              "Read-only metadata linkage, NOT source-validity or participant-identity approval.",
              "Only unchanged live BIDS sidecars are compared with the saved inventory.",
              "No shifted BIDS dates, commit times, durations, or behavioral quality are used to assign sources.",
              "", "subject | run | status | source candidates | conflicting fields",
              "---|---|---|---|---"]
-    rows = []
+    rows, provenance = [], {}
     for subject, run in EXPECTED:
         name = stem(subject, run)
         saved = [row for row in inventory["bids_sidecars"]
@@ -93,21 +171,31 @@ def review(inventory, bids_root):
                 status = "SIDECAR_CHANGED"
             else:
                 status, candidates, bad = source_match(metadata, inventory["series"])
+                if use_conversion_provenance:
+                    status, candidates, bad, hashes = conversion_match(
+                        bids_root, subject, run, metadata, inventory["series"])
+                    provenance[subject] = hashes
         rows.append((subject, run, status, candidates, bad))
     linked_uids = [candidates[0]["series_uid"] for _, _, status, candidates, _ in rows
-                   if status == "UID_LINKED"]
+                   if status in LINKED]
     unresolved = 0
     for subject, run, status, candidates, bad in rows:
-        if status == "UID_LINKED" and linked_uids.count(candidates[0]["series_uid"]) > 1:
+        if status in LINKED and linked_uids.count(candidates[0]["series_uid"]) > 1:
             status = "SOURCE_REUSED"
-        unresolved += status != "UID_LINKED"
+        unresolved += status not in LINKED
         lines.append(f"{subject} | {run} | {status} | " +
                      " / ".join(safe_series(s) for s in candidates) +
                      " | " + ",".join(bad))
+    if provenance:
+        lines += ["", "## Conversion-record SHA256 (raw content stays private)"]
+        for subject, hashes in sorted(provenance.items()):
+            lines += [f"sub-{subject} {kind}: {digest}" for kind, digest in sorted(hashes.items())]
     incomplete = bool(inventory["header_errors"] or inventory["missing"])
     lines += ["", f"Exact UID links: {len(EXPECTED) - unresolved}/{len(EXPECTED)}.",
               f"Saved inventory incomplete: {'yes' if incomplete else 'no'}.",
               "CANDIDATE_ONLY needs independent conversion provenance; series numbers and protocol labels are not globally unique.",
+              "PROVENANCE_UID_LINKED follows saved edit-table output -> seqinfo UID -> raw inventory, with a populated filegroup and unchanged sidecar.",
+              "This validates recorded conversion provenance, not NIfTI pixel identity or correctness of historical scanner registration.",
               "An exact UID link identifies scanner series, not whether the correct participant was registered.",
               "10668 behavioral synchronization and 10657 run-2 name correction remain separate human facts.",
               "The historical 11913/11923 note is not adjudicated automatically by this report.",
@@ -119,10 +207,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--bids-root", type=Path, default=ROOT / "bids")
+    parser.add_argument("--conversion-provenance", action="store_true",
+                        help="Also follow saved HeuDiConv edit/seqinfo/filegroup records")
     args = parser.parse_args(argv)
     try:
         raw = args.inventory.read_bytes()
-        report, result = review(json.loads(raw), args.bids_root)
+        report, result = review(json.loads(raw), args.bids_root, args.conversion_provenance)
         print("Inventory SHA256: " + hashlib.sha256(raw).hexdigest())
         print(report, end="")
         print("REVIEW REQUIRED: source-link evidence incomplete." if result else

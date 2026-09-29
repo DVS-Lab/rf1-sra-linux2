@@ -102,6 +102,14 @@ not agree without documented synchronization.
 
 ## Review the existing inventory on Linux2
 
+The [September 29 sidecar-only review](../logs/records/20260929-010049_sharedreward-source-links-20260929-010049.md)
+completed with exit 1: all five live sidecars were unchanged and the saved
+inventory was complete, but no exact UID links were available. The matching
+series numbers were 14 for `10668`, 25/29 for `11913`, and 25/33 for `11923`.
+Both series-25 entries satisfy the same limited sidecar constraints. This is
+an evidence limitation, not evidence that data were swapped or a new processing
+failure. It is not a new lab question.
+
 Do not recollect the DICOM headers. The new standard-library-only reviewer
 consumes the existing private JSON and checks that the live canonical BIDS
 sidecars still match its snapshot. It searches all inventoried source folders,
@@ -116,20 +124,32 @@ bash code/run_logged.sh \
   --label "sharedreward-source-links-$(date +%Y%m%d-%H%M%S)" \
   --include-full-log -- \
   python3 code/review_sharedreward_inventory.py \
-    --inventory work/sharedreward-source-validity-20260916-000438/inventory.json
+    --inventory work/sharedreward-source-validity-20260916-000438/inventory.json \
+    --conversion-provenance
 ```
 
 This is a short metadata-only check; no `nohup` or imaging rerun is needed.
 Share only its redacted `logs/records/` record, never the private JSON.
-Exit 0 means all five Shared Reward echo-1 metadata records link by exact
-series UID with no observed metadata conflict, not that the three source-validity
-items are approved. Exit 1 records unresolved links/incomplete evidence, not a
+With `--conversion-provenance`, the reviewer follows the saved
+`.heudiconv/<subject>/ses-01/info/<subject>_ses-01.edit.txt` output assignment
+to `dicominfo_ses-01.tsv`'s `series_uid`, then to the existing raw inventory.
+It requires the selected sequence's populated `filegroup_ses-01.json` entry,
+checks its count against `series_files` when present, and compares available
+sidecar/conversion metadata with the source inventory. All three record hashes
+are printed; no raw contents are printed. The saved heuristic is never executed,
+and `.auto.txt` is not silently substituted for the effective edit table.
+This follows the [HeuDiConv 1.4.0 conversion-table contract](https://github.com/nipy/heudiconv/blob/v1.4.0/heudiconv/convert.py).
+
+Exit 0 means all five Shared Reward echo-1 records have consistent recorded
+UID links, not that the three source-validity items are approved or NIfTI pixel
+identity has been independently proven. Exit 1 records unresolved links/incomplete evidence, not a
 new preprocessing failure. Exit 2 means the review could not run.
 
-If BIDS did not retain `SeriesInstanceUID`, the report shows candidates from
-available series-number/protocol metadata without promoting them to exact
-links. Next inspect the saved HeuDiConv conversion provenance and private
-inventory on Linux2; do not ask the lab to redo source review merely because
+Without the new flag, sidecars lacking `SeriesInstanceUID` still produce
+candidates, never exact links. With the flag, `PROVENANCE_UID_LINKED` identifies
+the recorded conversion chain. Missing/unsupported conversion records remain
+unresolved instead of falling back to a candidate. Inspect those records
+privately on Linux2; do not ask the lab to redo source review merely because
 a UID was omitted from a sidecar. Changed/missing sidecars require engineering
 reconciliation with the current conversion before using the snapshot.
 

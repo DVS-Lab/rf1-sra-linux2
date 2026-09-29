@@ -178,10 +178,12 @@ DICOM series, BIDS run labels and behavioral segments for the scoped 10668 and
 `work/`; redacted stdout can be captured by `run_logged.sh`. It makes no source,
 cohort or QC changes. See [instructions and decision scope](../docs/sharedreward-source-validity.md).
 The September 16 inventory is already collected. Use
-`review_sharedreward_inventory.py --inventory ../work/sharedreward-source-validity-20260916-000438/inventory.json`
+`review_sharedreward_inventory.py --inventory ../work/sharedreward-source-validity-20260916-000438/inventory.json --conversion-provenance`
 for the metadata-link follow-up, not another DICOM rescan. It checks the saved
 snapshot against live BIDS sidecars and distinguishes exact UID links from
-unproven candidates. Exit 1 means unresolved source-link evidence; it does not
+unproven candidates. The provenance flag follows saved HeuDiConv edit-table
+assignments through seqinfo series UIDs to the existing raw inventory, without
+executing the saved heuristic. Exit 1 means unresolved source-link evidence; it does not
 authorize a repair or establish a preprocessing failure.
 - Status: Production helper.
 - Purpose: Validate reviewed supplemental DICOM folders and stage a temporary combined scan view for one BIDS session.
