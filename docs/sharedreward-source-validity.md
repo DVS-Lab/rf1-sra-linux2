@@ -7,6 +7,30 @@ This note narrows the Shared Reward items in
 [historical-tracker-reconciliation.md](historical-tracker-reconciliation.md).
 Historical working workbooks are evidence, not an executable exclusion list.
 
+## Active handoff scope, 2026-09-29
+
+This Shared Reward cleanup has exactly three items: `10657` run-2 name
+correction, `10668` behavioral-attempt synchronization, and the engineering
+source-link closeout for `11913`/`11923`. Demographics/preflight is complete.
+The separate Trust, Doors and UGR recovery/validity backlogs retain their
+existing Linux2 status; they are not part of this team request. Do not request
+another lab review of them through the Shared Reward handoff. Data quality,
+including mask coverage, is a later task-level stage.
+
+The only immediate human question is: **For 10657, was the displayed friend
+name corrected before Shared Reward run 2?** Run 1's displayed-name error and
+the agreed exclusion are established. Retain run 2 conditional on that answer;
+do not reopen photograph identity or infer a Trust exclusion.
+
+For `10668`, use the existing inventory and source chronology first. If these
+cannot identify the synchronized attempt, ask only which of the two attempts
+accompanied the one Shared Reward acquisition. The historical blanket
+Trust-plus-Shared-Reward exclusion is not the current decision.
+
+For `11913`/`11923`, finish the source-series linkage below on our side before
+escalating anything to the team. Neither successful inventory collection nor
+unique folder/protocol labels close participant identity by themselves.
+
 **Collection completed 2026-09-16:** the
 [run record](../logs/records/20260916-000438_sharedreward-source-validity-20260916-000438.md)
 contains the redacted inventory. See the [September 27 closeout](audit-status-20260927.md)
@@ -42,6 +66,11 @@ later split first/second segments into raw run-1/run-2 filenames, preserving a
 first segment for BIDS Shared Reward run 1. Current BIDS/QC inventories show
 one Shared Reward BOLD run, not two. Filename labeling does not prove the match.
 
+September 29 local history recheck confirmed that `3f530e1e8` introduced the
+run-2 filename during the later split, not during the acquisition. It adds no
+independent synchronization evidence. The completed September 16 inventory
+establishes one Shared Reward acquisition after two Trust-labeled acquisitions.
+
 The PI's intended chronological mapping is appropriate **if two corresponding
 acquisition episodes are established**: first attempt to first episode, second
 attempt to second episode. Check raw DICOMs, including the neighboring Trust
@@ -71,7 +100,59 @@ from BIDS `scans.tsv` dates. Do not compare those dates directly with raw DICOM
 dates as if they were both unmodified. Scanner/task-computer clocks also need
 not agree without documented synchronization.
 
-## Read-only collection on Linux2
+## Review the existing inventory on Linux2
+
+Do not recollect the DICOM headers. The new standard-library-only reviewer
+consumes the existing private JSON and checks that the live canonical BIDS
+sidecars still match its snapshot. It searches all inventoried source folders,
+not only the participant named in each BIDS path. It never chooses a behavioral
+attempt or changes data/eligibility. Raw identifiers and timestamps stay private.
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+git pull --ff-only origin main
+
+bash code/run_logged.sh \
+  --label "sharedreward-source-links-$(date +%Y%m%d-%H%M%S)" \
+  --include-full-log -- \
+  python3 code/review_sharedreward_inventory.py \
+    --inventory work/sharedreward-source-validity-20260916-000438/inventory.json
+```
+
+This is a short metadata-only check; no `nohup` or imaging rerun is needed.
+Share only its redacted `logs/records/` record, never the private JSON.
+Exit 0 means all five Shared Reward echo-1 metadata records link by exact
+series UID with no observed metadata conflict, not that the three source-validity
+items are approved. Exit 1 records unresolved links/incomplete evidence, not a
+new preprocessing failure. Exit 2 means the review could not run.
+
+If BIDS did not retain `SeriesInstanceUID`, the report shows candidates from
+available series-number/protocol metadata without promoting them to exact
+links. Next inspect the saved HeuDiConv conversion provenance and private
+inventory on Linux2; do not ask the lab to redo source review merely because
+a UID was omitted from a sidecar. Changed/missing sidecars require engineering
+reconciliation with the current conversion before using the snapshot.
+
+The September 16 chronology places the late repeated `11923` acquisitions in
+Trust run 2, not Shared Reward. This narrows the historical note's possible
+scope; it does not prove which episode the note described or clear an identity
+exception. Preserve that distinction in the final source-mapping receipt.
+
+## Technical work independent of the closeouts
+
+Continue code/contract validation and read-only completeness checks without
+changing models, preprocessing or QC policy. Local checks on September 29
+tested the pooled Shared Reward full-trial contrast definition, FSF rendering,
+EV generation and L2 runner separately from source-validity decisions. These
+tests do not certify live Linux2 outputs or approve a final analysis cohort.
+The current runner's environment-dependent test status is recorded in the
+local validation receipt. No scientific decision is inferred from tests.
+
+Keep the affected runs visibly unresolved when preparing downstream work;
+successful rendering or processing must not silently mark their sources valid.
+Unrelated technically valid inputs do not have to await these three closeouts.
+
+## Original read-only collection on Linux2 (already completed)
 
 `code/audit_sharedreward_sources.py` reads all DICOM headers (no pixels) under
 top-level source directories whose names match the three exact subject IDs.

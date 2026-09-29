@@ -8,14 +8,22 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
+**2026-09-29 handoff scope:** the active Shared Reward source-validity cleanup
+is limited to the three items in [sharedreward-source-validity.md](sharedreward-source-validity.md).
+All other RF1 backlog entries below retain their status but are not new lab
+requests in that handoff. Data-quality decisions, including mask coverage,
+follow validation and are not part of this cleanup.
+
 **2026-09-27 status:** [audit closeout](audit-status-20260927.md) distinguishes
 completed source collection from unresolved mapping, conditional decisions,
 and the newly confirmed participant-metadata handoff gap. The September 27
 Trust export passed structural certification for 647 runs across 343
 participants. Participant metadata recovery subsequently passed for 352 rows,
 including all 343 eligible Trust participants with zero missing age/sex.
-Downstream preflight still needs a retry with the Trust environment; its first
-attempt used base Conda and failed at package import.
+The [13:14 downstream preflight](../logs/records/20260927-131417_participants-trust-preflight-20260927-131417.md)
+also passed: canonical input paths and demographics coverage accepted, exit 0.
+The demographics/preflight blocker is closed; earlier failed attempts remain
+as historical troubleshooting evidence, not outstanding actions.
 Do not repeat the September 16 source inventory as though it never ran.
 
 Historical cohort-wide snapshot as of 2026-09-01 (not a new whole-cohort audit):

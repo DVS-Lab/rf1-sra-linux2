@@ -7,9 +7,15 @@ not establish stimulus identity or demographic coverage.
 
 ## Current Actions
 
+September 29 update: the active Shared Reward handoff is scoped to
+[three source-validity items](sharedreward-source-validity.md#active-handoff-scope-2026-09-29).
+The other RF1 backlog rows are not part of that team request. Data-quality
+adjudication, including acquisition/mask coverage, is deferred until after
+validation; the coverage row below is historical context, not a current ask.
+
 | Item | What is established | Smallest remaining action |
 | --- | --- | --- |
-| Participant demographics | Linux2 recovery and verification passed: 352 rows, zero missing age/sex, and coverage of all 343 eligible Trust participants. The first downstream attempt failed at package import under base Conda, before reading the export. | Retry only the [downstream preflight](../qc/participants/README.md#downstream-acceptance) with the documented `.venv-linux2/bin/python`; retain issue #1 until acceptance is verified. |
+| Participant demographics | Linux2 recovery and verification passed: 352 rows, zero missing age/sex, and coverage of all 343 eligible Trust participants. The September 27 13:14 downstream preflight also passed. | Closed; no new demographic recovery or preflight retry needed. |
 | `10657` Shared Reward | The September 15 follow-up establishes that the entered friend name was displayed. Ryan identifies run 1; PI agreement to exclude run 1 and retain run 2 remains conditional on run-2 correction. The old metadata-only hypothesis is superseded. | Team: confirm whether the name was corrected before run 2. Then record and propagate the approved run-specific decision. Do not infer a wrong photograph or a Trust exclusion. |
 | `10668` Shared Reward | The September 16 raw inventory contains two Trust-labeled acquisition episodes followed by one Shared Reward episode, and two complete behavioral attempts with the same run-1 design. | Team/source review: establish which behavioral attempt was synchronized with the Shared Reward acquisition, including whether the other attempt ran during a Trust-labeled acquisition. Current filename selection of the first segment is not independent evidence. |
 | `11913`/`11923` | The collected headers separate the two folders by study, patient-registration token, and acquisition-day token. Each contains two full Shared Reward acquisitions. Late repeated acquisitions in the `11923` inventory are Trust run 2. No mixed registration is evident in the published inventory. | Engineering: inspect the already-collected private JSON to link canonical BIDS images to exact source series and identify the scope of the historical registration note. No new blanket human question or Shared Reward exclusion is justified yet. |
@@ -73,9 +79,10 @@ QA-based exclusions are outside this repair.
 
 **Live recovery verified:** the September 27 13:07 installation/check both
 passed (352 rows; zero missing age/sex; all 343 eligible Trust participants
-covered). The 13:08 preflight failed only because base Conda Python could not
-import the Trust package. Retry with its explicit `.venv-linux2/bin/python` as
-shown in the recovery guide. Keep issue #1 open until that acceptance check passes.
+covered). The 13:08 preflight failed because base Conda Python could not import
+the Trust package. The [13:14 retry](../logs/records/20260927-131417_participants-trust-preflight-20260927-131417.md)
+using the Trust interpreter and current source passed canonical-path and
+demographics validation (exit 0). This blocker is closed.
 
 The pre-fix `code/prepdata.sh` creates a scratch BIDS dataset and invokes
 HeuDiConv there. Installation carries over the session tree, per-session
@@ -112,5 +119,5 @@ Recovery and prevention must handle these distinct requirements:
 The implemented recovery uses the same scanner-recorded fields saved by
 HeuDiConv, with baseline reference time and field definitions in the sidecar.
 This establishes provenance for the reconstructed scanner-demographic product,
-not independent validation against research records. Live restoration is now
-verified by the operator run; downstream preflight remains to be completed.
+not independent validation against research records. Live restoration and
+downstream preflight are both verified by the operator records.

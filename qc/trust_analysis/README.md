@@ -6,8 +6,9 @@ analysis directory. The Linux2 cohort export completed on 2026-09-27, certifying
 647 structurally valid runs across 343 participants. This certifies events/source
 QC, not demographics or final scientific eligibility. The separate participant
 recovery/check subsequently passed for 352 rows, including all 343 eligible
-Trust participants with no missing age/sex. Downstream preflight remains pending
-an environment-correct retry; see [participant acceptance](../participants/README.md),
+Trust participants with no missing age/sex. The downstream preflight subsequently
+passed on September 27 at 13:14; the metadata blocker is closed. See
+[participant acceptance](../participants/README.md),
 [the audit closeout](../../docs/audit-status-20260927.md), and
 [issue #1](https://github.com/DVS-Lab/rf1-sra-linux2/issues/1).
 

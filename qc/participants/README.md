@@ -64,15 +64,16 @@ cd /ZPOOL/data/projects/rf1-trust-socialvalue
 bash ../rf1-sra-linux2/code/run_logged.sh \
   --label "participants-trust-preflight-$(date +%Y%m%d-%H%M%S)" \
   --include-full-log -- \
+  env PYTHONPATH="$PWD/src" \
   "$PWD/.venv-linux2/bin/python" -m rf1_trust_socialvalue.full_sample preflight
 ```
 
 This writes the preflight evidence into upstream `logs/records/`, without
 freezing the cohort or launching models. After verification, the existing
 `bash scripts/run_full_sample_gate.sh` resumes the scientific integration gate.
-Issue #1 remains open until the Linux2 export, missingness report, and downstream
-preflight have been reviewed. Passing preflight does not establish later
-scientific/model parity checks.
+The export, missingness report and downstream preflight have now been verified;
+the participant-metadata blocker is closed. Passing preflight does not establish
+later scientific/model parity checks.
 
 ### Verified Recovery, 2026-09-27
 
@@ -85,9 +86,10 @@ issues. The exported TSV SHA-256 is
 
 The [first downstream preflight](../../logs/records/20260927-130812_participants-trust-preflight-20260927-130812.md)
 used base Conda Python and failed to import `rf1_trust_socialvalue`; it never
-reached demographic validation. Retry only the preflight with the interpreter
-above, preserving that failed log. No participant reconstruction or imaging/event
-conversion retry is indicated. Issue #1 remains open pending downstream acceptance.
+reached demographic validation. The [13:14 retry](../../logs/records/20260927-131417_participants-trust-preflight-20260927-131417.md)
+passed canonical input paths and demographics coverage (exit 0), using the
+Trust interpreter with `PYTHONPATH` pointing to current source. Preserve the
+earlier failed logs; no further reconstruction or preflight retry is needed.
 
 Commit only `qc/participants/` reports and the relevant `logs/records/` Markdown
 files. The TSV, sidecar, and backups stay in the ignored BIDS tree. Reports
