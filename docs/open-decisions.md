@@ -13,6 +13,12 @@ is limited to the three items in [sharedreward-source-validity.md](sharedreward-
 All other RF1 backlog entries below retain their status but are not new lab
 requests in that handoff. Data-quality decisions, including mask coverage,
 follow validation and are not part of this cleanup.
+The [01:11 conversion-provenance review](../logs/records/20260929-011103_sharedreward-conversion-links-20260929-011103.md)
+subsequently passed all five source links. The `11913`/`11923` recorded Shared
+Reward mapping step is complete, with no cross-folder assignment found; the
+historical note's exact referent remains unproven, not a new blanket lab ask.
+The Shared Reward human questions remain only `10657` run-2 name correction
+and `10668` behavioral-attempt synchronization.
 
 **2026-09-27 status:** [audit closeout](audit-status-20260927.md) distinguishes
 completed source collection from unresolved mapping, conditional decisions,

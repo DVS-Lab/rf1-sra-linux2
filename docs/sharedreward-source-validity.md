@@ -27,9 +27,13 @@ cannot identify the synchronized attempt, ask only which of the two attempts
 accompanied the one Shared Reward acquisition. The historical blanket
 Trust-plus-Shared-Reward exclusion is not the current decision.
 
-For `11913`/`11923`, finish the source-series linkage below on our side before
-escalating anything to the team. Neither successful inventory collection nor
-unique folder/protocol labels close participant identity by themselves.
+For `11913`/`11923`, the September 29 01:11 conversion-provenance check has now
+completed the recorded source-series linkage (see below). No cross-folder
+Shared Reward assignment or conflicting metadata was found. No new lab request,
+identity repair, or Shared Reward exclusion is indicated by this evidence.
+The exact referent of the historical registration note remains unproven; do
+not turn that limitation into another broad lab question or claim that scanner
+registration was independently verified against the participant.
 
 **Collection completed 2026-09-16:** the
 [run record](../logs/records/20260916-000438_sharedreward-source-validity-20260916-000438.md)
@@ -57,7 +61,7 @@ The separate accepted smoothing-tolerance exception for run 1 is unrelated.
 This pass records the decision but does not change generated manifests or the
 downstream curated exclusion table while that conditional scope is unresolved.
 
-## 10668: count raw acquisition episodes before assigning attempts
+## 10668: acquisition established, behavioral synchronization unresolved
 
 Private scan commit `8c3b66ea6` contains a single Shared Reward CSV with two
 54-trial segments. Both match the scheduled **run-1** design. Commit `3f530e1e8`
@@ -71,15 +75,12 @@ run-2 filename during the later split, not during the acquisition. It adds no
 independent synchronization evidence. The completed September 16 inventory
 establishes one Shared Reward acquisition after two Trust-labeled acquisitions.
 
-The PI's intended chronological mapping is appropriate **if two corresponding
-acquisition episodes are established**: first attempt to first episode, second
-attempt to second episode. Check raw DICOMs, including the neighboring Trust
-series, rather than trusting BIDS labels. One or three episodes, an aborted
-acquisition, a rerun, a task running on the wrong computer, or a missing BIDS
-conversion requires explicit reconstruction; do not silently discard an attempt
-or renumber sources. Multi-echo magnitude, phase, repeated copies and SBRefs
-must not inflate the acquisition count. Conversely, do not hide a genuine
-repeat by merging equal protocol names or series numbers across studies.
+The earlier conditional two-acquisition mapping does not apply: the existing
+inventory establishes one Shared Reward acquisition, and the September 29
+conversion records link canonical run 1 to its magnitude series 14. Do not
+repeat episode counting or treat phase/echo/SBRef files as another acquisition.
+Neither the recorded imaging link nor the later behavioral filename split
+identifies which of the two attempts was synchronized with that scan.
 
 Ryan reports that Shared Reward run 1 followed the error. His proposed detailed
 sequence is interpretation, not a confirmed mapping. The CSVs have relative
@@ -90,10 +91,42 @@ mapping; if synchronization evidence is absent, request that precise fact only.
 ## 11913/11923: source identity, not a presumed task failure
 
 The operational tracker reports late `11923` scans registered as `11913`, but
-does not identify which tasks were affected. Compare both source-folder trees,
-study/series identities, patient-registration consistency, acquisition dates,
-series order and behavioral visit context. Do not change BIDS identities or
-exclude either subject on the tracker alone.
+does not identify which tasks were affected. The collected source inventory and
+saved conversion records have now been compared; do not change BIDS identities
+or exclude either subject on the tracker alone.
+
+### Verified conversion links, 2026-09-29
+
+The [01:11 Linux2 review](../logs/records/20260929-011103_sharedreward-conversion-links-20260929-011103.md)
+exited 0 with **5/5 PROVENANCE_UID_LINKED** and no conflicting metadata:
+
+| Canonical Shared Reward run | Recorded source folder | Magnitude series |
+| --- | --- | --- |
+| `10668` run 1 | `10668` | 14 |
+| `11913` run 1 | `11913` | 25 |
+| `11913` run 2 | `11913` | 29 |
+| `11923` run 1 | `11923` | 25 |
+| `11923` run 2 | `11923` | 33 |
+
+The two series numbered 25 are distinct UID-backed records, not one ambiguous
+source reused between participants. The check used unchanged live sidecars,
+effective saved edit-table assignments, sequence UIDs and populated filegroups;
+all three conversion-record hashes per subject are in the receipt. Inventory
+SHA-256: `f4cd81016314c9cef0df705ed3f875741e02678f2f59cebb939d96b4bc42fac0`.
+
+This completes the recorded Shared Reward source-link engineering step. The
+September 16 chronology places the late repeated `11923` acquisitions in
+Trust run 2, not Shared Reward. That is consistent with a narrower scope for
+the old note, but does not establish precisely which scans the note described
+or whether registration was corrected before export. Record this limitation;
+do not assert that the historical note was disproved or proven to concern Trust.
+No Shared Reward swap/correction is supported by the inspected records, and no
+new lab escalation is warranted solely by the former series-number ambiguity.
+
+These are recorded conversion links, not a pixel-wise reconversion comparison
+or independent participant-registration proof. No data or eligibility was
+changed. The remaining human facts for this handoff are the `10657` run-2 name
+correction and the `10668` synchronized behavioral attempt.
 
 **Important:** `prepdata.sh` calls `shiftdates.py`, which subtracts 1,200 months
 from BIDS `scans.tsv` dates. Do not compare those dates directly with raw DICOM
@@ -101,6 +134,9 @@ dates as if they were both unmodified. Scanner/task-computer clocks also need
 not agree without documented synchronization.
 
 ## Review the existing inventory on Linux2
+
+**Completed successfully at 01:11 on September 29.** Commands below are retained
+for reproducibility, not a request to run the same check again.
 
 The [September 29 sidecar-only review](../logs/records/20260929-010049_sharedreward-source-links-20260929-010049.md)
 completed with exit 1: all five live sidecars were unchanged and the saved
