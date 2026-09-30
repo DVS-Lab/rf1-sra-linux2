@@ -2,7 +2,9 @@
 
 The PI-approved interpretation and behavioral hashes are in
 [10668-task-reconstruction.md](10668-task-reconstruction.md). The script is
-implemented and synthetically tested; **the live Linux2 repair has not yet run**.
+implemented and synthetically tested. **The September 30 live repair and
+processing completed through confound generation; final validation is pending.**
+See the validation-only recovery below; do not repeat the acquisition swap.
 
 ## Scope
 
@@ -132,11 +134,51 @@ the private inventory with acquisition provenance for future regeneration.
 
 ## Completion and handoff
 
-The final success message is:
+### September 30 live status and validation-only recovery
+
+The [live run record](../logs/records/20260930-003132_10668-reviewed-rebuild-20260930-003132.md)
+confirms the BIDS installation and backup checks, BIDS/events, WarpKit, MRIQC,
+fMRIPrep, geometry (2761 files, zero findings), and TEDANA (six runs) passed.
+Combined confounds were generated for all six runs. The final product checker
+then failed: it incorrectly used a header-reading parser for the headerless FSL
+`desc-TedanaPlusConfounds.tsv` matrix, losing its first data row in the count.
+The correction explicitly distinguishes headered fMRIPrep/TEDANA tables from
+headerless FSL matrices and reports observed counts. Synthetic tests include
+the production confound writer and reject genuinely short/long or ragged tables.
+The log's summary quotes an intermediate TEDANA pass; its command exit is 1,
+so that summary is not evidence that the entire runner passed.
+
+Only validation remains for this run; do not repeat preprocessing or TEDANA.
+The following read-only checks must both pass before the downstream refresh:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+git pull --ff-only
+PY=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+bash code/run_logged.sh \
+  --label "10668-final-validation-$(date +%Y%m%d-%H%M%S)" \
+  --include-full-log -- \
+  "$PY" code/repair_10668.py check-products \
+    --inventory work/sharedreward-source-validity-20260916-000438/inventory.json \
+    --behavior-root /ZPOOL/data/projects/rf1-sra/stimuli \
+  --check "$PY" code/check_events.py \
+    --subject 10668 --session 01 \
+    --behavior-root /ZPOOL/data/projects/rf1-sra/stimuli --quiet-ok
+```
+
+Expect both Shared Reward runs to report 255 data rows for each of their three
+confound tables, followed by the product-alignment and events passes. Actual
+Linux2 counts remain to be verified; no data rows were changed by this fix.
+
+For an uninterrupted full rebuild, the runner's final success message is:
 
 ```text
 CHECK PASSED: 10668 rebuild complete. Refresh cohort QC/analysis manifests before downstream analysis.
 ```
+
+The validation-only recovery instead records the product and events passes with
+`COMMAND EXIT: 0` and `CHECK EXIT: 0`; it does not rerun the full runner merely to
+emit that message.
 
 Share the new `logs/records/*10668*.md` record, not the private archive or inventory.
 Then refresh the cohort run QC/response-QC products and Shared Reward input/cohort

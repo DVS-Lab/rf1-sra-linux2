@@ -11,8 +11,10 @@ Historical working workbooks are evidence, not an executable exclusion list.
 
 The three Shared Reward source-validity decisions are settled: `10657` run
 disposition, the PI-approved `10668` reconstruction, and the recorded source
-links for `11913`/`11923`. Implementation and Linux2 verification of the first
-two remain pending; they are no longer requests for repeated lab review.
+links for `11913`/`11923`. The 10657 exclusion is configured downstream;
+10668 was repaired and rebuilt through confound generation on September 30.
+Final 10668 validation and downstream manifest refresh remain pending; these
+are no longer requests for repeated lab review.
 Demographics/preflight is complete and GitHub issue #1 is closed.
 The separate Trust, Doors and UGR recovery/validity backlogs retain their
 existing Linux2 status; they are not part of this team request. Do not request
@@ -48,7 +50,7 @@ contains the redacted inventory. See the [September 27 closeout](audit-status-20
 for its interpretation and remaining actions. The collection commands below
 are retained for reproducibility, not a request to repeat the completed run.
 
-## 10657: reviewed run disposition; implementation pending
+## 10657: reviewed run disposition; downstream manifest refresh pending
 
 Ryan's supplied reply reports that the session notes identify **Shared Reward
 run 1 only** as incorrectly collected because the friend name was wrong. The
@@ -70,7 +72,7 @@ run-1-only disposition, with a regression test preserving run-2 scope. Generated
 Linux2 analysis manifests still need refresh. Do not describe a configuration
 edit as a completed downstream analysis rebuild.
 
-## 10668: PI-approved reconstruction; implementation pending
+## 10668: PI-approved reconstruction applied; final validation pending
 
 Private scan commit `8c3b66ea6` contains a single Shared Reward CSV with two
 54-trial segments. Both match the scheduled **run-1** design. Commit `3f530e1e8`
@@ -94,9 +96,11 @@ Original append order supports A before B. The PI accepted residual historical
 display/trigger uncertainty after Ryan's clarification; do not present that
 uncertainty as an outstanding lab request. The existing series-14/A event pairing
 needs correction as well as recovery of the other Shared Reward episode.
-No reassignment has been applied yet.
-The tested, dry-run-first implementation and rebuild commands are in the
-[10668 repair runbook](10668-repair-runbook.md); live execution remains pending.
+The September 30 live run applied the reassignment, preserved originals and
+passed processing through TEDANA, then generated confounds. The final alignment
+checker incorrectly treated a headerless FSL matrix as headered. The corrected
+checker and final events check must pass before refreshing downstream manifests;
+see the validation-only commands in the [10668 repair runbook](10668-repair-runbook.md).
 
 Ryan's follow-up still interprets the ambiguous phrase about rerunning Trust,
 but explicitly supports relabeling the second Trust scan as Shared Reward run 1.
@@ -228,7 +232,7 @@ local validation receipt. No scientific decision is inferred from tests.
 Keep the affected runs visibly pending repair/verification when preparing
 downstream work; successful rendering must not silently substitute for the
 approved remapping or run-1 exclusion. The human decisions are settled, but
-their implementation is not. Unrelated technically valid inputs can proceed.
+final verification and downstream refresh are not. Unrelated technically valid inputs can proceed.
 
 ## Original read-only collection on Linux2 (already completed)
 

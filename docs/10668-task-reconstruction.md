@@ -1,11 +1,14 @@
 # 10668: presented-task reconstruction, 2026-09-29
 
-**PI-approved reconstruction; repair not yet applied.** After Ryan's clarification
+**PI-approved reconstruction; repair applied September 30; final validation pending.** After Ryan's clarification
 and the PI's acceptance in the supplied Slack exchange, the source-validity
 decision is settled. This is a reviewed historical interpretation, not an
 independent timestamp proof. Scanner protocol labels describe the selected
 sequence, not necessarily the stimulus displayed in this cross-computer incident.
-No live data, event mappings, eligibility or trimming changed in this documentation pass.
+The original September 29 documentation pass changed no live data. The September
+30 run subsequently installed the reviewed repair and rebuilt derivatives through
+confound generation. A headerless-table counting bug stopped the final checker;
+use the [validation-only recovery](10668-repair-runbook.md#september-30-live-status-and-validation-only-recovery).
 
 ## Approved reconstruction
 
@@ -98,7 +101,8 @@ all three episodes have TR approximately **1.615 s**, four echoes at
 The scan durations are **452.200 s** (280 volumes) and **411.825 s** (255).
 Their duration difference is **40.375 s**, exactly 25 TRs.
 
-Full imaging-parameter identity is **not yet established locally**. Native
+At the original September 29 review, full imaging-parameter identity was **not
+yet established locally**. Native
 matrix/voxel geometry, orientation, slice timing, flip angle, acceleration,
 readout and phase-encoding details are not all in the tracked subject-level
 tables. Matching the MNI output grid would not prove those acquisition settings
@@ -106,6 +110,11 @@ were identical. The existing private inventory includes all three runs' BIDS
 sidecars; compare it without collecting DICOMs again. The optional audit below
 reports equality/difference/missingness for a whitelist, never raw identifiers.
 Native image geometry still needs live NIfTI headers if absent from sidecars.
+
+September 30 update: the live repair validated matching native geometry and the
+guarded acquisition parameters. Both runs have 51 slice timings spanning 0-1.5 s;
+their maximum timing difference is 0.0025 s. They are not identical timing arrays:
+each acquisition retains its own array for its separate preprocessing workflow.
 
 ## Actual task-design test: no trimming required for estimability
 
@@ -160,8 +169,9 @@ attempts used the scheduled run-1 design; do not relabel the second attempt's
 experimental design as the scheduled run-2 design.
 
 The implementation is available in the [Linux2 runbook](10668-repair-runbook.md).
-It has synthetic tests; live application/rebuild and the following checks remain
-pending until Linux2 produces the success record:
+It has synthetic tests. The checklist below describes the complete repair scope;
+the September 30 run completed application and processing, with final alignment
+and post-rebuild events validation still pending as described above:
 
 - Verify exact source identities, behavioral hashes, image lengths and native
   acquisition parameters before writing; the saved sidecar comparison below

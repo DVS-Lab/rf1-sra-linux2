@@ -13,6 +13,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
 import repair_10668 as r
+import genTedanaConfounds as confounds
 
 
 def image(path, n, value):
@@ -213,6 +214,44 @@ class RepairTests(unittest.TestCase):
             r.write_json(root / "derivatives/source_repairs" / r.ID / "receipt.json", {"status": "installing"})
             with self.assertRaises(r.RepairError):
                 r.apply_live(root, root, root, True)
+
+    def test_products_count_headerless_fsl_matrix_without_losing_first_volume(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            tables = []
+            for run in (1, 2):
+                stem = f"{r.PREFIX}task-sharedreward_run-{run}"
+                func = root / "derivatives/fmriprep" / r.SESSION / "func"
+                tedana = root / "derivatives/tedana" / r.SESSION
+                func.mkdir(parents=True, exist_ok=True)
+                tedana.mkdir(parents=True, exist_ok=True)
+                for echo in range(1, 5):
+                    image(func / f"{stem}_echo-{echo}_part-mag_desc-preproc_bold.nii.gz", 255, 1)
+                image(func / f"{stem}_part-mag_space-MNI152NLin6Asym_desc-preproc_bold.nii.gz", 255, 1)
+                image(tedana / f"{stem}_desc-denoised_bold.nii.gz", 255, 1)
+                for parent, suffix in ((func, "_part-mag_desc-confounds_timeseries.tsv"),
+                                       (tedana, "_desc-ICA_mixing.tsv")):
+                    path = parent / (stem + suffix)
+                    path.write_text("a\tb\n" + "0\t1\n" * 255)
+                    tables.append((path, True))
+                path = root / "derivatives/fsl/confounds_tedana/sub-10668" / f"{stem}_desc-TedanaPlusConfounds.tsv"
+                confounds.atomic_write_tsv(confounds.pd.DataFrame({"a": range(255), "b": range(255)}), path)
+                tables.append((path, False))
+            with patch.object(r, "check_session"), redirect_stdout(io.StringIO()) as output:
+                r.check_products(root)
+                self.assertIn("255 data rows; header=False", output.getvalue())
+                for path, header in tables:
+                    original = path.read_text()
+                    for count in (254, 256):
+                        with self.subTest(path=path.name, count=count):
+                            path.write_text(("a\tb\n" if header else "") + "0\t1\n" * count)
+                            with self.assertRaisesRegex(r.RepairError, f"expected 255, found {count}"):
+                                r.check_products(root)
+                    path.write_text(original)
+                path = tables[-1][0]
+                path.write_text("0\t1\n" * 254 + "0\n")
+                with self.assertRaisesRegex(r.RepairError, "ragged"):
+                    r.check_products(root)
 
 
 if __name__ == "__main__":

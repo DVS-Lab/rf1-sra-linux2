@@ -337,13 +337,20 @@ def check_products(project):
         for path in images:
             require(path.is_file() and nib.load(path).shape[3] == 255,
                     f"Rebuilt image missing/wrong length: {path.name}")
-        tables = [func / f"{stem}_part-mag_desc-confounds_timeseries.tsv",
-                  tedana / f"{stem}_desc-ICA_mixing.tsv",
-                  project / "derivatives/fsl/confounds_tedana/sub-10668" / f"{stem}_desc-TedanaPlusConfounds.tsv"]
-        for path in tables:
+        tables = [(func / f"{stem}_part-mag_desc-confounds_timeseries.tsv", True),
+                  (tedana / f"{stem}_desc-ICA_mixing.tsv", True),
+                  (project / "derivatives/fsl/confounds_tedana/sub-10668" / f"{stem}_desc-TedanaPlusConfounds.tsv", False)]
+        for path, has_header in tables:
             with path.open(newline="") as f:
-                rows = list(csv.DictReader(f, delimiter="\t"))
-            require(len(rows) == 255, f"Rebuilt confound rows mismatch: {path.name}")
+                reader = csv.reader(f, delimiter="\t")
+                if has_header:
+                    next(reader, None)
+                rows = list(reader)
+            require(len(rows) == 255,
+                    f"Rebuilt confound rows mismatch: {path.name} (expected 255, found {len(rows)}; header={has_header})")
+            require(rows[0] and all(len(row) == len(rows[0]) for row in rows),
+                    f"Empty/ragged confound matrix: {path.name}")
+            print(f"ALIGNED {path.name}: {len(rows)} data rows; header={has_header}")
     for path in derivative_paths(project):
         if path.is_dir():
             require(not list(path.rglob(OLD_A + "_*")), "Stale Trust-run-2 derivative remains")
