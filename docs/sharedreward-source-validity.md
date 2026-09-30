@@ -9,23 +9,30 @@ Historical working workbooks are evidence, not an executable exclusion list.
 
 ## Active handoff scope, 2026-09-29
 
-This Shared Reward cleanup has exactly three items: `10657` run-2 name
-correction, `10668` behavioral-attempt synchronization, and the engineering
-source-link closeout for `11913`/`11923`. Demographics/preflight is complete.
+The three Shared Reward source-validity decisions are settled: `10657` run
+disposition, the PI-approved `10668` reconstruction, and the recorded source
+links for `11913`/`11923`. Implementation and Linux2 verification of the first
+two remain pending; they are no longer requests for repeated lab review.
+Demographics/preflight is complete and GitHub issue #1 is closed.
 The separate Trust, Doors and UGR recovery/validity backlogs retain their
 existing Linux2 status; they are not part of this team request. Do not request
 another lab review of them through the Shared Reward handoff. Data quality,
 including mask coverage, is a later task-level stage.
 
-The only immediate human question is: **For 10657, was the displayed friend
-name corrected before Shared Reward run 2?** Run 1's displayed-name error and
-the agreed exclusion are established. Retain run 2 conditional on that answer;
-do not reopen photograph identity or infer a Trust exclusion.
+For `10657`, **exclude Shared Reward run 1 and retain run 2**. Ryan supplied the
+session form marking run 1 as having a deviation and run 2 as having no task
+deviations; the PI accepted this evidence. This is not a direct saved record of
+the corrected name. Do not reopen photograph identity or infer a Trust exclusion.
 
-For `10668`, use the existing inventory and source chronology first. If these
-cannot identify the synchronized attempt, ask only which of the two attempts
-accompanied the one Shared Reward acquisition. The historical blanket
-Trust-plus-Shared-Reward exclusion is not the current decision.
+For `10668`, the [presented-task reconstruction](10668-task-reconstruction.md)
+uses the existing inventory and original appended-log history. The likely
+sequence is Trust, Shared Reward attempt A during the Trust-run-2-labeled scan,
+then Shared Reward attempt B during the SharedReward-labeled scan. Ryan supported
+relabeling the second Trust scan as Shared Reward, and the PI accepted the
+reconstruction and first-255-volume trim. Record this as a reviewed interpretation,
+not timestamp-proven display/trigger identity. Scanner labels do not establish
+presented task. The historical blanket Trust-plus-Shared-Reward exclusion is not
+the current decision. The exact repair contract is in the reconstruction note.
 
 For `11913`/`11923`, the September 29 01:11 conversion-provenance check has now
 completed the recorded source-series linkage (see below). No cross-folder
@@ -41,7 +48,7 @@ contains the redacted inventory. See the [September 27 closeout](audit-status-20
 for its interpretation and remaining actions. The collection commands below
 are retained for reproducibility, not a request to repeat the completed run.
 
-## 10657: run-scoped, conditional PI agreement
+## 10657: reviewed run disposition; implementation pending
 
 Ryan's supplied reply reports that the session notes identify **Shared Reward
 run 1 only** as incorrectly collected because the friend name was wrong. The
@@ -50,18 +57,19 @@ original scan commit (`098d768e3` in private `rf1-sra`) confirms that the entere
 friend name is drawn alongside the photo during the decision period. The raw
 CSVs do not save the entered name or a hash of the displayed `friend.png`.
 
-The PI agrees with excluding Shared Reward run 1 and retaining run 2 **assuming
-the name was corrected for run 2**. Record that as conditional agreement, not
-proof of the correction. Confirm run-2 correction from session/operator evidence
-before final source-validity sign-off. No new blanket subject exclusion, no
+The earlier conditional agreement is superseded by Ryan's session-form evidence
+and the PI's acceptance: exclude Shared Reward run 1; retain run 2. The form
+explicitly records no task deviations for run 2. Preserve that basis rather
+than claiming an explicit name-change log exists. No blanket subject exclusion, no
 contrast-specific salvage, and no Trust change are authorized by this evidence.
 Ryan's suggestion about the preceding Trust runs is explicitly a suspicion.
 The separate accepted smoothing-tolerance exception for run 1 is unrelated.
 
-This pass records the decision but does not change generated manifests or the
-downstream curated exclusion table while that conditional scope is unresolved.
+This pass records the final decision but does not change generated manifests or
+the downstream curated exclusion table. Propagate the run-1-only disposition
+and verify that run 2 remains eligible before declaring implementation complete.
 
-## 10668: acquisition established, behavioral synchronization unresolved
+## 10668: PI-approved reconstruction; implementation pending
 
 Private scan commit `8c3b66ea6` contains a single Shared Reward CSV with two
 54-trial segments. Both match the scheduled **run-1** design. Commit `3f530e1e8`
@@ -75,18 +83,27 @@ run-2 filename during the later split, not during the acquisition. It adds no
 independent synchronization evidence. The completed September 16 inventory
 establishes one Shared Reward acquisition after two Trust-labeled acquisitions.
 
-The earlier conditional two-acquisition mapping does not apply: the existing
-inventory establishes one Shared Reward acquisition, and the September 29
-conversion records link canonical run 1 to its magnitude series 14. Do not
-repeat episode counting or treat phase/echo/SBRef files as another acquisition.
-Neither the recorded imaging link nor the later behavioral filename split
-identifies which of the two attempts was synchronized with that scan.
+The inventory establishes one **SharedReward-labeled** acquisition, not that
+Shared Reward was presented in only one acquisition. The September 29
+conversion records link canonical Shared Reward run 1 to magnitude series 14.
+The [approved reconstruction](10668-task-reconstruction.md) pairs series 11
+(Trust run 2 label) with attempt A and series 14 with attempt B.
+This uses three existing episodes, not extra phase/echo/SBRef acquisitions.
+Original append order supports A before B. The PI accepted residual historical
+display/trigger uncertainty after Ryan's clarification; do not present that
+uncertainty as an outstanding lab request. The existing series-14/A event pairing
+needs correction as well as recovery of the other Shared Reward episode.
+No reassignment has been applied yet.
 
-Ryan reports that Shared Reward run 1 followed the error. His proposed detailed
-sequence is interpretation, not a confirmed mapping. The CSVs have relative
-timing, not absolute task timestamps. Same design, plausible duration or better
-behavior cannot select the correct attempt. The raw timeline may narrow the
-mapping; if synchronization evidence is absent, request that precise fact only.
+Ryan's follow-up still interprets the ambiguous phrase about rerunning Trust,
+but explicitly supports relabeling the second Trust scan as Shared Reward run 1.
+The PI approved proceeding on the combined notes, acquisition chronology and
+original behavioral append order. The CSVs have relative timing, not absolute
+task timestamps; neither duration nor behavioral quality alone selects a source.
+Both attempts passed actual FSL task-only design tests at 255 and 280 volumes
+(10/10 task rank, 22/22 retained activation contrasts estimable). This does not
+certify the full nuisance GLM or require trimming; see the reconstruction for
+the exit-screen tail and remaining acquisition-parameter comparison.
 
 ## 11913/11923: source identity, not a presumed task failure
 
@@ -125,8 +142,9 @@ new lab escalation is warranted solely by the former series-number ambiguity.
 
 These are recorded conversion links, not a pixel-wise reconversion comparison
 or independent participant-registration proof. No data or eligibility was
-changed. The remaining human facts for this handoff are the `10657` run-2 name
-correction and the `10668` synchronized behavioral attempt.
+changed by that check. Subsequent human review settled the `10657` disposition
+and `10668` reconstruction described above; only implementation and verification
+remain for this handoff.
 
 **Important:** `prepdata.sh` calls `shiftdates.py`, which subtracts 1,200 months
 from BIDS `scans.tsv` dates. Do not compare those dates directly with raw DICOM
@@ -204,9 +222,10 @@ tests do not certify live Linux2 outputs or approve a final analysis cohort.
 The current runner's environment-dependent test status is recorded in the
 local validation receipt. No scientific decision is inferred from tests.
 
-Keep the affected runs visibly unresolved when preparing downstream work;
-successful rendering or processing must not silently mark their sources valid.
-Unrelated technically valid inputs do not have to await these three closeouts.
+Keep the affected runs visibly pending repair/verification when preparing
+downstream work; successful rendering must not silently substitute for the
+approved remapping or run-1 exclusion. The human decisions are settled, but
+their implementation is not. Unrelated technically valid inputs can proceed.
 
 ## Original read-only collection on Linux2 (already completed)
 

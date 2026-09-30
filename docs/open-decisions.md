@@ -17,8 +17,15 @@ The [01:11 conversion-provenance review](../logs/records/20260929-011103_sharedr
 subsequently passed all five source links. The `11913`/`11923` recorded Shared
 Reward mapping step is complete, with no cross-folder assignment found; the
 historical note's exact referent remains unproven, not a new blanket lab ask.
-The Shared Reward human questions remain only `10657` run-2 name correction
-and `10668` behavioral-attempt synchronization.
+Subsequent Ryan/PI review settled the remaining human decisions: exclude
+`10657` Shared Reward run 1 and retain run 2 based on the no-deviations session
+form; adopt the [10668 reconstruction and repair contract](10668-task-reconstruction.md#review-closure-and-engineering-handoff).
+The latter pairs the Trust-run-2-labeled scan with Shared Reward attempt A,
+retaining the first 255 volumes, and the subsequent scan with attempt B as
+Shared Reward run 2. This is a PI-approved interpretation, not timestamp-proven
+certainty. No repeat lab request is outstanding for these items. Implementation,
+derivative regeneration and Linux2 validation remain pending; no live source
+assignment or eligibility was changed by documenting the decisions.
 
 **2026-09-27 status:** [audit closeout](audit-status-20260927.md) distinguishes
 completed source collection from unresolved mapping, conditional decisions,
@@ -30,6 +37,9 @@ The [13:14 downstream preflight](../logs/records/20260927-131417_participants-tr
 also passed: canonical input paths and demographics coverage accepted, exit 0.
 The demographics/preflight blocker is closed; earlier failed attempts remain
 as historical troubleshooting evidence, not outstanding actions.
+GitHub [issue #1](https://github.com/DVS-Lab/rf1-sra-linux2/issues/1) was closed
+as completed with links to both passing records. It does not track the separate
+Shared Reward repair work.
 Do not repeat the September 16 source inventory as though it never ran.
 
 Historical cohort-wide snapshot as of 2026-09-01 (not a new whole-cohort audit):
@@ -213,12 +223,16 @@ first-level processing in the meantime.
 - `12037` Trust run 2 also contains two complete appended segments, but current
   evidence cannot identify the correct segment. Keep the run blocked until an
   acquisition log, timestamp, or other independent record resolves the mapping.
-- Six imaging runs now have team-confirmed unavailable or intrinsically invalid
+- The earlier six-run unavailable/invalid-source summary listed
   behavioral sources: Shared Reward `11450` run 2 and `12037` run 2; Trust
   `10486`, `10617`, and `10668` run 2; and Trust `11450` run 1. Four further
   runs still require recovery or adjudication: `10974` Trust run 2, `12037`
   Trust run 2, `10590` session-02 Doors, and `10716` session-02 UGR run 1.
   `docs/behavior-source-repairs.md` is the authoritative evidence record.
+  **September 29 supersession for `10668` only:** the Trust-run-2 label belongs
+  to the approved Shared Reward recovery described above. No second Trust
+  events file is being fabricated. The label/mapping repair is still pending;
+  the other cases retain their existing status.
 
 ### Downstream Contract
 

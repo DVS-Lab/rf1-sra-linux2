@@ -71,8 +71,20 @@ expected unresolved/unavailable queue is ten runs:
 - Shared Reward: `11450` run 2 was not collected on the behavioral computer;
   `12037` run 2 has no available data or session-note evidence.
 - Trust: `10486` run 2 ended early and was cut; `10617` run 2 was cut for time;
-  `10668` run 2 ran on a separate computer but no behavior source is available;
+  `10668` run 2 was originally recorded as a separate-computer/missing-source
+  case (superseded by the reviewed reconstruction below);
   `11450` run 1 was cut because the required friend image was unavailable.
+
+**September 29 update for `10668`:** Ryan's clarification and PI acceptance
+settled a reconstruction in which the second Trust-labeled acquisition contains
+Shared Reward attempt A, followed by attempt B in the SharedReward-labeled
+acquisition. The [repair contract](10668-task-reconstruction.md#review-closure-and-engineering-handoff)
+preserves Trust run 1, reassigns/trims the second acquisition to Shared Reward
+run 1 (first 255 volumes), and assigns the subsequent acquisition to Shared
+Reward run 2. Both Shared Reward attempts use the scheduled run-1 design.
+This is a reviewed interpretation, not an absolute timestamp proof; do not
+reopen the same lab question or invent a second Trust behavioral source.
+Implementation and Linux2 validation remain pending. Other cases are unchanged.
 
 These six acquired imaging runs cannot enter event-related task analyses. They
 should be represented as unavailable/intrinsically invalid in the canonical
