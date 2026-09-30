@@ -1,0 +1,31 @@
+{
+  "applied": false,
+  "command": "check",
+  "created_utc": "2026-09-30T17:26:44.989641+00:00",
+  "eligible_missing_age": 0,
+  "eligible_missing_rows": [],
+  "eligible_missing_sex": 0,
+  "eligible_participants": 0,
+  "exported_rows": 352,
+  "issues": [],
+  "missing_age": 0,
+  "missing_sex": 0,
+  "reference_session": "01",
+  "requested_subjects": 1,
+  "schema_version": 1,
+  "script_sha256": "4416cc1b6cab083fc91a670f8f721355834dcfb7c71f1b8999ebdc4b87f56d6c",
+  "source_excluded_subjects_omitted": 12,
+  "source_exclusion_ids_sha256": "7d08ddd418ae9ee88b7678d2a6c3b65b194f7ce956a80a6872b6f4f5a96d6d2d",
+  "status": "passed",
+  "subjects": {
+    "sub-10668": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 34,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "ab1000556a605b26103b56dc3f653f9c3415f644331ab67fddf8481aaaa25549",
+      "source": ".heudiconv/10668/ses-01/info/dicominfo_ses-01.tsv"
+    }
+  }
+}
