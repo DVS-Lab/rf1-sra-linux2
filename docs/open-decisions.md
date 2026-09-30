@@ -23,9 +23,11 @@ form; adopt the [10668 reconstruction and repair contract](10668-task-reconstruc
 The latter pairs the Trust-run-2-labeled scan with Shared Reward attempt A,
 retaining the first 255 volumes, and the subsequent scan with attempt B as
 Shared Reward run 2. This is a PI-approved interpretation, not timestamp-proven
-certainty. No repeat lab request is outstanding for these items. Implementation,
-derivative regeneration and Linux2 validation remain pending; no live source
-assignment or eligibility was changed by documenting the decisions.
+certainty. No repeat lab request is outstanding for these items. The September 30
+[final validation](../logs/records/20260930-153531_10668-final-validation-20260930-153531.md)
+closes the 10668 repair/rebuild: both Shared Reward runs align at 255 volumes/rows,
+and all six acquired runs have usable events. Refresh downstream manifests/results
+and cohort snapshots next, including the configured 10657 run-1-only exclusion.
 
 **2026-09-27 status:** [audit closeout](audit-status-20260927.md) distinguishes
 completed source collection from unresolved mapping, conditional decisions,
@@ -231,8 +233,8 @@ first-level processing in the meantime.
   `docs/behavior-source-repairs.md` is the authoritative evidence record.
   **September 29 supersession for `10668` only:** the Trust-run-2 label belongs
   to the approved Shared Reward recovery described above. No second Trust
-  events file is being fabricated. The label/mapping repair is still pending;
-  the other cases retain their existing status.
+  events file is being fabricated. The label/mapping repair and Linux2 validation
+  completed September 30; the other cases retain their existing status.
 
 ### Downstream Contract
 

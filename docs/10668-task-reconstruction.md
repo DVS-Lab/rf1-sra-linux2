@@ -1,14 +1,16 @@
 # 10668: presented-task reconstruction, 2026-09-29
 
-**PI-approved reconstruction; repair applied September 30; final validation pending.** After Ryan's clarification
+**PI-approved reconstruction; repair and Linux2 validation complete September 30.** After Ryan's clarification
 and the PI's acceptance in the supplied Slack exchange, the source-validity
 decision is settled. This is a reviewed historical interpretation, not an
 independent timestamp proof. Scanner protocol labels describe the selected
 sequence, not necessarily the stimulus displayed in this cross-computer incident.
 The original September 29 documentation pass changed no live data. The September
 30 run subsequently installed the reviewed repair and rebuilt derivatives through
-confound generation. A headerless-table counting bug stopped the final checker;
-use the [validation-only recovery](10668-repair-runbook.md#september-30-live-status-and-validation-only-recovery).
+confound generation. A headerless-table counting bug initially stopped the final
+checker; the [final validation record](../logs/records/20260930-153531_10668-final-validation-20260930-153531.md)
+now confirms 255-volume/row alignment for both Shared Reward runs and six of six
+usable events, with command/check exits 0/0. Downstream refresh is separate.
 
 ## Approved reconstruction
 
@@ -170,8 +172,8 @@ experimental design as the scheduled run-2 design.
 
 The implementation is available in the [Linux2 runbook](10668-repair-runbook.md).
 It has synthetic tests. The checklist below describes the complete repair scope;
-the September 30 run completed application and processing, with final alignment
-and post-rebuild events validation still pending as described above:
+the September 30 records confirm application, processing, final alignment and
+post-rebuild events validation. Downstream cohort/manifests remain to refresh:
 
 - Verify exact source identities, behavioral hashes, image lengths and native
   acquisition parameters before writing; the saved sidecar comparison below

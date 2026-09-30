@@ -3,8 +3,12 @@
 The PI-approved interpretation and behavioral hashes are in
 [10668-task-reconstruction.md](10668-task-reconstruction.md). The script is
 implemented and synthetically tested. **The September 30 live repair and
-processing completed through confound generation; final validation is pending.**
-See the validation-only recovery below; do not repeat the acquisition swap.
+processing completed through confound generation; final validation passed.**
+The [September 30 final record](../logs/records/20260930-153531_10668-final-validation-20260930-153531.md)
+has command/check exits 0/0, both Shared Reward runs aligned at 255 volumes/rows,
+and all six acquired runs matched to usable events. The source repair and Linux2
+rebuild are complete. Only cohort snapshots and downstream manifests/results
+still need refresh; do not repeat the acquisition swap or preprocessing.
 
 ## Scope
 
@@ -148,8 +152,9 @@ the production confound writer and reject genuinely short/long or ragged tables.
 The log's summary quotes an intermediate TEDANA pass; its command exit is 1,
 so that summary is not evidence that the entire runner passed.
 
-Only validation remains for this run; do not repeat preprocessing or TEDANA.
-The following read-only checks must both pass before the downstream refresh:
+The validation-only recovery below subsequently passed in the September 30
+15:35:31 record linked above. Commands are retained for reproducibility, not a
+request to repeat them. Do not repeat preprocessing or TEDANA.
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2
@@ -167,8 +172,10 @@ bash code/run_logged.sh \
 ```
 
 Expect both Shared Reward runs to report 255 data rows for each of their three
-confound tables, followed by the product-alignment and events passes. Actual
-Linux2 counts remain to be verified; no data rows were changed by this fix.
+confound tables, followed by the product-alignment and events passes. These
+Linux2 counts are now verified; no data rows were changed by the checker fix.
+The single UGR source note concerns the already documented historical cue-timing
+reconstruction, not a newly missing/ambiguous source or failed event conversion.
 
 For an uninterrupted full rebuild, the runner's final success message is:
 

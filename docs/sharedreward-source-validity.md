@@ -13,8 +13,8 @@ The three Shared Reward source-validity decisions are settled: `10657` run
 disposition, the PI-approved `10668` reconstruction, and the recorded source
 links for `11913`/`11923`. The 10657 exclusion is configured downstream;
 10668 was repaired and rebuilt through confound generation on September 30.
-Final 10668 validation and downstream manifest refresh remain pending; these
-are no longer requests for repeated lab review.
+Final 10668 validation passed (command/check exits 0/0); downstream manifest
+refresh remains pending. These are no longer requests for repeated lab review.
 Demographics/preflight is complete and GitHub issue #1 is closed.
 The separate Trust, Doors and UGR recovery/validity backlogs retain their
 existing Linux2 status; they are not part of this team request. Do not request
@@ -72,7 +72,7 @@ run-1-only disposition, with a regression test preserving run-2 scope. Generated
 Linux2 analysis manifests still need refresh. Do not describe a configuration
 edit as a completed downstream analysis rebuild.
 
-## 10668: PI-approved reconstruction applied; final validation pending
+## 10668: repair and Linux2 validation complete; downstream refresh pending
 
 Private scan commit `8c3b66ea6` contains a single Shared Reward CSV with two
 54-trial segments. Both match the scheduled **run-1** design. Commit `3f530e1e8`
@@ -94,13 +94,16 @@ The [approved reconstruction](10668-task-reconstruction.md) pairs series 11
 This uses three existing episodes, not extra phase/echo/SBRef acquisitions.
 Original append order supports A before B. The PI accepted residual historical
 display/trigger uncertainty after Ryan's clarification; do not present that
-uncertainty as an outstanding lab request. The existing series-14/A event pairing
-needs correction as well as recovery of the other Shared Reward episode.
+uncertainty as an outstanding lab request. The former series-14/A event pairing
+was corrected as part of recovery of the other Shared Reward episode.
 The September 30 live run applied the reassignment, preserved originals and
 passed processing through TEDANA, then generated confounds. The final alignment
 checker incorrectly treated a headerless FSL matrix as headered. The corrected
-checker and final events check must pass before refreshing downstream manifests;
-see the validation-only commands in the [10668 repair runbook](10668-repair-runbook.md).
+checker and final events check now both pass in the
+[final validation record](../logs/records/20260930-153531_10668-final-validation-20260930-153531.md):
+both Shared Reward runs have 255-volume/row alignment, and all six acquired runs
+have usable events with no missing/ambiguous sources or review-required items.
+Proceed to downstream refresh; no further preprocessing is needed for this repair.
 
 Ryan's follow-up still interprets the ambiguous phrase about rerunning Trust,
 but explicitly supports relabeling the second Trust scan as Shared Reward run 1.
@@ -150,8 +153,8 @@ new lab escalation is warranted solely by the former series-number ambiguity.
 These are recorded conversion links, not a pixel-wise reconversion comparison
 or independent participant-registration proof. No data or eligibility was
 changed by that check. Subsequent human review settled the `10657` disposition
-and `10668` reconstruction described above; only implementation and verification
-remain for this handoff.
+and `10668` reconstruction described above; only downstream refresh and its
+verification remain for this handoff.
 
 **Important:** `prepdata.sh` calls `shiftdates.py`, which subtracts 1,200 months
 from BIDS `scans.tsv` dates. Do not compare those dates directly with raw DICOM
@@ -229,10 +232,11 @@ tests do not certify live Linux2 outputs or approve a final analysis cohort.
 The current runner's environment-dependent test status is recorded in the
 local validation receipt. No scientific decision is inferred from tests.
 
-Keep the affected runs visibly pending repair/verification when preparing
-downstream work; successful rendering must not silently substitute for the
-approved remapping or run-1 exclusion. The human decisions are settled, but
-final verification and downstream refresh are not. Unrelated technically valid inputs can proceed.
+The 10668 source repair and Linux2 validation are complete. Regenerate downstream
+inputs/manifests/results rather than reuse outputs built from the old mapping.
+Verify that 10657 run 1 is excluded and run 2 retained, and that 10668 contributes
+two corrected Shared Reward runs and only one Trust run. Snapshot refresh is not
+new QA-based exclusion adjudication. Unrelated technically valid inputs can proceed.
 
 ## Original read-only collection on Linux2 (already completed)
 
