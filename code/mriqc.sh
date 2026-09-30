@@ -43,6 +43,9 @@ ses="$2"
 bidsdir="${PROJECT_ROOT}/bids"
 outdir="${PROJECT_ROOT}/derivatives/mriqc"
 scratch="${SCRATCH_ROOT}/$(whoami)/mriqc-sub-${sub}-ses-${ses}"
+if [[ "$sub" == "10668" && -f "${PROJECT_ROOT}/bids/sub-10668/ses-01/.rf1-10668-repair.json" ]]; then
+  scratch="${scratch}-sharedreward-repair-v1"
+fi
 
 if [[ ! -d "${bidsdir}/sub-${sub}/ses-${ses}" ]]; then
   echo "No BIDS data for optional sub-${sub} ses-${ses}; skipping MRIQC."

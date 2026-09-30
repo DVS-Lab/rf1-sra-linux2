@@ -71,7 +71,7 @@ def safe_series(series):
     return "folders=" + ",".join(sorted(folders)) + ";series=" + ",".join(sorted(numbers))
 
 
-def conversion_match(bids_root, subject, run, metadata, series):
+def conversion_match(bids_root, subject, run, metadata, series, task="sharedreward", output_stem=None):
     """Follow the saved edit table, not today's heuristic or list ordering guesses.
 
     HeuDiConv 1.4.0 conversion_info uses the outer item's one-based position
@@ -94,14 +94,17 @@ def conversion_match(bids_root, subject, run, metadata, series):
             if not {"series_id", "series_uid"}.issubset(reader.fieldnames or []):
                 return "PROVENANCE_COLUMNS_MISSING", [], [], hashes
             seqinfo = list(reader)
-        expected = f"sub-{subject}/ses-01/func/" + stem(subject, run)
-        prefixes = {expected, expected.replace("_echo-1", "")}
+        expected = f"sub-{subject}/ses-01/func/" + (output_stem or
+                    stem(subject, run).replace("task-sharedreward", f"task-{task}"))
+        prefixes = {expected, re.sub(r"_echo-\d+(?=_)", "", expected)}
+        if expected.endswith("_sbref"):
+            prefixes |= {re.sub(r"_part-(mag|phase)(?=_sbref$)", "", p) for p in list(prefixes)}
         selected = []
         for key, items in table.items():
             if not isinstance(key, tuple) or len(key) < 2:
                 raise ValueError("unsupported conversion key")
             template, outtypes = key[:2]
-            if "task-sharedreward" not in template or "nii.gz" not in outtypes:
+            if f"task-{task}_" not in template or "nii.gz" not in outtypes:
                 continue
             for index, group in enumerate(items, 1):
                 group = group if isinstance(group, list) else [group]

@@ -52,6 +52,21 @@ class InventoryReviewTests(unittest.TestCase):
             self.assertEqual(len(hashes), 3)
             self.assertEqual(review.conversion_match(root, "11913", "2", {}, sources)[1][0]["series_uid"], "PRIVATE-RUN2")
 
+    def test_task_override_and_sbref_echo_part_alias(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            edit, _, _ = self.conversion_fixture(root)
+            edit.write_text(edit.read_text().replace("task-sharedreward", "task-trust"))
+            sources = [series(), series("PRIVATE-RUN2")]
+            self.assertEqual(review.conversion_match(root, "11913", "2", {}, sources, task="trust")[0],
+                             "PROVENANCE_UID_LINKED")
+            self.assertEqual(review.conversion_match(root, "11913", "2", {}, sources)[0],
+                             "PROVENANCE_OUTPUT_NOT_UNIQUE")
+            edit.write_text(edit.read_text().replace("_part-mag_bold", "_sbref"))
+            self.assertEqual(review.conversion_match(root, "11913", "2", {}, sources, task="trust",
+                output_stem="sub-11913_ses-01_task-trust_run-2_echo-4_part-phase_sbref")[0],
+                "PROVENANCE_UID_LINKED")
+
     def test_provenance_never_falls_back_to_auto_or_executes_code(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

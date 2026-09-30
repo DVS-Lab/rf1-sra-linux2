@@ -50,6 +50,9 @@ freesurferdir="${derivdir}/freesurfer"
 lockroot="${PROJECT_ROOT}/logs/locks"
 lockdir="${lockroot}/fmriprep-sub-${sub}.lock"
 scratchdir="${SCRATCH_ROOT}/$(whoami)/fmriprep-sub-${sub}"
+if [[ "$sub" == "10668" && -f "${bidsdir}/sub-10668/ses-01/.rf1-10668-repair.json" ]]; then
+  scratchdir="${scratchdir}-sharedreward-repair-v1"
+fi
 fmriprep_nprocs="${FMRIPREP_NPROCS:-$FMRIPREP_TOTAL_NPROCS}"
 fmriprep_omp_nthreads="${FMRIPREP_OMP_NTHREADS:-8}"
 fmriprep_mem_mb="${FMRIPREP_MEM_MB:-$FMRIPREP_TOTAL_MEM_MB}"

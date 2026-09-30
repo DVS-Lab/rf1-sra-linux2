@@ -17,6 +17,10 @@ can use the [logged participants recovery](qc/participants/README.md) without
 reconverting images or events. Scanner-recorded age/sex and missingness are
 documented explicitly; QA flags do not determine participant-table inclusion.
 
+The reviewed 10668 Shared Reward task reassignment has a
+[preserving repair and rebuild workflow](docs/10668-repair-runbook.md).
+Use its dry run before applying; do not rename or trim live files manually.
+
 ## Scope And Privacy
 
 Raw DICOMs and private behavioral logs are not stored in GitHub. On Linux2 the

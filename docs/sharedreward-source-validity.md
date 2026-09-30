@@ -65,9 +65,10 @@ contrast-specific salvage, and no Trust change are authorized by this evidence.
 Ryan's suggestion about the preceding Trust runs is explicitly a suspicion.
 The separate accepted smoothing-tolerance exception for run 1 is unrelated.
 
-This pass records the final decision but does not change generated manifests or
-the downstream curated exclusion table. Propagate the run-1-only disposition
-and verify that run 2 remains eligible before declaring implementation complete.
+The downstream `sharedreward-aging` curated exclusion table now encodes the
+run-1-only disposition, with a regression test preserving run-2 scope. Generated
+Linux2 analysis manifests still need refresh. Do not describe a configuration
+edit as a completed downstream analysis rebuild.
 
 ## 10668: PI-approved reconstruction; implementation pending
 
@@ -94,6 +95,8 @@ display/trigger uncertainty after Ryan's clarification; do not present that
 uncertainty as an outstanding lab request. The existing series-14/A event pairing
 needs correction as well as recovery of the other Shared Reward episode.
 No reassignment has been applied yet.
+The tested, dry-run-first implementation and rebuild commands are in the
+[10668 repair runbook](10668-repair-runbook.md); live execution remains pending.
 
 Ryan's follow-up still interprets the ambiguous phrase about rerunning Trust,
 but explicitly supports relabeling the second Trust scan as Shared Reward run 1.

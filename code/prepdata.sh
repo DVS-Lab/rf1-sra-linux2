@@ -140,6 +140,11 @@ done
 
 target_session="${bidsroot}/sub-${sub}/ses-${ses}"
 target_heudiconv="${bidsroot}/.heudiconv/${sub}/ses-${ses}"
+if [[ "$sub" == "10668" && "$ses" == "01" && -e "$target_session" ]]; then
+  echo "Refusing reconversion over sub-10668 ses-01: use repair_10668.py for the preserved live repair." >&2
+  echo "Fresh conversion is supported when no canonical session exists; archive existing data/derivatives first." >&2
+  exit 1
+fi
 if [[ -e "$target_session" && "$overwrite" -ne 1 ]]; then
   echo "Refusing to overwrite existing BIDS session without --overwrite: $target_session" >&2
   exit 1
@@ -213,6 +218,15 @@ staged_heudiconv="${stage_root}/bids/.heudiconv/${sub}/ses-${ses}"
 staged_dataset_description="${stage_root}/bids/dataset_description.json"
 target_dataset_description="${bidsroot}/dataset_description.json"
 rf1_require_dir "$staged_session"
+
+# The reviewed task reassignment must also survive a conversion from scratch.
+if [[ "$sub" == "10668" && "$ses" == "01" ]]; then
+  repair_python="${REPAIR_PYTHON:-${TOOLS_ROOT}/anaconda/tug87422/envs/tedana-26.0.3/bin/python}"
+  repair_inventory="${REPAIR_10668_INVENTORY:-${PROJECT_ROOT}/work/sharedreward-source-validity-20260916-000438/inventory.json}"
+  "$repair_python" "${scriptdir}/repair_10668.py" stage --apply \
+    --project-root "$PROJECT_ROOT" --bids-root "${stage_root}/bids" \
+    --inventory "$repair_inventory" --behavior-root "$BEHAVIOR_ROOT"
+fi
 
 # Validate baseline metadata before replacing any canonical session output.
 # Later visits must never replace age at the baseline visit.

@@ -159,7 +159,9 @@ The two Shared Reward run numbers denote corrected acquisition order. Both
 attempts used the scheduled run-1 design; do not relabel the second attempt's
 experimental design as the scheduled run-2 design.
 
-Implementation checklist (all pending):
+The implementation is available in the [Linux2 runbook](10668-repair-runbook.md).
+It has synthetic tests; live application/rebuild and the following checks remain
+pending until Linux2 produces the success record:
 
 - Verify exact source identities, behavioral hashes, image lengths and native
   acquisition parameters before writing; the saved sidecar comparison below
