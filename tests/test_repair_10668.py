@@ -1,5 +1,7 @@
 """Synthetic checks for the reviewed acquisition swap and immutable originals."""
 import json
+import io
+from contextlib import redirect_stdout
 from pathlib import Path
 import sys
 import tempfile
@@ -19,6 +21,7 @@ def image(path, n, value):
     img = nib.Nifti1Image(data, np.diag([2.7, 2.7, 2.97, 1]))
     img.header.set_zooms((2.7, 2.7, 2.97, 1.615))
     img.header.set_xyzt_units("mm", "sec")
+    img.header.set_dim_info(slice=2)
     img.set_qform(img.affine, 1)
     img.set_sform(img.affine, 2)
     img.header.set_slope_inter(0.5, 4)
@@ -38,6 +41,8 @@ def fixture(root):
                 image(func / (stem + ".nii.gz"), n, v)
                 meta = {"TaskName": "trust" if old == r.OLD_A else "sharedreward",
                         "SeriesNumber": number, "RepetitionTime": 1.615,
+                        "SliceEncodingDirection": "k",
+                        "SliceTiming": [0, 0.8, 0.4, 1.2] if old == r.OLD_A else [0, 0.7, 0.35, 1.05],
                         "EchoTime": [0.0138, 0.03154, 0.04928, 0.06702][echo - 1]}
                 (func / (stem + ".json")).write_text(json.dumps(meta))
         image(func / (old + "_sbref.nii.gz"), 1, v)
@@ -92,6 +97,60 @@ class RepairTests(unittest.TestCase):
             with self.assertRaises(r.RepairError):
                 r.validate_original(root, inv, root)
 
+    def test_different_valid_timings_reported_without_changing_inputs(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bids, files = fixture(root)
+            inv = root / "inv.json"
+            inv.write_text('{"series": []}')
+            before = r.tree_hashes(bids)
+            output = io.StringIO()
+            with redirect_stdout(output):
+                self.assertEqual(set(self.validate(bids, inv)), set(files))
+            self.assertIn("max_abs_delta_seconds=0.15", output.getvalue())
+            self.assertEqual(before, r.tree_hashes(bids))
+            path = bids / r.SESSION / "func" / (r.OLD_B + "_echo-4_part-phase_bold.json")
+            meta = json.loads(path.read_text())
+            meta["SliceTiming"] = [0, 0.5]
+            path.write_text(json.dumps(meta))
+            with self.assertRaisesRegex(r.RepairError, "slice count differs"):
+                self.validate(bids, inv)
+
+    def test_slice_timing_validation_and_direction(self):
+        img = nib.Nifti1Image(np.zeros((2, 3, 4, 5)), np.eye(4))
+        img.header.set_dim_info(slice=2)
+        meta = {"SliceTiming": [0, 0.8, 0.4, 1.2], "RepetitionTime": 1.615}
+        np.testing.assert_array_equal(r.slice_timing(meta, img, "test")[2], meta["SliceTiming"])
+        reversed_meta = dict(meta, SliceEncodingDirection="k-", SliceTiming=meta["SliceTiming"][::-1])
+        np.testing.assert_array_equal(r.slice_timing(reversed_meta, img, "test")[2], meta["SliceTiming"])
+        for values in ([], [0, 1], [0, 0.4, 0.8, 1.615], [0, -0.1, 0.8, 1.2],
+                       [0, float("nan"), 0.8, 1.2], [0, float("inf"), 0.8, 1.2],
+                       [0, True, 0.8, 1.2], [0, "0.4", 0.8, 1.2], [[0, 0.4], [0.8, 1.2]]):
+            with self.subTest(values=values), self.assertRaises(r.RepairError):
+                r.slice_timing(dict(meta, SliceTiming=values), img, "test")
+        for direction in ("j", "invalid"):
+            with self.subTest(direction=direction), self.assertRaises(r.RepairError):
+                r.slice_timing(dict(meta, SliceEncodingDirection=direction), img, "test")
+        img.header.set_dim_info()
+        self.assertEqual(r.slice_timing(meta, img, "test")[0], 2)
+        ambiguous = nib.Nifti1Image(np.zeros((4, 3, 4, 5)), np.eye(4))
+        with self.assertRaisesRegex(r.RepairError, "Cannot uniquely validate"):
+            r.slice_timing(meta, ambiguous, "test")
+        self.assertIsNone(r.slice_timing({}, img, "test"))
+
+    def test_other_parameter_mismatch_still_stops_repair(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bids, _ = fixture(root)
+            inv = root / "inv.json"
+            inv.write_text('{"series": []}')
+            for old, angle in ((r.OLD_A, 60), (r.OLD_B, 70)):
+                path = bids / r.SESSION / "func" / (old + "_echo-1_part-mag_bold.json")
+                meta = json.loads(path.read_text())
+                path.write_text(json.dumps(dict(meta, FlipAngle=angle)))
+            with self.assertRaisesRegex(r.RepairError, "Acquisition parameter differs: FlipAngle"):
+                self.validate(bids, inv)
+
     def test_mapping_is_simultaneous(self):
         self.assertEqual(r.renamed([r.OLD_A, r.OLD_B]), [r.NEW_A, r.NEW_B])
 
@@ -113,6 +172,14 @@ class RepairTests(unittest.TestCase):
                 np.testing.assert_array_equal(np.asanyarray(src.dataobj)[..., :255], np.asanyarray(dst.dataobj))
                 self.assertEqual(dst.header["qform_code"], 1)
                 self.assertEqual(dst.header["sform_code"], 2)
+                self.assertEqual(dst.header.get_dim_info(), src.header.get_dim_info())
+                for part in ("mag", "phase"):
+                    for echo in range(1, 5):
+                        suffix = f"_echo-{echo}_part-{part}_bold.json"
+                        src_meta = json.loads((bids / r.SESSION / "func" / (old + suffix)).read_text())
+                        dst_meta = json.loads((target / "func" / (new + suffix)).read_text())
+                        for key in ("SliceTiming", "SliceEncodingDirection"):
+                            self.assertEqual(src_meta[key], dst_meta[key])
             self.assertNotIn(r.OLD_A, (target / (r.PREFIX + "scans.tsv")).read_text())
 
     def test_live_archive_check_and_idempotency(self):

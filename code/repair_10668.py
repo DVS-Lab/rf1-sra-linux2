@@ -99,6 +99,56 @@ def renamed(value):
     return value
 
 
+def slice_timing(meta, img, label):
+    """Validate run-local timing; return voxel-order times for diagnostics only."""
+    if "SliceTiming" not in meta:
+        return None
+    values = meta["SliceTiming"]
+    require(isinstance(values, list) and values and
+            all(type(v) in (int, float) for v in values),
+            f"Invalid SliceTiming numeric array: {label}")
+    times = np.asarray(values, dtype=float)
+    tr = meta["RepetitionTime"]
+    require(np.all(np.isfinite(times)) and np.all(times >= 0) and np.all(times < tr),
+            f"SliceTiming must be finite and within [0, TR): {label}")
+    direction = meta.get("SliceEncodingDirection")
+    header_axis = img.header.get_dim_info()[2]
+    if direction is not None:
+        require(direction in ("i", "j", "k", "i-", "j-", "k-"),
+                f"Invalid SliceEncodingDirection: {label}")
+        axis = "ijk".index(direction[0])
+        require(header_axis is None or header_axis == axis,
+                f"SliceEncodingDirection conflicts with NIfTI slice axis: {label}")
+        evidence = "sidecar"
+    elif header_axis is not None:
+        axis, evidence = header_axis, "NIfTI"
+    else:
+        candidates = [i for i, size in enumerate(img.shape[:3]) if size == len(times)]
+        require(len(candidates) == 1,
+                f"Cannot uniquely validate SliceTiming slice count against image: {label}")
+        axis, evidence = candidates[0], "unique matching dimension (axis not declared)"
+    require(len(times) == img.shape[axis], f"SliceTiming slice count differs from image: {label}")
+    if direction and direction.endswith("-"):
+        times = times[::-1]
+    return axis, evidence, times
+
+
+def report_slice_timing(timings):
+    for label, timing in zip(("original Trust-labeled run 2", "original Shared Reward run 1"), timings):
+        if timing is None:
+            print(f"SLICE TIMING {label}: unavailable; no timing synthesized")
+        else:
+            axis, evidence, times = timing
+            print(f"SLICE TIMING {label}: n={len(times)} axis={'ijk'[axis]} ({evidence}); "
+                  f"range_seconds=[{times.min():.9g}, {times.max():.9g}]")
+    if all(t is not None for t in timings) and timings[0][0] == timings[1][0]:
+        delta = np.abs(timings[0][2] - timings[1][2])
+        print(f"SLICE TIMING cross-run max_abs_delta_seconds={delta.max():.9g}; "
+              "diagnostic only, each acquisition retains its own timing")
+    else:
+        print("SLICE TIMING cross-run comparison unavailable; each acquisition retains its own metadata")
+
+
 def validate_original(bids, inventory_path, behavior):
     require(sha(inventory_path) == INVENTORY_SHA, "Not the reviewed September 16 inventory")
     inventory = json.loads(inventory_path.read_text())
@@ -117,6 +167,7 @@ def validate_original(bids, inventory_path, behavior):
     files = []
     shapes = []
     acquisition_metadata = []
+    acquisition_timings = []
     for old, nvol, mag_series in ((OLD_A, 280, 11), (OLD_B, 255, 14)):
         group = sorted((session / "func").glob(old + "_*"))
         require(group, "Missing acquisition files")
@@ -136,6 +187,9 @@ def validate_original(bids, inventory_path, behavior):
                 require(len(img.shape) == 4 and img.shape[3] == nvol, "Unexpected input volume count")
                 require(img.header.get_xyzt_units()[1] == "sec" and
                         np.isclose(img.header.get_zooms()[3], 1.615), "Unexpected NIfTI time units/TR")
+                timing = slice_timing(meta, img, base)
+                if part == "mag" and echo == 1:
+                    acquisition_timings.append(timing)
                 shapes.append((img.shape[:3], img.affine))
         require(any(p.name.endswith("_sbref.nii.gz") for p in group), "SBRef missing")
         for path in group:
@@ -156,7 +210,8 @@ def validate_original(bids, inventory_path, behavior):
             files.append(str(path.relative_to(session)))
     require(all(s == shapes[0][0] and np.allclose(a, shapes[0][1], atol=1e-5, rtol=0)
                 for s, a in shapes), "Native image geometry differs; inspect before repair")
-    for key in ("FlipAngle", "SliceTiming", "PhaseEncodingDirection", "EffectiveEchoSpacing",
+    report_slice_timing(acquisition_timings)
+    for key in ("FlipAngle", "PhaseEncodingDirection", "EffectiveEchoSpacing",
                 "TotalReadoutTime", "MultibandAccelerationFactor", "ParallelReductionFactorInPlane"):
         present = [key in m for m in acquisition_metadata]
         require(present[0] == present[1], f"Asymmetric acquisition metadata: {key}")
@@ -205,12 +260,18 @@ def build_stage(bids, staged_bids, files, behavior):
             else:
                 shutil.copy2(source, dest)
         else:
-            meta = renamed(json.loads(source.read_text()))
+            original_meta = json.loads(source.read_text())
+            meta = renamed(original_meta)
             meta["TaskName"] = "sharedreward"
             meta["RF1SourceRepair"] = {"id": ID, "original_filename": source.name,
                                       "retained_volume_indices": [0, 254] if "_bold." in source.name else None,
                                       "scheduled_behavior_design_run": 1}
             write_json(dest, meta)
+            saved = json.loads(dest.read_text())
+            for key in ("SliceTiming", "SliceEncodingDirection"):
+                require((key in saved) == (key in original_meta) and
+                        saved.get(key) == original_meta.get(key),
+                        f"Repair changed run-local {key}")
     scans = target / f"{PREFIX}scans.tsv"
     with scans.open(newline="") as f:
         reader = csv.DictReader(f, delimiter="\t")

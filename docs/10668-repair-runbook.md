@@ -29,8 +29,39 @@ saved HeuDiConv edit/seqinfo/filegroup files, current private behavior, nibabel,
 numpy and pandas in the pinned TEDANA environment, plus ordinary pipeline tools.
 The inventory and both behavioral inputs must match their reviewed SHA-256s.
 Missing evidence, conflicting targets, unexpected lengths, native geometry or
-available acquisition-parameter differences stop the repair before live changes.
+available acquisition-parameter differences (except run-local slice timing)
+stop the repair before live changes.
 Unavailable metadata is reported, never described as a verified match.
+
+### September 30 preview correction
+
+The first preview stopped at an exact cross-acquisition `SliceTiming` equality
+check, before modifying data. That check was an implementation error, not proof
+of an unusable acquisition. The log did not include the timing values, so it
+does not establish the size or cause of the difference.
+
+Each acquisition is processed separately by
+[fMRIPrep](https://fmriprep.org/en/25.2.5/workflows.html), using its own timing.
+The repair now validates every available magnitude/phase echo's timing array
+against its own image: finite numeric values within the TR, slice count and
+declared slice axis. An undeclared axis uses the NIfTI slice axis, or a uniquely
+matching image dimension for count validation; ambiguous dimensions stop the
+repair. Repeated timing values are allowed for simultaneous slices.
+
+The preview reports first-magnitude-echo timing counts, ranges, axis evidence
+and the cross-run maximum absolute difference in seconds (voxel-index order).
+These are diagnostics, not evidence of identical acquisition parameters or
+behavioral synchronization. No tolerance is used to dismiss a difference.
+`SliceTiming` and `SliceEncodingDirection` remain unchanged for each source
+image, including all echoes and the cropped run. No timing is copied from the
+other run, rounded, or synthesized; slice-timing correction is not disabled.
+Negative slice direction is interpreted only for the diagnostic comparison,
+following the [BIDS MRI specification](https://bids-specification.readthedocs.io/en/stable/modality-specific-files/magnetic-resonance-imaging-data.html).
+Other acquisition guards and the full derivative rebuild remain in place.
+Review the new preview before applying; the live difference still needs to be
+read from that output, not inferred from synthetic tests.
+
+### Preview and apply
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2
