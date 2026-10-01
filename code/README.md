@@ -556,6 +556,14 @@ authorize a repair or establish a preprocessing failure.
 - Checker: Row-count validation inside the script and downstream FSL model review.
 - Notes: Writes atomically.
 
+### `audit_socdoors_sources.py`
+- Status: Read-only missing-task investigation; not processing or exclusion policy.
+- Purpose: Follow the eleven participants absent from Doors imaging through all saved HeuDiConv series and canonical behavioral-source resolution. Reads every DICOM header (not pixels) in matching source folders for 11171 and 11203, counting unique instances by echo and reporting magnitude/phase hints.
+- Inputs: Existing `bids/.heudiconv`, matching participant folders in sourcedata, and private `stimuli`. Requires pydicom for the full audit; `--behavior-only` uses only the standard library and existing converter.
+- Outputs: Redacted stdout for `run_logged.sh --include-full-log`; exact series metadata and source paths in a new ignored `work/` directory. Never commit the private inventory.
+- Typical command from the repository root: `bash code/run_logged.sh --label socdoors-source-followup --include-full-log -- "$AUDIT_PYTHON" code/audit_socdoors_sources.py --private-output "work/socdoors-source-followup-$(date +%Y%m%d-%H%M%S)"`.
+- Interpretation: Collection success is not acquisition completeness or recovery approval. Echo/instance counts are not NIfTI volume counts; matching magnitude/phase counts do not prove pairing. Unknown labels stay unknown. The search is participant-folder scoped, not archive-wide; session notes require separate review. `--behavior-only` does not inspect imaging.
+
 ### `check_bids.sh`
 - Status: Checker.
 - Purpose: Report missing imaging/behavioral BIDS outputs, unshifted `scans.tsv` files, and events relationship failures.
