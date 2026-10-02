@@ -88,3 +88,70 @@ completeness alone cannot encode stimulus validity, source identity, or known
 partial-brain acquisitions. Until that contract exists, downstream group
 builders must not treat the current complete inventories as final scientific
 eligibility lists.
+
+## Doors Acquisition Reconciliation, 2026-10-01
+
+This is an acquisition/source-availability investigation, not a new QC exclusion
+list. It does not reopen the settled Shared Reward reconstruction or authorize
+reconversion, relaxed length rules, or partial-run inclusion.
+
+### Why the earlier completion checks did not close this question
+
+`build_run_qc.py:inventory_bids_runs` starts with existing BIDS echo-2 magnitude
+BOLD files. Downstream SocDoors readiness requires events, combined BOLD and
+confounds, plus model-required trial types. Passing either check certifies its
+selected input set, not that every expected acquisition was transferred and
+converted. A task with no BIDS image is outside the imaging-QC denominator.
+The earlier broad completion language overstated that scope.
+
+The saved September 11 workbook-inspection output in the `rf1-sra-linux2` task
+reported `RF1_MasterSubjectTracker.xlsx!SocialDoorsDoors` as empty (zero nonempty
+cells). That historical review therefore did not provide a Doors completeness
+roster. The original workbook is no longer present at its supplied local path;
+this statement is based on the preserved inspection output, not a fresh read.
+Notes about UGR missingness must not be repurposed as Doors dispositions.
+
+### Completed evidence collection
+
+- [First source/HeuDiConv audit](../logs/records/20261001-194326_socdoors-missing-source-audit.md):
+  nine participants had no Doors-like labels in their matching source folders
+  or saved conversion inventories; two had shorter candidate series.
+- [Local behavioral inspection](../logs/records/20261001-195955_socdoors-behavior-local.md):
+  current source resolution and trial counts, without imaging access.
+- [Linux2 follow-up](../logs/records/20261001-200328_socdoors-source-followup.md):
+  all saved series for the eleven participants, plus 22,196 DICOM headers for
+  11171/11203. Zero unreadable/conflicting files, warnings or duplicate copies.
+  These counts establish successful collection, not acquisition completeness.
+
+The 352 participants in upstream imaging QC include 341 with at least one
+Doors/SocialDoors imaging run. `11125` has no decision events in either task
+(40 missed trials each), leaving 340 model-compatible participants downstream.
+That explains the current processing denominator; it is not a sourcedata census.
+
+| Case | Established evidence | Disposition of the investigation / exact next evidence |
+| --- | --- | --- |
+| `11083` | No session-01 Doors imaging/behavior found. Complete session-02 behavior for both tasks was added in private commit `ec815ce45` on September 1, 2026; the source search found only one participant folder and a session-01 conversion inventory. Commit date is not independent acquisition-date proof. | Open: locate the session-02 experiment/export in the original scanner/XNAT archive or explain its absence. Do not relabel session-02 behavior as session 01. |
+| `11171` | Both task logs have 40 trials. Exported SocialDoors magnitude series has 158/159/159/159 unique instances across echoes 1–4, with an SBRef; no corresponding SocialDoors phase series or Doors acquisition found in the inspected folder. | Open: compare series/file counts against the original archive. Current evidence cannot distinguish interrupted acquisition from incomplete export. Do not claim a full run or manufacture missing phase/echo data. |
+| `11203` | SocialDoors has 187 unique instances per echo in both magnitude and phase and 35 behavioral trials. Doors has 12 per echo in both parts and one behavioral trial. Both have SBRefs. | Confirmed short source series, consistent with interrupted tasks; no full-length run recovered. SocialDoors partial-run use requires a separate reviewed image/timing validation and modeling decision. Doors is not a full-task input. Counts alone do not establish volume identity or pairing. |
+| `11085`, `11110`, `11128`, `11145`, `11317`, `11364`, `11396`, `11443` | No Doors-labeled imaging in the inspected inventories and no source resolved for either session. Inspected subject-labeled scan commits change no files in `Scan-Social_Doors/data`, including under other IDs. | Open: original session notes/export records must distinguish noncollection from unavailable or differently labeled data. Do not record an acquisition failure or exclusion without that evidence. |
+
+Private Git evidence inspected for the last row: `3c2c3ff09`, `1683babf8`,
+`866ec82bf`, `4507e0c09`, `7c79dd4a5`, `6d4ae349a`, `2af9edb08`, `d7ec5ce8c`,
+`12cbb7db4`, and `8c1517d7f`. Those scan-labeled commits are from 2024–early
+2025. `11171` and `11203` task logs were present in their 2024 scan commits
+`9b4d29569` and `450c56835`; `11083`'s baseline scan commit `91b7d976c` changed
+no Doors files. This is a targeted commit-history check, not proof that data
+exist nowhere in Git, on an acquisition computer, or under another registration.
+
+### Remaining authority and access
+
+The original scanner/XNAT archive and original session notes are not accessible
+to this local audit. Linux2 SSH authentication failed; Linux2 reports above were
+run by the operator and pushed. Repeating the same exported-file inventory
+cannot answer whether the original archive has additional data.
+
+Close each case only with a referenced session-note decision, an archive/export
+comparison, or recovered and validated inputs. Until then, use explicit
+`source reconciliation open`, not `never acquired`, `excluded`, or `all acquired
+participants accounted for`. Downstream outputs already completed remain usable
+subject to task-owner QC; no cohort-wide rerun is indicated.

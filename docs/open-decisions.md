@@ -8,6 +8,16 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
+**2026-10-01 Doors reconciliation:** completed downstream models are not a
+census of acquired tasks. The [Doors source reconciliation](historical-tracker-reconciliation.md#doors-acquisition-reconciliation-2026-10-01)
+accounts for the current 340-participant L1 denominator and records the eleven
+source gaps separately: 11083 session-02 imaging to locate, 11171 archive/export
+completeness to verify, 11203 partial-run recovery to adjudicate, and eight
+participants requiring original session-note/export evidence. The scoped
+exported-file audits are complete; those source-availability decisions are not.
+No new exclusions, conversion-rule changes, or partial-run inclusion have been
+approved.
+
 **2026-09-29 handoff scope:** the active Shared Reward source-validity cleanup
 is limited to the three items in [sharedreward-source-validity.md](sharedreward-source-validity.md).
 All other RF1 backlog entries below retain their status but are not new lab
