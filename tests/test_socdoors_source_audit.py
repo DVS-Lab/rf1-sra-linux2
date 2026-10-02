@@ -1,8 +1,11 @@
 """Read-only audit: preserve ambiguity, deduplicate echoes, redact metadata."""
 from contextlib import redirect_stdout
 import io
+import json
 from pathlib import Path
 import sys
+import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -77,6 +80,39 @@ class AuditTests(unittest.TestCase):
         self.assertIn("| 1 | 1 | 5.190", out.getvalue())
         self.assertNotIn("PRIVATE", out.getvalue())
         self.assertNotIn("private-path", out.getvalue())
+
+    def test_full_collection_preserves_inputs_and_keeps_metadata_private(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            folder = source / "Smith-SRA-11171"
+            folder.mkdir(parents=True)
+            raw = folder / "scan.dcm"
+            raw.write_bytes(b"untouched")
+            info = root / "bids/.heudiconv/11171/ses-01/info"
+            info.mkdir(parents=True)
+            table = info / "dicominfo_ses-01.tsv"
+            table.write_text("series_id\tprotocol_name\tseries_description\tdim4\n"
+                             "20-PRIVATE\tSocialDoors_face PRIVATE\tPRIVATE\t635\n")
+            behavior = root / "behavior"
+            behavior.mkdir()
+            groups, errors = audit.collect_headers([raw], lambda p: header())
+            args = SimpleNamespace(behavior_root=behavior, source_root=source,
+                                   private_output=root / "work/audit", behavior_only=False)
+            out = io.StringIO()
+            before = table.read_bytes()
+            with patch.object(audit, "ROOT", root), patch.object(audit, "SUBJECTS", ["11171"]), \
+                 patch.dict(sys.modules, {"pydicom": SimpleNamespace()}), \
+                 patch.object(audit, "collect_headers", return_value=(groups, errors)), redirect_stdout(out):
+                self.assertEqual(audit.run(args), 0)
+                with self.assertRaises(ValueError):
+                    audit.run(args)  # Never overwrite an existing inventory.
+            self.assertEqual(raw.read_bytes(), b"untouched")
+            self.assertEqual(table.read_bytes(), before)
+            self.assertNotIn("PRIVATE", out.getvalue())
+            saved = json.loads((root / "work/audit/inventory.json").read_text())
+            self.assertIn("PRIVATE", saved["subjects"]["11171"]["seqinfo"][0]["rows"][0]["protocol_name"])
+            self.assertEqual((root / "work/audit").stat().st_mode & 0o777, 0o700)
 
 
 if __name__ == "__main__":
