@@ -98,6 +98,67 @@ values, birth dates, acquisition dates, DICOM identifiers, or raw source rows.
 
 ## Future Conversions and Provenance
 
+### October 15 coverage reconciliation
+
+The September recovery established metadata completeness for the then-present
+non-source-excluded BIDS cohort, not that every acquired RF1 participant had
+reached BIDS. All 33 IDs reported missing by Jacob are also absent from the
+September recovery's 352-subject provenance inventory. That observation alone
+does not distinguish unprocessed imaging from intentional source exclusions or
+participants without locally available scans. Do not treat this as a stale-copy
+diagnosis, an age-based exclusion, or proof someone was never scanned.
+
+`code/audit_participant_coverage.py` performs a read-only filesystem reconciliation
+for those 33 plus IDs discovered in conventional production/excluded source
+folders, BIDS, conversion inventories, the current participant table and active
+fMRIPrep/MRIQC/TEDANA/WarpKit derivatives. It reads no DICOM headers or pixels.
+Filename counts establish local file evidence, not image validity, task identity
+or complete acquisition. Permission errors, unavailable roots and directory
+symlinks stop the audit rather than silently becoming missing-data claims.
+Unmatched source directory counts require private follow-up; XNAT, other hosts,
+compressed archive contents and misregistered IDs are outside this audit.
+
+Run on Linux2 (may take several minutes to enumerate the cohort):
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+git pull --ff-only
+STAMP=participants-coverage-$(date +%Y%m%d-%H%M%S)
+mkdir -p logs/runs
+nohup setsid -f -w bash code/run_logged.sh --label "$STAMP" --include-full-log -- \
+  python3 code/audit_participant_coverage.py --private-dir "work/$STAMP" \
+  > "logs/runs/${STAMP}.nohup.out" 2>&1 &
+echo "$STAMP"
+```
+
+Only aggregate counts go into the shareable run record. `work/$STAMP/review.tsv`
+and `inventory.json` hold per-ID evidence in a new mode-0700 directory; keep these
+private, including source-exclusion membership. They contain no ages, dates,
+diagnoses, or DICOM identifiers. Do not commit them or change the exclusion policy.
+
+Interpretation/actions:
+
+- `intentional_source_exclusion`: accounted for separately, not added back to the
+  standard analysis/release participant table, even if residual BIDS exists.
+- `bids_missing_participant_row`: repair metadata from saved baseline provenance
+  after reviewing the reported source status; do not reconvert images blindly.
+- `raw_present_conversion_review`: inspect the source series and establish usable
+  imaging, then process if appropriate. Localizer-only files are not sufficient.
+- `derivatives_without_bids_review` or `conversion_inventory_without_images`:
+  investigate moved/deleted BIDS or alternate roots before any reprocessing.
+- `source_folder_without_recognized_dicoms`: inspect download/archive/layout.
+- `no_local_imaging_evidence`: search acquisition records/XNAT/backups or identity
+  mappings. This is not a declaration that MRI was never acquired.
+- Table duplicates, excluded rows in the table, or represented rows lacking
+  baseline provenance require reconciliation rather than silent overwrite.
+
+No live October 15 results are available yet. The local tests establish audit
+behavior only; completeness for the 33 remains open pending the Linux2 report.
+The standard table must cover the full non-source-excluded BIDS cohort; a separate
+private reconciliation accounts for everyone else without inventing scanner ages
+or reintroducing excluded participants. Research-demographic coverage is a
+different scope from BIDS imaging membership.
+
 `prepdata.sh` previews participant metadata before installing session output.
 After installation it merges the participant and verifies the result. Session 02
 uses saved session-01 demographics and never changes baseline age to follow-up
