@@ -152,8 +152,67 @@ Interpretation/actions:
 - Table duplicates, excluded rows in the table, or represented rows lacking
   baseline provenance require reconciliation rather than silent overwrite.
 
-No live October 15 results are available yet. The local tests establish audit
-behavior only; completeness for the 33 remains open pending the Linux2 report.
+The [October 15 Linux2 report](../../logs/records/20261015-131537_participants-coverage-20261015-131536.md)
+completed with exit 0. Of Jacob's 33 IDs, six were intentionally source-excluded
+and 27 had no local imaging evidence. Across 391 discovered/requested IDs, 352
+were represented and 12 source-excluded; there were no identified non-excluded
+raw-only imaging cases or BIDS images missing participant rows. Two production
+and one exclusion directory names were unmatched, so directory-layout follow-up
+remains separate from these subject classifications. Per-ID exclusion membership
+remains private; do not publish reasons or source-excluded participant lists.
+
+### October 16 human follow-up and new downloads
+
+Ryan Gephart reviewed the 27 and reported that each was either not scheduled,
+withdrew during the mock scan, or could not complete MRI at the scan visit.
+The reply did not assign one specific reason to each participant. This resolves
+their missing table rows as no completed MRI visits in that review, not as
+27 missing conversions or demographic recovery failures. It does not establish
+that no partial scan was ever acquired, and is not a permanent exclusion rule
+for a participant who later completes a scan.
+
+The reviewed no-local-imaging group (not the source-exclusion list) was:
+10847, 10861, 10867, 10874, 10878, 10885, 11077, 11079, 11144,
+11146, 11206, 11213, 11228, 11442, 11449, 11475, 11552, 11562,
+11593, 11837, 11852, 11856, 11892, 11905, 11915, 11919, 12028.
+
+Jacob reports that the latest acquisitions have now been downloaded. Inventory
+them independently; do not assume they belong to these 27 or modify the main
+batch list by adding the 27. `code/plan_source_intake.py` checks primary session
+folders against existing BIDS sessions and finds the first DICOM, without the
+previous cohort-wide file counting. It respects authoritative exclusions,
+known exceptional layouts and the reviewed supplemental-source manifest. Unknown
+folder names (including the earlier unmatched names if still present) are saved
+privately for review, not auto-assigned to a subject/session.
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+git pull --ff-only
+STAMP=source-intake-$(date +%Y%m%d-%H%M%S)
+mkdir -p logs/runs
+nohup setsid -f -w bash code/run_logged.sh --label "$STAMP" --include-full-log -- \
+  python3 code/plan_source_intake.py --private-dir "work/$STAMP" \
+  > "logs/runs/${STAMP}.nohup.out" 2>&1 &
+echo "$STAMP"
+```
+
+The shareable record prints non-excluded session candidates and counts; private
+`sessions.tsv`/`inventory.json` preserve paths and unmatched directory names.
+`new_session_candidate` means a source exists and the BIDS session does not, not
+that imaging/behavior is complete or usable. Review these candidates, then invoke
+`prepdata.sh --dry-run SUBJECT SESSION` for those exact sessions. Do not use a
+blanket `--overwrite` or the two-session batch runner over already processed
+baseline sessions. Session-02 cases without baseline sequence metadata must
+resolve baseline metadata first. `existing_bids_not_revalidated` is presence only:
+it does not detect newly added/replaced series or certify pipeline completeness.
+
+No heuristic change or new live conversion has been performed based only on the
+download report. Validate scanner/protocol selection in the previews; file
+download timestamps alone are not evidence of scanner software era. New returns
+or supplements still require explicit session mapping. After conversion, use the
+existing BIDS/events/participants checks, stage-specific repair runlists and
+downstream regeneration. Do not reprocess the already repaired 10668 session.
+
 The standard table must cover the full non-source-excluded BIDS cohort; a separate
 private reconciliation accounts for everyone else without inventing scanner ages
 or reintroducing excluded participants. Research-demographic coverage is a

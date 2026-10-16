@@ -170,6 +170,14 @@ Each entry uses the same fields so operators can scan quickly.
 - Checker: `python3 participants.py check`; called by `check_bids.sh` for the requested list.
 - Notes: Session 02 preserves baseline age. Conflicts stop; unknown values remain missing. No QA-based exclusions. See [logged recovery and downstream acceptance](../qc/participants/README.md).
 
+### `plan_source_intake.py`
+
+- Purpose: Quick read-only discovery of newly downloaded session candidates before choosing exact prepdata subject/session commands.
+- Inputs: Production/exclusion source roots, BIDS session presence, and the reviewed supplemental-source manifest.
+- Outputs: Shareable non-excluded session statuses and aggregate counts; private paths/unmatched folders under a new `work/` directory.
+- Command: `python3 code/plan_source_intake.py --private-dir work/source-intake-TIMESTAMP` from the project root.
+- Limits: Stops at first DICOM evidence per source; does not validate acquisition completeness, behavior, or existing BIDS/derivatives. No conversion, overwrite, exclusion change, or heuristic selection. See the [October 16 intake workflow](../qc/participants/README.md#october-16-human-follow-up-and-new-downloads).
+
 ### `source_layout.py`
 
 Related read-only follow-up: `audit_sharedreward_sources.py` inventories raw
