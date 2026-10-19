@@ -58,6 +58,8 @@ RUN_COLUMNS = [
 ]
 THRESHOLD_COLUMNS = [
     "paradigm",
+    "task",
+    "session",
     "bids_tasks",
     "metric",
     "n",
@@ -101,11 +103,12 @@ CANONICAL_OUTPUTS = [
         Path("spreadsheets") / f"{name}_qc.xlsx"
         for name in ("sharedreward", "trust", "ugr", "socialdoors")
     ],
-    *[
-        Path("figures") / f"{name}_histograms.png"
-        for name in ("sharedreward", "trust", "ugr", "socialdoors")
-    ],
 ]
+
+
+def histogram_outputs(rows):
+    return [Path("figures") / f"task-{task}_ses-{session}_histograms.png"
+            for task, session in sorted({(r["task"], r["session"]) for r in rows})]
 
 
 @dataclass(frozen=True, order=True)
@@ -156,12 +159,14 @@ def key_from_path(path: Path) -> RunKey | None:
 
 def load_policy(path: Path) -> dict[str, Any]:
     policy = json.loads(path.read_text())
-    if policy.get("schema_version") != 1:
+    if policy.get("schema_version") != 2:
         raise ValueError(
             f"unsupported QC policy schema: {policy.get('schema_version')}"
         )
     if policy.get("iqr_multiplier") != 1.5:
         raise ValueError("production QC policy requires an IQR multiplier of 1.5")
+    if policy.get("threshold_grouping") != ["task", "session"]:
+        raise ValueError("QC thresholds must be grouped by exact task and session")
     if policy.get("quartile_method") != "linear" or policy.get("threshold_passes") != 1:
         raise ValueError("production QC policy requires linear quartiles in one pass")
     paradigms = policy.get("paradigms", {})
@@ -444,8 +449,9 @@ def compute_thresholds(
 ) -> list[dict[str, Any]]:
     multiplier = float(policy["iqr_multiplier"])
     thresholds: list[dict[str, Any]] = []
-    for paradigm, tasks in policy["paradigms"].items():
-        group = [row for row in rows if row["paradigm"] == paradigm]
+    for task, session in sorted({(row["task"], row["session"]) for row in rows}):
+        paradigm = policy["task_map"][task]
+        group = [row for row in rows if (row["task"], row["session"]) == (task, session)]
         for metric, spec in policy["metrics"].items():
             values = [
                 float(row[metric])
@@ -463,7 +469,9 @@ def compute_thresholds(
             thresholds.append(
                 {
                     "paradigm": paradigm,
-                    "bids_tasks": ";".join(tasks),
+                    "task": task,
+                    "session": session,
+                    "bids_tasks": task,
                     "metric": metric,
                     "n": len(values),
                     "q1": q1,
@@ -481,12 +489,14 @@ def compute_thresholds(
 def apply_thresholds(
     rows: list[dict[str, Any]], thresholds: list[dict[str, Any]], policy: dict[str, Any]
 ) -> None:
-    lookup = {(row["paradigm"], row["metric"]): row for row in thresholds}
+    lookup = {(row["task"], row["session"], row["metric"]): row for row in thresholds}
+    for threshold in thresholds:
+        threshold["n_outliers"] = 0
     for row in rows:
         reasons: list[str] = []
         for metric, spec in policy["metrics"].items():
             value = row.get(metric)
-            threshold = lookup[(row["paradigm"], metric)]
+            threshold = lookup[(row["task"], row["session"], metric)]
             flag: bool | None = None
             if value is not None and threshold["n"]:
                 if spec["direction"] == "lower":
@@ -790,16 +800,16 @@ def write_histograms(
         "tedana_rejected_components": "TEDANA rejected components",
         "brain_coverage_pct": "Brain coverage (%)",
     }
-    lookup = {(row["paradigm"], row["metric"]): row for row in thresholds}
+    lookup = {(row["task"], row["session"], row["metric"]): row for row in thresholds}
     with plt.rc_context({"font.size": 9, "axes.titleweight": "bold"}):
-        for paradigm in ("sharedreward", "trust", "ugr", "socialdoors"):
-            group = [row for row in rows if row["paradigm"] == paradigm]
+        for task, session in sorted({(row["task"], row["session"]) for row in rows}):
+            group = [row for row in rows if (row["task"], row["session"]) == (task, session)]
             fig, axes = plt.subplots(2, 2, figsize=(10, 7), constrained_layout=True)
             for axis, metric in zip(axes.flat, METRIC_FLAGS, strict=True):
                 values = [
                     float(row[metric]) for row in group if row.get(metric) is not None
                 ]
-                threshold = lookup[(paradigm, metric)]
+                threshold = lookup[(task, session, metric)]
                 if values:
                     bins: int | Any = min(30, max(5, int(math.sqrt(len(values))) + 1))
                     if metric == "tedana_rejected_components":
@@ -826,14 +836,9 @@ def write_histograms(
                 axis.set_title(labels[metric])
                 axis.set_ylabel("Runs")
                 axis.set_xlabel(labels[metric])
-            subtitle = (
-                "task-socialdoors + task-doors (pooled)"
-                if paradigm == "socialdoors"
-                else f"task-{paradigm}"
-            )
-            fig.suptitle(f"RF1-SRA {paradigm} imaging QC\n{subtitle}", fontsize=13)
+            fig.suptitle(f"RF1-SRA task-{task} ses-{session} imaging QC", fontsize=13)
             fig.savefig(
-                directory / f"{paradigm}_histograms.png",
+                directory / f"task-{task}_ses-{session}_histograms.png",
                 dpi=180,
                 metadata={"Software": "rf1-sra-linux2 build_run_qc.py"},
             )
@@ -958,7 +963,7 @@ def print_summary(rows: list[dict[str, Any]], thresholds: list[dict[str, Any]]) 
         ]
         shown = "NA" if fence is None else f"{float(fence):.10g}"
         print(
-            f"  {row['paradigm']} {row['metric']}: n={row['n']} "
+            f"  task-{row['task']} ses-{row['session']} {row['metric']}: n={row['n']} "
             f"{row['outlier_direction']}_fence={shown} outliers={row['n_outliers']}"
         )
 
@@ -978,7 +983,8 @@ def preflight_outputs(output_dir: Path, overwrite: bool) -> None:
 
 
 def commit_outputs(stage: Path, output_dir: Path) -> None:
-    for relative in CANONICAL_OUTPUTS:
+    figures = histogram_outputs(read_tsv(stage / "run_qc.tsv"))
+    for relative in [*CANONICAL_OUTPUTS, *figures]:
         source = stage / relative
         destination = output_dir / relative
         if not source.is_file():
@@ -1055,7 +1061,8 @@ def run_build(args: argparse.Namespace) -> int:
                 ),
             },
             "python_packages": package_versions(),
-            "outputs": [relative.as_posix() for relative in CANONICAL_OUTPUTS],
+            "threshold_grouping": ["task", "session"],
+            "outputs": [relative.as_posix() for relative in [*CANONICAL_OUTPUTS, *histogram_outputs(rows)]],
         }
         (stage / "provenance.json").write_text(
             json.dumps(provenance, indent=2, sort_keys=True) + "\n"
@@ -1217,6 +1224,9 @@ def run_check(args: argparse.Namespace) -> int:
         rows: list[dict[str, Any]] = []
     else:
         rows = canonical_native_rows(records)
+    for relative in histogram_outputs(rows):
+        if not (output_dir / relative).is_file():
+            errors.append(f"missing task/session histogram: {relative}")
     keys = [(row["subject"], row["session"], row["task"], row["run"]) for row in rows]
     if len(keys) != len(set(keys)):
         errors.append("run_qc.tsv contains duplicate run keys")
@@ -1251,16 +1261,16 @@ def run_check(args: argparse.Namespace) -> int:
     if not threshold_header_ok:
         errors.append("thresholds.tsv is empty or has a noncanonical header")
     stored_lookup = (
-        {(row["paradigm"], row["metric"]): row for row in stored_thresholds}
+        {(row["task"], row["session"], row["metric"]): row for row in stored_thresholds}
         if threshold_header_ok
         else {}
     )
     expected_lookup = {
-        (row["paradigm"], row["metric"]): row for row in expected_thresholds
+        (row["task"], row["session"], row["metric"]): row for row in expected_thresholds
     }
     if set(stored_lookup) != set(expected_lookup):
         errors.append(
-            "thresholds.tsv does not contain exactly four paradigms x four metrics"
+            "thresholds.tsv does not contain the exact observed task/session x metric grid"
         )
     else:
         for key, expected in expected_lookup.items():

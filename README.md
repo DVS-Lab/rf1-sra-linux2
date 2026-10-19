@@ -628,9 +628,12 @@ thresholds as a routine new-subject validation gate.
 
 The run inventory comes from acquired BIDS echo-2 magnitude runs. The canonical
 table combines MRIQC echo-2 tSNR and mean FD, TEDANA final rejected-component
-counts, and fMRIPrep MNI brain coverage. `task-socialdoors` and `task-doors`
-remain separate run rows but share one pooled Social Doors threshold
-distribution.
+counts, and fMRIPrep MNI brain coverage. Policy v2 calculates thresholds within
+each exact task and session. Doors and Social Doors are separate distributions;
+new session-02 data cannot shift session-01 flags. Older pooled artifacts need
+regeneration before being interpreted under v2. Flags are not exclusions.
+See [the read-only task availability audit](docs/task-availability-reconciliation.md)
+for the current full-roster reconciliation before any paper-cohort handoff.
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2/code
@@ -658,7 +661,7 @@ recorded thresholds and flags cannot be reproduced. Imaging outliers are
 run-level facts, not automatic participant exclusions. See [the QC
 manual](qc/README.md) for exact definitions and provenance.
 
-The scanner-era extension leaves the canonical run table and pooled thresholds
+The scanner-era extension leaves the canonical run table and task/session thresholds
 unchanged. It stratifies the same four metrics by the privacy-safe BIDS
 `SoftwareVersions` categories E11, XA30, and XA60, writing shareable descriptive
 tables and figures under `qc/scanner_era/`. Treat era differences as

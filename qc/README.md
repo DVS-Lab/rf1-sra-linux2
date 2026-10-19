@@ -1,7 +1,7 @@
 # RF1-SRA Run-Level Imaging QC
 
 This directory is the authoritative, Git-tracked home for cohort-level
-run-quality metrics and imaging-QC decisions. The machine-readable source of
+run-quality metrics and descriptive imaging-QC flags. The machine-readable source of
 truth is `run_qc.tsv`; spreadsheets are regenerated human-facing views.
 
 The production stage runs only after participant MRIQC, fMRIPrep geometry
@@ -12,9 +12,10 @@ zero-valued metric.
 
 ## Policy
 
-`qc_policy.json` defines four paradigm distributions and four one-sided Tukey
-rules. `task-socialdoors` and `task-doors` remain distinct BIDS tasks but are
-pooled into the `socialdoors` paradigm for threshold estimation. Thresholds
+Policy v2 defines exact BIDS task x session distributions and four one-sided
+Tukey rules. Doors and Social Doors are not pooled. Session-02 additions cannot
+change session-01 thresholds or flags. Paradigm names remain workbook groupings
+only. Earlier pooled outputs are historical until rebuilt under v2. Thresholds
 are calculated once from every finite value for that metric using linear
 quartile interpolation and an IQR multiplier of 1.5.
 
@@ -49,13 +50,13 @@ qc/
   provenance.json
   reference/rf1-sra_MNI152NLin6Asym_desc-qctarget_mask.nii.gz
   spreadsheets/{sharedreward,trust,ugr,socialdoors}_qc.xlsx
-  figures/{sharedreward,trust,ugr,socialdoors}_histograms.png
+  figures/task-{task}_ses-{session}_histograms.png
   scanner_era/
     run_metrics.tsv
     summary.tsv
     report.md
     provenance.json
-    figures/{sharedreward,trust,ugr,socialdoors}_by_scanner_era.png
+    figures/task-{task}_ses-{session}_by_scanner_era.png
 ```
 
 The paired Social Doors table describes both run states and whether either run
@@ -106,10 +107,10 @@ only `E11`, `XA30`, and `XA60`. Missing, ambiguous, or unknown era metadata is a
 hard error. No raw DICOM headers, dates, private tags, or UID values are read or
 tracked.
 
-The four figures show run-level boxplots and all observed values by era for the
-same four canonical metrics. Existing pooled cohort fences are overlaid; no
+The task/session figures show run-level boxplots and all observed values by era for the
+same four canonical metrics. Task/session cohort fences are overlaid; no
 era-specific thresholds or exclusions are calculated. The tracked summary
-contains sample sizes, means, standard deviations, quartiles, ranges, pooled
+contains sample sizes, means, standard deviations, quartiles, ranges, task/session
 fence flag rates, and median differences from E11. Scanner era is confounded
 with acquisition time and cohort composition, so these outputs are descriptive.
 Follow large differences with task/session-stratified and, where possible,

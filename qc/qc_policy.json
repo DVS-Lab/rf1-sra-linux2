@@ -1,5 +1,6 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "threshold_grouping": ["task", "session"],
   "iqr_multiplier": 1.5,
   "quartile_method": "linear",
   "threshold_passes": 1,

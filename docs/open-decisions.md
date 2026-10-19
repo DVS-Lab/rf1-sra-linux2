@@ -8,6 +8,16 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
+**2026-10-19 task-availability handoff:** audit the full approved MRI roster for
+baseline Social Doors run 1 and UGR runs 1/2 before freezing the paper samples.
+The [read-only reconciliation](task-availability-reconciliation.md) separates
+current file availability, recorded holds, QC flags, and final decisions. The
+exact 118-ID linked cohort is not yet available to this audit. No new lab request
+or exclusion decision is implied. Policy v2 corrects threshold grouping to exact
+task and session: wave-2 additions cannot alter baseline thresholds, and Doors
+is not pooled with Social Doors. Existing pooled QC artifacts remain historical
+until explicitly regenerated and checked. Linux2 execution is still required.
+
 **2026-10-01 Doors reconciliation:** completed downstream models are not a
 census of acquired tasks. The [Doors source reconciliation](historical-tracker-reconciliation.md#doors-acquisition-reconciliation-2026-10-01)
 accounts for the current 340-participant L1 denominator and records the eleven

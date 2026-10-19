@@ -1,0 +1,2 @@
+subject	session	task	run	reason	evidence
+11201	01	ugr	1	Existing model-3 hold: short source lacks social-low trials; do not clear from file existence or QC pass.	docs/open-decisions.md:73-81

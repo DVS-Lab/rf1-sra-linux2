@@ -51,7 +51,7 @@ can still write to its own `bids/`, `derivatives/`, and `logs/` trees.
 | 9 | `run_mriqc.sh` | `mriqc.sh` | BIDS data | `derivatives/mriqc` | Container run only; no raw-source edits. |
 | 10 | `mriqc_group.sh` | MRIQC container | Completed participant MRIQC outputs | MRIQC group report | Cohort-level step; run after the full participant batch completes. |
 | 11 | `build_run_qc.py` | BIDS, MRIQC, fMRIPrep, TEDANA, and `qc/qc_policy.json` | Tracked canonical TSV/JSON, four workbooks, four histograms, and fixed coverage target under `qc/` | Cohort-level builder/checker; source exclusions are omitted by default, missing metrics remain incomplete, and canonical replacement requires `--overwrite`. |
-| 12 | `build_scanner_era_qc.py` | Canonical `qc/run_qc.tsv`, `qc/thresholds.tsv`, and BIDS echo-2 magnitude sidecars | Tracked run/summary TSVs, report, provenance, and four era-stratified figures under `qc/scanner_era/` | Descriptive extension only; uses BIDS `SoftwareVersions`, preserves pooled cohort thresholds, and fails closed on missing or unknown eras. |
+| 12 | `build_scanner_era_qc.py` | Canonical `qc/run_qc.tsv`, `qc/thresholds.tsv`, and BIDS echo-2 magnitude sidecars | Tracked run/summary TSVs, report, provenance, and task/session-specific era figures under `qc/scanner_era/` | Descriptive extension only; preserves task/session thresholds and fails closed on missing/unknown eras or legacy pooled thresholds. |
 
 `audit_tedana.py`, `benchmark_tedana.py`, `audit_tedana_design.py`, and the
 TEDANA summarizers are an audit-only scientific
@@ -358,10 +358,19 @@ authorize a repair or establish a preprocessing failure.
 - Status: Canonical cohort-level production QC builder and checker.
 - Purpose: Inventory acquired functional runs, collect four run imaging metrics, calculate one-pass one-sided Tukey fences, and generate reproducible review artifacts.
 - Inputs: BIDS echo-2 part-mag BOLD inventory; MRIQC echo-2 part-mag JSON; TEDANA `desc-tedana_metrics.tsv`; non-echo fMRIPrep `MNI152NLin6Asym` run brain masks; `qc/qc_policy.json`; TemplateFlow resolution-02 brain mask; and the checksum-pinned historical cerebellum/brainstem exclusion mask.
-- Outputs: `qc/run_qc.tsv`, `qc/thresholds.tsv`, `qc/socialdoors_pair_qc.tsv`, `qc/provenance.json`, a fixed target mask, four XLSX workbooks, and four histogram PNGs.
+- Outputs: `qc/run_qc.tsv`, `qc/thresholds.tsv`, `qc/socialdoors_pair_qc.tsv`, `qc/provenance.json`, a fixed target mask, four XLSX workbooks, and histogram PNGs for each exact task/session.
 - Typical command: `"$QC_PYTHON" build_run_qc.py build --dry-run`, then run the production build and checker through `run_logged.sh --include-full-log` after review.
 - Checker: `"$QC_PYTHON" build_run_qc.py check`.
-- Notes: `qc/run_qc.tsv` is authoritative; spreadsheets are generated views. Shared Reward, Trust, and UGR each use one paradigm distribution. Social Doors pools `task-socialdoors` and `task-doors` for thresholds while retaining separate run rows and a paired summary. Missing or ambiguous metrics produce `qc_status=incomplete`; no metric is silently zeroed. Existing canonical outputs require `build --overwrite`. Source-excluded subjects are omitted unless the forensic `--include-source-excluded` override is explicit. The retired MRIQC-only CSV extractor and legacy FEAT voxel counter must not be restored as competing production QC paths.
+- Notes: `qc/run_qc.tsv` records measurements and descriptive flags, not final exclusions. Policy v2 uses exact task/session distributions; Doors and Social Doors are separate and session-02 additions cannot shift session-01 flags. Workbook paradigm grouping and the paired summary do not pool threshold populations. Missing or ambiguous metrics produce `qc_status=incomplete`; no metric is silently zeroed. Existing canonical outputs require `build --overwrite`. Source-excluded subjects are omitted unless the forensic `--include-source-excluded` override is explicit. Older pooled artifacts remain historical until rebuilt.
+
+### `audit_task_availability.py`
+
+Read-only Social Doors/UGR reconciliation across the live MRI roster. Emits three
+expected baseline run rows per participant, including missing events, without
+changing manifests or assigning analysis eligibility. Preserves source-exclusion
+blocks and documented run holds, copies recorded QC, and reports task/session
+flags separately. Private results stay under ignored `work/`; aggregate logs may
+be tracked. See [the command and limits](../docs/task-availability-reconciliation.md).
 
 ### `build_events_qc.py`
 
@@ -1020,7 +1029,7 @@ The checker recomputes source metrics, inventory coverage, thresholds, flags,
 paired Social Doors rows, and workbook row sets. It exits nonzero for any
 incomplete run. The scanner-era extension then joins each canonical run to the
 non-identifying `SoftwareVersions` field in its BIDS echo-2 magnitude sidecar.
-It does not recompute thresholds by era or modify `run_qc.tsv`. Review the four
+It does not recompute thresholds by era or modify `run_qc.tsv`. Review the task/session
 canonical histograms, four era-stratified figures, and Git diffs before committing.
 The full summary is small enough to retain in the tracked Markdown run record;
 the duplicate raw log remains ignored.

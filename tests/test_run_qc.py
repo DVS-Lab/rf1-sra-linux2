@@ -95,6 +95,8 @@ def test_only_poor_quality_direction_is_flagged() -> None:
         thresholds.append(
             {
                 "paradigm": "trust",
+                "task": "trust",
+                "session": "01",
                 "metric": metric,
                 "n": 10,
                 "lower_fence": 1,
@@ -115,7 +117,7 @@ def test_only_poor_quality_direction_is_flagged() -> None:
     )
 
 
-def test_socialdoors_and_doors_share_one_threshold_distribution() -> None:
+def test_socialdoors_and_doors_have_separate_threshold_distributions() -> None:
     rows = [
         metric_row("10001", "socialdoors", tsnr=0),
         metric_row("10002", "socialdoors", tsnr=1),
@@ -125,12 +127,24 @@ def test_socialdoors_and_doors_share_one_threshold_distribution() -> None:
     threshold = next(
         row
         for row in qc.compute_thresholds(rows, policy())
-        if row["paradigm"] == "socialdoors" and row["metric"] == "tsnr"
+        if row["task"] == "socialdoors" and row["metric"] == "tsnr"
     )
-    assert threshold["bids_tasks"] == "socialdoors;doors"
-    assert threshold["n"] == 4
-    assert threshold["q1"] == 0.75
-    assert threshold["q3"] == 100.25
+    assert threshold["bids_tasks"] == "socialdoors"
+    assert threshold["n"] == 2
+    assert threshold["q1"] == 0.25
+    assert threshold["q3"] == 0.75
+
+
+def test_wave2_additions_cannot_change_wave1_thresholds_or_flags() -> None:
+    baseline = [metric_row(str(i), "ugr", fd_mean=v) for i, v in enumerate([1, 2, 3, 4, 100])]
+    original = qc.compute_thresholds(baseline, policy())
+    qc.apply_thresholds(baseline, original, policy())
+    later = [dict(metric_row(str(i), "ugr", fd_mean=10000 + i), session="02") for i in range(20)]
+    combined = [dict(row) for row in baseline] + later
+    refreshed = qc.compute_thresholds(combined, policy())
+    qc.apply_thresholds(combined, refreshed, policy())
+    assert [r for r in refreshed if r["session"] == "01"] == original
+    assert combined[:len(baseline)] == baseline
 
 
 def test_socialdoors_pair_flags_and_missing_pair() -> None:
@@ -315,7 +329,7 @@ def test_complete_build_check_and_deterministic_regeneration(
     )
     assert qc.run_check(check_args) == 0
     assert len(list((output / "spreadsheets").glob("*_qc.xlsx"))) == 4
-    assert len(list((output / "figures").glob("*_histograms.png"))) == 4
+    assert len(list((output / "figures").glob("*_histograms.png"))) == len({(r["task"], r["session"]) for r in qc.read_tsv(output / "run_qc.tsv")})
 
 
 def test_missing_metric_is_incomplete_not_pass_or_outlier() -> None:

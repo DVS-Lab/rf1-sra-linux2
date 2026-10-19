@@ -74,6 +74,8 @@ def make_inputs(project: Path) -> tuple[Path, Path]:
             threshold_rows.append(
                 {
                     "paradigm": paradigm,
+                    "task": paradigm,
+                    "session": "01",
                     "metric": metric,
                     "outlier_direction": "lower" if lower else "upper",
                     "lower_fence": 5 if lower else "",
@@ -116,13 +118,15 @@ def test_summary_reports_e11_deltas() -> None:
         rows.append(
             {
                 "paradigm": "trust",
+                "task": "trust",
+                "session": "01",
                 "software_era": era,
                 "tsnr": value,
                 "tsnr_outlier": False,
             }
         )
     thresholds = {
-        (paradigm, metric): {"direction": "lower", "fence": 1.0}
+        (paradigm, "01", metric): {"direction": "lower", "fence": 1.0}
         for paradigm in scanner_qc.PARADIGMS
         for metric in scanner_qc.METRICS
     }
@@ -163,3 +167,22 @@ def test_unknown_software_version_fails_closed(tmp_path: Path) -> None:
     sidecar.write_text(json.dumps({"SoftwareVersions": "mystery"}))
     with pytest.raises(ValueError, match="unrecognized SoftwareVersions"):
         scanner_qc.load_run_metrics(project, run_qc)
+
+
+def test_scanner_summary_keeps_task_and_session_separate():
+    rows = [dict(paradigm="socialdoors", task=task, session=ses,
+                 software_era="E11", tsnr=value, tsnr_outlier=False)
+            for task, ses, value in (("doors", "01", 1), ("socialdoors", "01", 20),
+                                     ("socialdoors", "02", 100))]
+    thresholds = {(r["task"], r["session"], m): {"fence": 0, "direction": "lower"}
+                  for r in rows for m in scanner_qc.METRICS}
+    result = scanner_qc.summarize(rows, thresholds)
+    assert {(r["task"], r["session"], r["median"]) for r in result} == {
+        ("doors", "01", 1), ("socialdoors", "01", 20), ("socialdoors", "02", 100)}
+
+
+def test_legacy_pooled_thresholds_rejected(tmp_path):
+    path = tmp_path / "thresholds.tsv"
+    path.write_text("paradigm\tmetric\toutlier_direction\tlower_fence\nugr\ttsnr\tlower\t1\n")
+    with pytest.raises(ValueError, match="legacy pooled"):
+        scanner_qc.load_thresholds(path)

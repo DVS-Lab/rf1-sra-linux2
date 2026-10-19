@@ -43,6 +43,8 @@ RUN_COLUMNS = (
 )
 SUMMARY_COLUMNS = (
     "paradigm",
+    "task",
+    "session",
     "metric",
     "software_era",
     "n",
@@ -65,9 +67,13 @@ OUTPUTS = (
     Path("run_metrics.tsv"),
     Path("summary.tsv"),
     Path("report.md"),
-    *[Path("figures") / f"{name}_by_scanner_era.png" for name in PARADIGMS],
     Path("provenance.json"),
 )
+
+
+def figure_outputs(rows):
+    return [Path("figures") / f"task-{task}_ses-{session}_by_scanner_era.png"
+            for task, session in sorted({(r["task"], r["session"]) for r in rows})]
 
 
 def utc_now() -> str:
@@ -235,45 +241,54 @@ def load_run_metrics(
     return rows, sidecars
 
 
-def load_thresholds(path: Path) -> dict[tuple[str, str], dict[str, Any]]:
+def load_thresholds(path: Path) -> dict[tuple[str, str, str], dict[str, Any]]:
     records = read_tsv(path)
-    lookup: dict[tuple[str, str], dict[str, Any]] = {}
+    lookup: dict[tuple[str, str, str], dict[str, Any]] = {}
     for record in records:
+        if not record.get("task") or not record.get("session"):
+            raise ValueError("legacy pooled thresholds: regenerate exact task/session QC first")
         direction = record.get("outlier_direction", "")
+        if direction not in {"lower", "upper"}:
+            raise ValueError("invalid threshold direction")
         fence_column = "lower_fence" if direction == "lower" else "upper_fence"
-        lookup[(record.get("paradigm", ""), record.get("metric", ""))] = {
+        key = (record["task"], record["session"], record.get("metric", ""))
+        if key in lookup:
+            raise ValueError("duplicate threshold key")
+        lookup[key] = {
             "direction": direction,
             "fence": finite(record.get(fence_column)),
         }
-    expected = {(paradigm, metric) for paradigm in PARADIGMS for metric in METRICS}
-    if set(lookup) != expected:
-        raise ValueError("thresholds.tsv does not contain the canonical 4 x 4 metric grid")
+    expected = {(task, session, metric) for task, session, _ in lookup for metric in METRICS}
+    if not lookup or set(lookup) != expected:
+        raise ValueError("thresholds.tsv lacks the complete task/session metric grid")
     return lookup
 
 
 def summarize(
     rows: Sequence[dict[str, Any]],
-    thresholds: dict[tuple[str, str], dict[str, Any]],
+    thresholds: dict[tuple[str, str, str], dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    grouped: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    grouped = defaultdict(list)
     for row in rows:
         for metric in METRICS:
             if row.get(metric) is not None:
-                grouped[(row["paradigm"], metric, row["software_era"])].append(row)
+                grouped[(row["task"], row["session"], metric, row["software_era"])].append(row)
     output: list[dict[str, Any]] = []
-    for paradigm in PARADIGMS:
+    for task, session in sorted({(r["task"], r["session"]) for r in rows}):
         for metric, (_label, flag) in METRICS.items():
             for era in ERAS:
-                group = grouped.get((paradigm, metric, era), [])
+                group = grouped.get((task, session, metric, era), [])
                 values = [float(row[metric]) for row in group]
                 if not values:
                     continue
                 mean = sum(values) / len(values)
                 std = math.sqrt(sum((value - mean) ** 2 for value in values) / len(values))
-                threshold = thresholds[(paradigm, metric)]
+                threshold = thresholds[(task, session, metric)]
                 output.append(
                     {
-                        "paradigm": paradigm,
+                        "paradigm": group[0]["paradigm"],
+                        "task": task,
+                        "session": session,
                         "metric": metric,
                         "software_era": era,
                         "n": len(values),
@@ -293,12 +308,12 @@ def summarize(
                     }
                 )
     e11 = {
-        (row["paradigm"], row["metric"]): float(row["median"])
+        (row["task"], row["session"], row["metric"]): float(row["median"])
         for row in output
         if row["software_era"] == "E11"
     }
     for row in output:
-        baseline = e11.get((row["paradigm"], row["metric"]))
+        baseline = e11.get((row["task"], row["session"], row["metric"]))
         if baseline is None:
             row["median_delta_from_e11"] = None
             row["median_pct_delta_from_e11"] = None
@@ -313,7 +328,7 @@ def summarize(
 
 def plot_scanner_eras(
     rows: Sequence[dict[str, Any]],
-    thresholds: dict[tuple[str, str], dict[str, Any]],
+    thresholds: dict[tuple[str, str, str], dict[str, Any]],
     directory: Path,
 ) -> None:
     import matplotlib
@@ -331,8 +346,8 @@ def plot_scanner_eras(
             "axes.spines.right": False,
         }
     ):
-        for paradigm in PARADIGMS:
-            group = [row for row in rows if row["paradigm"] == paradigm]
+        for task, session in sorted({(r["task"], r["session"]) for r in rows}):
+            group = [row for row in rows if (row["task"], row["session"]) == (task, session)]
             fig, axes = plt.subplots(2, 2, figsize=(11, 8), constrained_layout=True)
             for axis, (metric, (label, _flag)) in zip(
                 axes.flat, METRICS.items(), strict=True
@@ -379,14 +394,14 @@ def plot_scanner_eras(
                             edgecolors="none",
                             rasterized=True,
                         )
-                threshold = thresholds[(paradigm, metric)]
+                threshold = thresholds[(task, session, metric)]
                 if threshold["fence"] is not None:
                     axis.axhline(
                         float(threshold["fence"]),
                         color="#C23B22",
                         linewidth=1.5,
                         linestyle="--",
-                        label="Cohort fence",
+                        label="Task/session fence",
                     )
                     axis.legend(loc="best", frameon=False, fontsize=8)
                 axis.set_xticks(
@@ -397,15 +412,10 @@ def plot_scanner_eras(
                 axis.set_title(label)
                 axis.set_ylabel(label)
                 axis.grid(axis="y", color="#E5E7EB", linewidth=0.7)
-            subtitle = (
-                "task-socialdoors + task-doors pooled"
-                if paradigm == "socialdoors"
-                else f"task-{paradigm}"
-            )
             fig.suptitle(
-                f"RF1-SRA {paradigm} QC by scanner era\n{subtitle}", fontsize=14
+                f"RF1-SRA task-{task} ses-{session} QC by scanner era", fontsize=14
             )
-            path = directory / f"{paradigm}_by_scanner_era.png"
+            path = directory / f"task-{task}_ses-{session}_by_scanner_era.png"
             fig.savefig(
                 path,
                 dpi=180,
@@ -427,7 +437,7 @@ def make_report(
         era: [row for row in rows if row["software_era"] == era] for era in ERAS
     }
     lookup = {
-        (row["paradigm"], row["metric"], row["software_era"]): row
+        (row["task"], row["session"], row["metric"], row["software_era"]): row
         for row in summary
     }
     lines = [
@@ -451,11 +461,11 @@ def make_report(
             f"{len({row['subject'] for row in group})} | "
             f"{len({(row['subject'], row['session']) for row in group})} |"
         )
-    for paradigm in PARADIGMS:
+    for task, session in sorted({(r["task"], r["session"]) for r in rows}):
         lines.extend(
             [
                 "",
-                f"## {paradigm.title()}",
+                f"## Task {task}, Session {session}",
                 "",
                 "Values are median [Q1, Q3].",
                 "",
@@ -466,7 +476,7 @@ def make_report(
         for metric, (label, _flag) in METRICS.items():
             cells = []
             for era in ERAS:
-                item = lookup.get((paradigm, metric, era))
+                item = lookup.get((task, session, metric, era))
                 cells.append(
                     "NA"
                     if item is None
@@ -478,7 +488,7 @@ def make_report(
             "",
             "## Interpretation",
             "",
-            "Use `summary.tsv` for exact sample sizes, distributions, pooled-fence",
+            "Use `summary.tsv` for exact sample sizes, distributions, task/session-fence",
             "flag rates, and median differences from E11. Large differences should be",
             "followed by task/session-stratified and, where possible, within-subject",
             "review before attributing them to scanner software. For brain coverage,",
@@ -555,9 +565,10 @@ def build(args: argparse.Namespace) -> int:
             "bids_sidecar_inventory_sha256": input_inventory_digest(sidecars, project),
             "causal_claim_authorized": False,
             "era_specific_thresholds_calculated": False,
+            "threshold_grouping": ["task", "session"],
             "outputs": {},
         }
-        for relative in OUTPUTS:
+        for relative in (*OUTPUTS, *figure_outputs(rows)):
             if relative.name != "provenance.json":
                 provenance["outputs"][relative.as_posix()] = sha256(stage / relative)
         provenance_path = stage / "provenance.json"
@@ -601,7 +612,7 @@ def check(args: argparse.Namespace) -> int:
     except (OSError, json.JSONDecodeError):
         provenance = {}
         failures.append("missing or invalid provenance.json")
-    for relative in OUTPUTS:
+    for relative in (*OUTPUTS, *figure_outputs(rows)):
         path = output / relative
         if not path.is_file():
             failures.append(f"missing output: {relative}")
