@@ -1125,3 +1125,12 @@ then checks canonical task/session QC, scanner-era QC, and the baseline paper
 handoff in sequence. A failure stops the sequence. It does not process 10964,
 new intake candidates, or ses-01 imaging. See
 `docs/wave2-tedana-resume.md` for launch commands and preservation guarantees.
+
+## Age-55+ L1 Without TEDANA ICs
+
+`run_no_tedana_l1.py` prepares, renders, runs and checks isolated ses-01 UGR
+and Social Doors activation analyses using the production base fMRIPrep
+confounds without rejected TEDANA timecourses. It preserves existing outputs,
+settled holds and source exclusions; QC flags never automatically select runs.
+See [the runbook](../docs/no-tedana-age55-l1.md) for Linux2 commands and the
+separate L2/L3 handoff boundary.
