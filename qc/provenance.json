@@ -36,9 +36,9 @@
       "metadata": "unavailable"
     }
   },
-  "generated_at": "2026-09-30T20:43:27+00:00",
+  "generated_at": "2026-10-21T04:20:42+00:00",
   "inventory": {
-    "inventory_runs": 2761,
+    "inventory_runs": 2781,
     "source_excluded_runs_omitted": 13,
     "source_excluded_subjects": [
       "10555",
@@ -65,13 +65,17 @@
     "spreadsheets/trust_qc.xlsx",
     "spreadsheets/ugr_qc.xlsx",
     "spreadsheets/socialdoors_qc.xlsx",
-    "figures/sharedreward_histograms.png",
-    "figures/trust_histograms.png",
-    "figures/ugr_histograms.png",
-    "figures/socialdoors_histograms.png"
+    "figures/task-doors_ses-01_histograms.png",
+    "figures/task-doors_ses-02_histograms.png",
+    "figures/task-sharedreward_ses-01_histograms.png",
+    "figures/task-socialdoors_ses-01_histograms.png",
+    "figures/task-socialdoors_ses-02_histograms.png",
+    "figures/task-trust_ses-01_histograms.png",
+    "figures/task-ugr_ses-01_histograms.png",
+    "figures/task-ugr_ses-02_histograms.png"
   ],
   "policy": "qc/qc_policy.json",
-  "policy_sha256": "eb79a7901dd8dad1a43d59bc5881f7c09f1efe69cd442c0e3ed3891aa606fa51",
+  "policy_sha256": "f34d4f73fb97f6408aa4125fac08889fe47bf1c45ef0adb9ad2c236f733e71af",
   "python_packages": {
     "matplotlib": "3.11.1",
     "nibabel": "5.4.2",
@@ -81,5 +85,9 @@
     "scipy": "1.18.0",
     "tedana": "26.0.3"
   },
-  "schema_version": 1
+  "schema_version": 1,
+  "threshold_grouping": [
+    "task",
+    "session"
+  ]
 }
