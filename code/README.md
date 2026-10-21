@@ -1140,3 +1140,10 @@ nonsocial Doors and eligible missed L1s, and builds isolated canonical L2 means.
 It preserves independent single-run/task handoff alternatives; no QC flag is
 an automatic exclusion and no L3 cohort is assigned. The original frozen runner
 is unchanged. See [the follow-up runbook](../docs/no-tedana-finish.md).
+
+## XA60 Coverage Inspection
+
+`inspect_xa60_coverage.py` creates private read-only comparisons of coverage-flagged
+XA60 runs with same-task/session/run coverage-passing controls. It checks current
+mask coverage and generates MNI/native/original-BIDS views, without changing any
+QC flags or exclusion decisions. See [the inspection runbook](../docs/xa60-coverage-inspection.md).
