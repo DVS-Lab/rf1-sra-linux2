@@ -97,6 +97,35 @@ To recheck or resume, reuse the printed private path (do not prepare a new plan)
 Completed owned outputs are verified and skipped. Failed/partial outputs need
 inspection and explicit archival before retry; the runner never deletes them.
 
+### Changing concurrency on Linux2
+
+Do not start a duplicate runner or kill all FEAT processes. For a run launched
+with the isolated `setsid` command above, use `code/restart_no_tedana_finish.py`
+with the exact Python runner PID and the existing private plan. First preview:
+
+```bash
+"$AUDIT_PYTHON" code/restart_no_tedana_finish.py \
+  --pid "$RUNNER_PID" --private-dir "$NO_TEDANA_FINISH"
+# Only after preview succeeds:
+"$AUDIT_PYTHON" code/restart_no_tedana_finish.py \
+  --pid "$RUNNER_PID" --private-dir "$NO_TEDANA_FINISH" --apply
+```
+
+The helper freezes and terminates only that isolated logged session, refuses
+escaped children or a shared interactive session, and waits for termination.
+It then acquires the same output locks, verifies the frozen plan and successful
+products, and moves unmarked partial FEAT outputs into each isolated derivative
+root's `restart-archives/` folder. No outputs are deleted. Reused parent outputs
+and valid success records are preserved. Invalid recorded successes stop recovery
+rather than being silently regenerated. A private restart JSON records each move.
+The interrupted original log may lack a final footer; keep it with the restart
+record as provenance. This helper does not modify frozen runner code.
+
+Only after `RESTART READY`, launch the original logged `run` command with the same
+private directory and `--jobs 20`. Do not rerun `prepare`. If the old runner has
+already exited, or any recovery step fails, inspect before proceeding; do not
+substitute another PID. Twenty workers are a ceiling, not a memory guarantee.
+
 ## Handoff, not an automatic L3 cohort
 
 `handoff_candidates.tsv` lists contrast-specific cope/varcope/mask/DOF and FEAT
