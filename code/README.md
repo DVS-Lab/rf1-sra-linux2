@@ -1134,3 +1134,9 @@ confounds without rejected TEDANA timecourses. It preserves existing outputs,
 settled holds and source exclusions; QC flags never automatically select runs.
 See [the runbook](../docs/no-tedana-age55-l1.md) for Linux2 commands and the
 separate L2/L3 handoff boundary.
+
+After that batch completes, `finish_no_tedana.py` verifies and reuses it, adds
+nonsocial Doors and eligible missed L1s, and builds isolated canonical L2 means.
+It preserves independent single-run/task handoff alternatives; no QC flag is
+an automatic exclusion and no L3 cohort is assigned. The original frozen runner
+is unchanged. See [the follow-up runbook](../docs/no-tedana-finish.md).
