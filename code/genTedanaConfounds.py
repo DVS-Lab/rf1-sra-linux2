@@ -4,12 +4,15 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
+import tempfile
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
-from pipeline_utils import read_subject_list
+from pipeline_utils import apply_umask_mode, read_subject_list
 
 
 DESIRED_FMRIPREP_COLUMNS = [
@@ -69,11 +72,40 @@ def build_confounds(fmriprep_confounds: Path, mixing_file: Path, metrics_file: P
     return pd.concat([base, rejected], axis=1)
 
 
-def atomic_write_tsv(df: pd.DataFrame, path: Path) -> None:
+def atomic_write_tsv(df: pd.DataFrame, path: Path, *, preserve_existing: bool = False) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(f".{path.name}.tmp")
-    df.to_csv(tmp, index=False, header=False, sep="\t")
-    tmp.replace(path)
+    with tempfile.NamedTemporaryFile(dir=path.parent, prefix=f".{path.name}.", delete=False) as handle:
+        tmp = Path(handle.name)
+    try:
+        df.to_csv(tmp, index=False, header=False, sep="\t")
+        apply_umask_mode(tmp)
+        if preserve_existing:
+            # Exclusive publication: a concurrent writer cannot be overwritten.
+            os.link(tmp, path)
+        else:
+            tmp.replace(path)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def validate_alignment(confounds: pd.DataFrame, bold_file: Path) -> None:
+    import nibabel as nib
+
+    shape = nib.load(bold_file).shape
+    if len(shape) != 4 or shape[3] != len(confounds):
+        raise ValueError(f"BOLD/confound row mismatch: image shape {shape}, rows {len(confounds)}")
+    values = confounds.to_numpy(dtype=float)
+    if not values.size or not np.isfinite(values).all():
+        raise ValueError("Confound matrix is empty or contains nonfinite values")
+
+
+def verify_existing(confounds: pd.DataFrame, path: Path) -> None:
+    actual = pd.read_csv(path, sep="\t", header=None).to_numpy(dtype=float)
+    expected = confounds.to_numpy(dtype=float)
+    if actual.shape != expected.shape or not np.isfinite(actual).all() or not np.allclose(
+        actual, expected, rtol=1e-10, atol=1e-12
+    ):
+        raise ValueError("Existing confounds do not match current inputs; preserved unchanged for review")
 
 
 def subject_filter_from_sublist(sublist: Path | None) -> set[str] | None:
@@ -89,8 +121,15 @@ def main() -> int:
     parser.add_argument("--tedana-dir", type=Path, default=repo_root / "derivatives" / "tedana")
     parser.add_argument("--output-dir", type=Path, default=repo_root / "derivatives" / "fsl" / "confounds_tedana")
     parser.add_argument("--sublist", type=Path, help="Optional subject list limiting which TEDANA outputs are processed.")
-    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--session", choices=("01", "02"))
+    parser.add_argument("--expected-runs", type=int, help="Fail unless exactly this many metric files are selected.")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--dry-run", action="store_true")
+    mode.add_argument("--check", action="store_true", help="Verify alignment and existing matrices without writing.")
+    parser.add_argument("--preserve-existing", action="store_true", help="Verify existing matrices; create missing ones only.")
     args = parser.parse_args()
+    if args.expected_runs is not None and args.expected_runs < 1:
+        parser.error("--expected-runs must be positive")
 
     metric_files = sorted(args.tedana_dir.rglob("*_desc-tedana_metrics.tsv"))
     allowed_subjects = subject_filter_from_sublist(args.sublist)
@@ -102,6 +141,8 @@ def main() -> int:
         if allowed_subjects is not None and sub not in allowed_subjects:
             continue
         ses = parsed["ses"]
+        if args.session is not None and ses != args.session:
+            continue
         task = parsed["task"]
         run = parsed["run"]
         prefix = metric_file.name.replace("_desc-tedana_metrics.tsv", "")
@@ -135,12 +176,28 @@ def main() -> int:
             continue
         try:
             confounds = build_confounds(fmriprep_file, mixing_file, metric_file)
-            atomic_write_tsv(confounds, out_file)
+            if args.check or args.preserve_existing:
+                bold_file = fmriprep_file.with_name(
+                    f"{sub}_ses-{ses}_task-{task}_run-{run}_echo-1_part-mag_desc-preproc_bold.nii.gz"
+                )
+                validate_alignment(confounds, bold_file)
+                validate_alignment(confounds, base.with_name(f"{prefix}_desc-denoised_bold.nii.gz"))
+            if args.check or (args.preserve_existing and out_file.exists()):
+                verify_existing(confounds, out_file)
+                print("VERIFIED existing confounds; unchanged")
+            else:
+                atomic_write_tsv(confounds, out_file, preserve_existing=args.preserve_existing)
         except Exception as exc:  # noqa: BLE001 - keep batch processing and report all failures.
             failures += 1
             print(f"Failed {sub} ses-{ses} task-{task} run-{run}: {exc}")
 
     print(f"Processed {processed} TEDANA metric file(s).")
+    if (args.check or args.preserve_existing) and processed == 0:
+        print("CHECK FAILED: no selected TEDANA metric files")
+        failures += 1
+    if args.expected_runs is not None and processed != args.expected_runs:
+        print(f"CHECK FAILED: expected {args.expected_runs} runs, found {processed}")
+        failures += 1
     return 1 if failures else 0
 
 

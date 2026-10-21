@@ -1105,3 +1105,13 @@ coverage. It exports separate ready/missing/held manifests for session 01,
 preserves reviewed decisions, and never uses QC flags as exclusion decisions.
 Run `refresh_task_handoff.py check --private-dir work/<name>` before using them.
 See `docs/task-availability-reconciliation.md` for the Linux2 workflow and limits.
+
+## October Wave-2 TEDANA Resume
+
+`resume_wave2_tedana.sh --dry-run` checks the 20 reviewed ses-02 runs for
+11083, 11084, 11110, 11120, and 11193. Without `--dry-run`, it skips complete
+TEDANA outputs, generates missing confounds while verifying existing ones,
+then checks canonical task/session QC, scanner-era QC, and the baseline paper
+handoff in sequence. A failure stops the sequence. It does not process 10964,
+new intake candidates, or ses-01 imaging. See
+`docs/wave2-tedana-resume.md` for launch commands and preservation guarantees.

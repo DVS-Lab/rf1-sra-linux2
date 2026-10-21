@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash check_tedana.sh [--sublist FILE]
+Usage: bash check_tedana.sh [--sublist FILE] [--session 01|02] [--expected-runs N]
 USAGE
 }
 
@@ -13,8 +13,20 @@ source "${scriptdir}/pipeline_common.sh"
 rf1_load_config
 
 sublist="$BATCH_SUBLIST"
+sessions=(01 02)
+expected_runs=""
 while (($#)); do
   case "$1" in
+    --session)
+      [[ "${2:-}" == "01" || "${2:-}" == "02" ]] || { usage; exit 2; }
+      sessions=("$2")
+      shift 2
+      ;;
+    --expected-runs)
+      expected_runs="${2:-}"
+      [[ "$expected_runs" =~ ^[1-9][0-9]*$ ]] || { usage; exit 2; }
+      shift 2
+      ;;
     --sublist)
       sublist="$2"
       shift 2
@@ -34,7 +46,7 @@ rf1_require_file "$sublist"
 failed=0
 checked=0
 while IFS= read -r sub; do
-  for ses in 01 02; do
+  for ses in "${sessions[@]}"; do
     [[ -d "${PROJECT_ROOT}/bids/sub-${sub}/ses-${ses}" ]] || continue
     if [[ "$ses" == "01" ]]; then
       tasks=(socialdoors doors trust sharedreward ugr)
@@ -60,6 +72,11 @@ while IFS= read -r sub; do
     done
   done
 done < <(rf1_read_subjects "$sublist")
+
+if ((checked == 0)) || { [[ -n "$expected_runs" ]] && ((checked != expected_runs)); }; then
+  echo "CHECK FAILED: found ${checked} acquired run(s); expected ${expected_runs:-at least one}."
+  failed=1
+fi
 
 if ((failed)); then
   echo "CHECK FAILED: TEDANA outputs incomplete for one or more of ${checked} run(s)."

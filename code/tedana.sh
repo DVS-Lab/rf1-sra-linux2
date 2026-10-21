@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat >&2 <<'USAGE'
-Usage: bash tedana.sh [--dry-run] [--overwrite] SUBJECT
+Usage: bash tedana.sh [--session 01|02] [--dry-run] [--overwrite] SUBJECT
 USAGE
 }
 
@@ -14,8 +14,14 @@ rf1_load_config
 
 dry_run=0
 overwrite=0
+sessions=(01 02)
 while (($#)); do
   case "$1" in
+    --session)
+      [[ "${2:-}" == "01" || "${2:-}" == "02" ]] || { usage; exit 2; }
+      sessions=("$2")
+      shift 2
+      ;;
     --dry-run)
       dry_run=1
       shift
@@ -75,7 +81,7 @@ PY
 }
 
 failures=0
-for ses in 01 02; do
+for ses in "${sessions[@]}"; do
   [[ -d "${bidsdir}/sub-${sub}/ses-${ses}" ]] || continue
   if [[ "$ses" == "01" ]]; then
     tasks=(socialdoors doors trust sharedreward ugr)
@@ -112,6 +118,12 @@ for ses in 01 02; do
         echo_times+=("$(get_echo_time "$json_file")")
       done
       ((missing)) && continue
+
+      if [[ "$overwrite" -ne 1 ]] && compgen -G "${outdir}/sub-${sub}_ses-${ses}_task-${task}_run-${run}_*" >/dev/null; then
+        echo "INCOMPLETE existing TEDANA outputs: sub-${sub} ses-${ses} task-${task} run-${run}; preserved for review" >&2
+        failures=1
+        continue
+      fi
 
       cmd=(
         "$TEDANA_CMD"
