@@ -4,25 +4,33 @@
     "XA30",
     "XA60"
   ],
-  "bids_sidecar_count": 2761,
-  "bids_sidecar_inventory_sha256": "878dea18bb770e7776e9fe39616e71839300991b2f5e7accc73efa57fc785926",
+  "bids_sidecar_count": 2781,
+  "bids_sidecar_inventory_sha256": "0ff83f0bfbda583f275b774bfb66fe7f17e13d7a660b1c62cd89679d51961cf8",
   "causal_claim_authorized": false,
   "era_specific_thresholds_calculated": false,
-  "generated_at": "2026-09-04T17:34:59+00:00",
+  "generated_at": "2026-10-21T04:58:12+00:00",
   "outputs": {
-    "figures/sharedreward_by_scanner_era.png": "532c5b2fd56188cef062139e740fd4e08520c7bd0e9dc220f3daf7ab5f73a443",
-    "figures/socialdoors_by_scanner_era.png": "30ca101dac4c827f0d2f2865ef30425b64370c114b6fc9786f7271734c38b100",
-    "figures/trust_by_scanner_era.png": "fa0344ee1493d00cec722b437d67a5dd37385968f97f2d8f8a1fef6ed04b4caf",
-    "figures/ugr_by_scanner_era.png": "a59f3fb5c69d890387e78e92b25cca1f865229e9bef0499c573c14833265c8fb",
-    "report.md": "7468ad06de693ce70a6209188e441b710a706c0930bda360b0a67d3d680ddb34",
-    "run_metrics.tsv": "7ba1da6c93571b93e1d5dfc2c0f6cda48301dcbca1b7b04d6846dc1e411bb3bd",
-    "summary.tsv": "5f3b15e0c8f21f78968786e6a90ae89700bb3b88d808735b7017ef3c460936bb"
+    "figures/task-doors_ses-01_by_scanner_era.png": "05604d70d36c63f2a330e0e89eff6342d492b9cb369d6d6819c314b86cc73904",
+    "figures/task-doors_ses-02_by_scanner_era.png": "b7e8ede154c9c51b3843536872ca32b77ec6131c1ee84d072cb9b64197beed69",
+    "figures/task-sharedreward_ses-01_by_scanner_era.png": "d444e839aec70ae2855cf4fed54f9bf9e22f7287c7886344151e3b8d0f01988b",
+    "figures/task-socialdoors_ses-01_by_scanner_era.png": "1860b457e7881aa54553881b7b0c5afe55c8f43272a1de538444b323e3925ded",
+    "figures/task-socialdoors_ses-02_by_scanner_era.png": "2485ee1a2affaf33991acda89a8a4ff38aa205d3c259b15e590cd7938568f43d",
+    "figures/task-trust_ses-01_by_scanner_era.png": "b1b4b681fd76d56d6f1bae4c6f9a504abc6d243881d810b80dd55eeaee7d6a50",
+    "figures/task-ugr_ses-01_by_scanner_era.png": "cff4e022dee57008272b19ea71dc17d87f85c3ea2bdbaa43ce270a71c66579e6",
+    "figures/task-ugr_ses-02_by_scanner_era.png": "548b72768c1b496ae7a88d9149fc3a08e308903f37042429ef44bd62406371db",
+    "report.md": "9c481d4856810fe17048d0a3561f4c6811df6d7c9b9efaf02667806f68277566",
+    "run_metrics.tsv": "33fe3f7cff771529844dad2e28d0d450e6b60945f7882e0e7d976af12326f50a",
+    "summary.tsv": "694906899ef578372f90f92b74407d7bfc6ab255aa7473dd1f794b312c545add"
   },
   "run_qc": "qc/run_qc.tsv",
-  "run_qc_sha256": "4d7952b7749e4582b766b4f0e21640d967746b617c77ff67e88b66d2b9206d84",
+  "run_qc_sha256": "1c9aa9e22937001f51f6b086eeb2518a7f984b18dee81d050fc7502b817c0953",
   "schema_version": 1,
   "software_era_source": "BIDS echo-2 part-mag SoftwareVersions",
+  "threshold_grouping": [
+    "task",
+    "session"
+  ],
   "thresholds": "qc/thresholds.tsv",
-  "thresholds_sha256": "f43e79017d0189a8370a931c2bfe7786e0fd72f1e291aca9b15c34f898cfbe62",
+  "thresholds_sha256": "d7bd9f05672930a5fb02604e9fd5bf4cdc39c9de87fda08d00649caae7842bb6",
   "unknown_software_eras": 0
 }
