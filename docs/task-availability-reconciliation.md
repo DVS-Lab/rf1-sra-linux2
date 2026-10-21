@@ -85,3 +85,56 @@ old `qc_status` as a task/session-specific exclusion decision.
    118, 82 or 90 from the full MRI roster.
 5. Review task-level scientific QC decisions separately. Preserve all settled
    source-validity exclusions throughout. No message to Jacob has been sent.
+
+## Verified Manifest Refresh
+
+`code/refresh_task_handoff.py` builds a fresh audit and invokes the updated
+UGR and SocDoors builders against the full MRI roster. Both builders enumerate
+every expected run, including absent sessions/events, and require the private
+source-exclusion root. The handoff checks exact coverage and duplicate keys,
+then partitions runs into `L1-ready.tsv`, `L1-missing.tsv`, and `L1-held.tsv`.
+Existing holds and any supplied reviewed dispositions take precedence over file
+presence. Source-excluded residual data cannot enter the ready list. QC flags
+are not used to decide membership of any of these technical lists.
+
+This refresh is scoped to session-01 Social Doors and UGR. It writes new,
+dated manifests under private `work/`, not over the historical task-repository
+`logs/runlists` snapshots. This avoids erasing Doors or other-session rows and
+preserves evidence of the stale inventories. Use the new explicit paths for
+the handoff; do not keep using the old snapshots or a 12018-only exception.
+Raw builder outputs are diagnostic inventories only. The exported subdirectory
+manifests, after a successful check, are the ones with reviewed holds applied.
+
+Pull all three repositories before running:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+STAMP=task-handoff-$(date +%Y%m%d-%H%M%S)
+PRIVATE="work/$STAMP"
+bash code/run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$AUDIT_PYTHON" code/refresh_task_handoff.py build --private-dir "$PRIVATE" \
+  --check "$AUDIT_PYTHON" code/refresh_task_handoff.py check --private-dir "$PRIVATE"
+```
+
+An installed `qc/run_disposition.tsv` is not silently ignored: supply
+`--dispositions qc/run_disposition.tsv` to build. This follows the audit's
+explicit-decision contract. Optional decisions use subject, session, task, run,
+decision, reason, evidence; include never overrides a technical failure or hold.
+
+Private outputs:
+
+- `ugr/L1-{ready,missing,held}.tsv`: standard UGR run-key columns, plus reason
+  for non-ready rows. A missing L2 is not an automatic exclusion of a single run.
+- `socialdoors/L1-{ready,missing,held}.tsv`: standard four-column SocDoors keys,
+  plus reason for non-ready rows. Does not include or substitute Doors.
+- `run_review.tsv`: every expected slot with prior-manifest status, original and
+  exact-task/session QC flags, decisions, technical findings and L1/L2 evidence.
+- `summary.tsv`, `provenance.json`, `audit/`, and private command logs.
+
+Check verifies output/source hashes, all expected run keys, live input state,
+and the original audit's provenance. Re-running build requires a new directory.
+The refresh does not run FEAT, generate EVs, modify canonical QC, select L1 vs L2,
+or freeze a paper sample. Output presence/path checks do not establish FEAT
+current-input hash lineage. The exact 118-ID paper roster is still needed for
+paper-specific counts. Commit only the aggregate run record, never `work/`.

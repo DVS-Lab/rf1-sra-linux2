@@ -1097,3 +1097,11 @@ Use this checklist for any future workflow change or separate validation clone:
 The scanner-upgrade cutoff needs Linux2 confirmation. The code has used
 March 4, 2025; comments historically said March 18, 2025. This branch preserves
 the March 4 behavior until Jacob confirms otherwise.
+## Private Task Manifest Handoff
+
+`refresh_task_handoff.py build --private-dir work/<new-name>` runs a fresh
+Social Doors/UGR availability audit and validates the task builders' expected-run
+coverage. It exports separate ready/missing/held manifests for session 01,
+preserves reviewed decisions, and never uses QC flags as exclusion decisions.
+Run `refresh_task_handoff.py check --private-dir work/<name>` before using them.
+See `docs/task-availability-reconciliation.md` for the Linux2 workflow and limits.
