@@ -1,0 +1,33 @@
+{
+  "applied": true,
+  "backup": ".participants-backups/21d6e22ec3a545bfaf1668b04cbcd7b2",
+  "command": "build",
+  "created_utc": "2026-10-17T02:15:55.013144+00:00",
+  "eligible_missing_age": 0,
+  "eligible_missing_rows": [],
+  "eligible_missing_sex": 0,
+  "eligible_participants": 0,
+  "exported_rows": 352,
+  "issues": [],
+  "missing_age": 0,
+  "missing_sex": 0,
+  "participants_sha256": "10004009f83ae3ffd9977941e6c222ac8f1aabfd70f41968470cfaa70ef35ca4",
+  "reference_session": "01",
+  "requested_subjects": 1,
+  "schema_version": 1,
+  "script_sha256": "4416cc1b6cab083fc91a670f8f721355834dcfb7c71f1b8999ebdc4b87f56d6c",
+  "source_excluded_subjects_omitted": 12,
+  "source_exclusion_ids_sha256": "7d08ddd418ae9ee88b7678d2a6c3b65b194f7ce956a80a6872b6f4f5a96d6d2d",
+  "status": "passed",
+  "subjects": {
+    "sub-11193": {
+      "age_missing": false,
+      "age_missing_series": 0,
+      "series_rows": 41,
+      "sex_missing": false,
+      "sex_missing_series": 0,
+      "sha256": "795f9f6836672bb4fffa9f33ac87e2910300c4767ed4f09ad7e8ffea74cd3dd3",
+      "source": ".heudiconv/11193/ses-01/info/dicominfo_ses-01.tsv"
+    }
+  }
+}
