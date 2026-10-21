@@ -1106,6 +1106,16 @@ preserves reviewed decisions, and never uses QC flags as exclusion decisions.
 Run `refresh_task_handoff.py check --private-dir work/<name>` before using them.
 See `docs/task-availability-reconciliation.md` for the Linux2 workflow and limits.
 
+## Cohort-Wide TEDANA PCA Comparison
+
+For the separate cohort-wide matched AIC/KIC/MDL experiment, see
+[`../docs/tedana-cohort-pca.md`](../docs/tedana-cohort-pca.md) and
+`benchmark_tedana_cohort.py`. This inventories all acquired task/session runs,
+preserves production outputs and settled exclusions, and validates resumable
+audit-only outputs. It is not another sentinel subset or a production method switch.
+The MEPrep/Lindquist review is in
+[`../docs/meprep-method-review.md`](../docs/meprep-method-review.md).
+
 ## October Wave-2 TEDANA Resume
 
 `resume_wave2_tedana.sh --dry-run` checks the 20 reviewed ses-02 runs for
