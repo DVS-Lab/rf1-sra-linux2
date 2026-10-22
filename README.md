@@ -1,5 +1,9 @@
 # RF1-SRA Linux2 fMRI Preprocessing
 
+**Katie/Sophia papers:** use the [canonical validated imaging handoff](docs/paper-handoff/README.md)
+for age-55+, ses-01 no-TEDANA inputs, starting Ns, revised exclusion rules, and
+L3 next steps.
+
 This repository contains the Smith Lab Linux2 preprocessing workflow for RF1-SRA
 multi-echo fMRI data from the UGR, Social Doors, Trust, and Shared Reward tasks.
 This repository owns MRI data management, imaging and behavioral BIDS

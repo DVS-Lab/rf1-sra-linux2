@@ -1,5 +1,9 @@
 # Coverage95 paper handoff
 
+For Jacob's current validated paths, starting Ns, selection rules, and next
+steps, use the [canonical paper handoff README](paper-handoff/README.md).
+This page is the technical regeneration runbook, not a request to rerun completed jobs.
+
 ## Approved policy, 2026-10-21
 
 The PI approved excluding individual baseline analysis runs with canonical
