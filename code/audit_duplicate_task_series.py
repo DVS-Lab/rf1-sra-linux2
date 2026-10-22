@@ -158,6 +158,54 @@ def inspect(rows, mappings):
     return sorted(findings, key=lambda r: (r["view"], r["task"], r["part"], r["finding"]))
 
 
+def image_role(row):
+    """Require positive evidence; absence of NORM/Pha is not a phase/mag label."""
+    tokens = {v.upper() for v in row.image_type}
+    phase = "P" in tokens or "_pha" in row.series_description.lower()
+    magnitude = bool(tokens & {"M", "NORM"})
+    if phase and magnitude:
+        return "conflict"
+    if phase:
+        return "phase"
+    if magnitude:
+        return "mag"
+    return "unknown"
+
+
+def reconcile_roles(rows, mappings, findings):
+    """Partition findings without deleting the raw evidence or approving a run."""
+    roles = {ref(r.series_id): image_role(r) for r in rows}
+    unresolved, resolved = [], []
+    for finding in findings:
+        task, view = finding["task"], finding["view"]
+        candidates = set(filter(None, finding["candidates"].split(";")))
+        mag = {v for v in candidates if roles.get(v) == "mag"}
+        phase = {v for v in candidates if roles.get(v) == "phase"}
+        relevant = ([mappings[view.removesuffix("_vs_XA30")]]
+                    if view.endswith("_vs_XA30") else list(mappings.values()))
+        eligible = finding["part"] == "mag" and (
+            (view.endswith("_vs_XA30") and
+             finding["finding"] == "candidate_omitted_from_saved_mapping") or
+            (view == "current_XA30" and
+             finding["finding"] == "current_rule_overwrites_match" and len(mag) == 1))
+        # Require every candidate role to be known and each relevant saved map
+        # to retain every true magnitude and place every contaminant in phase.
+        verified = eligible and mag and phase and candidates == mag | phase and relevant
+        for mapping in relevant:
+            saved_mag = {ref(v) for v in mapping.get((task, "mag"), [])}
+            saved_phase = {ref(v) for v in mapping.get((task, "phase"), [])}
+            verified = verified and saved_mag == mag and phase <= saved_phase
+            verified = verified and not (saved_mag & saved_phase)
+        if verified:
+            resolved.append(dict(**finding,
+                resolution="verified_XA30_magnitude_view_includes_saved_phase",
+                verified_magnitude=";".join(sorted(mag)),
+                verified_phase=";".join(sorted(phase))))
+        else:
+            unresolved.append(finding)
+    return unresolved, resolved
+
+
 def inventory_key(path, project):
     relative = path.relative_to(project / "bids/.heudiconv")
     subject = relative.parts[0].removeprefix("sub-")
@@ -189,7 +237,8 @@ def build(project, output):
         raise ValueError("No saved acquisition inventories found")
     if output.exists():
         raise ValueError("Choose a new output directory")
-    findings, checks, sources, sessions = [], [], {}, set()
+    findings, raw_findings, resolved, role_rows = [], [], [], []
+    checks, sources, sessions = [], {}, set()
     sources[str(Path(__file__).resolve())] = sha(Path(__file__))
     for module in RULES.values():
         sources[str(Path(module.__file__).resolve())] = sha(Path(module.__file__))
@@ -211,8 +260,16 @@ def build(project, output):
                     mappings[str(path.relative_to(project))] = normalize(ast.literal_eval(path.read_text()))
             if not mappings:
                 raise ValueError("no_saved_conversion_mapping")
-            for row in inspect(rows, mappings):
-                findings.append(dict(subject=sub, session=ses, inventory=rel, **row))
+            raw = inspect(rows, mappings)
+            pending, cleared = reconcile_roles(rows, mappings, raw)
+            for target, values in [(raw_findings, raw), (findings, pending), (resolved, cleared)]:
+                target.extend(dict(subject=sub, session=ses, inventory=rel, **r) for r in values)
+            role_rows.extend(dict(subject=sub, session=ses, inventory=rel,
+                series=ref(r.series_id), role=image_role(r),
+                image_type_M="M" in {v.upper() for v in r.image_type},
+                image_type_NORM="NORM" in {v.upper() for v in r.image_type},
+                image_type_P="P" in {v.upper() for v in r.image_type},
+                description_Pha="_pha" in r.series_description.lower()) for r in rows)
             sessions.add((sub, ses))
             check.update(status="read_ok", detail="not_an_eligibility_decision")
         except (ValueError, TypeError, SyntaxError, OSError, KeyError, IndexError) as exc:
@@ -226,12 +283,19 @@ def build(project, output):
     errors = sum(r["status"] == "error" for r in checks)
     summary = dict(inventories=len(tables), audited_sessions=len(sessions),
         errors=errors, finding_rows=len(findings),
+        raw_finding_rows=len(raw_findings), resolved_view_artifact_rows=len(resolved),
+        resolved_view_artifact_sessions=len({(r["subject"], r["session"]) for r in resolved}),
         finding_sessions=len({(r["subject"], r["session"]) for r in findings}),
         findings_by_type=dict(Counter(r["finding"] for r in findings)),
         scope="all_saved_inventories_all_sessions_no_age_or_QC_filter",
         eligibility_changed=False, identity_approved=False)
     output.mkdir(parents=True)
     write_table(output / "findings.tsv", FIELDS, findings)
+    write_table(output / "raw_findings.tsv", FIELDS, raw_findings)
+    write_table(output / "resolved_view_artifacts.tsv", FIELDS +
+                ["resolution", "verified_magnitude", "verified_phase"], resolved)
+    write_table(output / "series_roles.tsv", ["subject", "session", "inventory", "series", "role",
+                "image_type_M", "image_type_NORM", "image_type_P", "description_Pha"], role_rows)
     write_table(output / "inventory_checks.tsv", list(checks[0]), checks)
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     manifest = dict(project=str(project), sources=sources,
@@ -244,6 +308,11 @@ def build(project, output):
     print("Findings are comparative rule/mapping candidates, NOT confirmed errors or exclusions.")
     print("Normal multi-run matches retained by a rule are not flagged merely for being multiple.")
     print("Current RF1/XA30 views do not establish which historical heuristic was used.")
+    print("Only positive image-role evidence corroborated by saved mappings clears a view artifact.")
+    print("Unknown/conflicting roles and real duplicate magnitude matches remain for review.")
+    for subject, session in sorted({(r["subject"], r["session"]) for r in resolved}):
+        print(f"RESOLVED VIEW ARTIFACTS sub-{subject} ses-{session}: "
+              f"{sum((r['subject'], r['session']) == (subject, session) for r in resolved)} rows")
     for row in findings:
         print(" | ".join(str(row[k]) for k in FIELDS))
     for row in checks:
@@ -270,8 +339,23 @@ def check(project, output):
     for name, digest in manifest["outputs"].items():
         if sha(output / name) != digest:
             raise ValueError("Audit output changed")
-    if json.loads((output / "summary.json").read_text())["errors"]:
+    summary = json.loads((output / "summary.json").read_text())
+    if summary["errors"]:
         raise ValueError("Evidence collection incomplete")
+    if "raw_finding_rows" in summary:
+        if summary["raw_finding_rows"] != summary["finding_rows"] + summary["resolved_view_artifact_rows"]:
+            raise ValueError("Finding partition incomplete")
+        counters = {}
+        for filename, count_key in [("raw_findings.tsv", "raw_finding_rows"),
+                                    ("findings.tsv", "finding_rows"),
+                                    ("resolved_view_artifacts.tsv", "resolved_view_artifact_rows")]:
+            with (output / filename).open(newline="") as handle:
+                rows = list(csv.DictReader(handle, delimiter="\t"))
+            if len(rows) != summary[count_key]:
+                raise ValueError("Finding table count differs")
+            counters[filename] = Counter(tuple(r[k] for k in FIELDS) for r in rows)
+        if counters["raw_findings.tsv"] != counters["findings.tsv"] + counters["resolved_view_artifacts.tsv"]:
+            raise ValueError("Finding partition differs from raw evidence")
     print("CHECK PASSED: saved-inventory audit sources and reports unchanged; findings are not adjudicated.")
     return 0
 

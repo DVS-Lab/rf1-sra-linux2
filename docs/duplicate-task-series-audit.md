@@ -44,7 +44,7 @@ is sufficient; no imaging jobs are launched. Use a new output directory each tim
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2
 git pull --ff-only
-STAMP=duplicate-task-series-$(date +%Y%m%d-%H%M%S)
+STAMP=duplicate-task-series-roles-$(date +%Y%m%d-%H%M%S)
 OUT="$PWD/logs/reviews/$STAMP"
 
 bash code/run_logged.sh --label "$STAMP" --include-full-log -- \
@@ -55,7 +55,7 @@ bash code/run_logged.sh --label "$STAMP" --include-full-log -- \
 ```
 
 The report includes `findings.tsv`, `inventory_checks.tsv`, `summary.json`, and
-`provenance.json`. All findings and collection errors are also printed into the
+`provenance.json`. All remaining findings and collection errors are printed into the
 shareable Markdown run record under `logs/records/`; no terminal scrolling is
 needed. Exact raw series labels are represented by series number plus a short
 hash. Full raw DICOM headers, dates, and UIDs are not copied into the findings.
@@ -66,6 +66,42 @@ sets, and refuses incomplete collection. It does not adjudicate the findings.
 Review `errors`, `finding_sessions`, and `findings_by_type`, then reconcile each
 flagged session against saved edits, prior repair decisions, live conversion
 provenance, and behavior as needed. Do not reprocess automatically.
+
+## Magnitude/Phase Verification
+
+The first cohort run collected 386 sessions without errors, but replaying XA30
+rules on older exports produced an excessively noisy report. Of its 2,429 rows,
+2,413 are alternative-XA30 magnitude-view findings consistent with the legacy
+magnitude/phase pattern. Adjacent series numbers alone do not prove phase identity.
+The updated audit verifies roles from the actual inventory and saved mappings:
+
+- A positive `M` or `NORM` ImageType token supports magnitude; `P` or a `_Pha`
+  series-description marker supports phase. Conflicting or absent evidence is
+  reported as `conflict` or `unknown`, never guessed from series adjacency,
+  subject number, scanner era, or absence of a marker.
+- A candidate omission is cleared only when all XA30 candidates have explicit
+  roles, every true magnitude is retained in that saved task mapping, and every
+  phase contaminant is present in its phase mapping. Mag/phase assignments must
+  be disjoint. Saved auto and edit comparisons are checked independently.
+- A current-rule overwrite warning is cleared only if there is exactly one
+  true magnitude candidate and every available saved mapping corroborates the
+  same magnitude/phase separation. Multiple true magnitude candidates remain
+  visible. Contradictory mappings remain visible.
+
+`raw_findings.tsv` preserves every original diagnostic. Verified alternative-view
+artifacts go to `resolved_view_artifacts.tsv`; all others remain in `findings.tsv`.
+`series_roles.tsv` records numeric/hash series references and the explicit role
+markers used, without copying arbitrary header text. The check verifies hashes,
+counts, and the exact multiset partition of raw findings into retained/resolved
+rows. Per-session resolved counts and remaining findings are included in the
+Markdown run record. Missing role evidence may leave additional rows unresolved;
+do not weaken the criteria to obtain an expected count.
+
+No subject-specific suppression list is used. Thus the settled 11116 ses-02
+return-visit selection and 10929 UGR phase shortage can still appear; preserve
+their approved dispositions in `docs/open-decisions.md`. 11935 remains open
+pending Ryan's task-order evidence. This audit does not assert live SBRef identity
+or change the current coverage95 exclusion.
 
 ## Exact question for Ryan: 11935
 

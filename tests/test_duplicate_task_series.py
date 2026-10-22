@@ -45,6 +45,84 @@ def save(root, rows, subject="11935", session="01", mapping=None):
 
 
 class DuplicateSeriesTests(unittest.TestCase):
+    def legacy(self, first=23, label="SocialDoors_face", volumes=872):
+        rows = episode(first, label, volumes, norm=True)
+        # Legacy phase images did not carry the newer _Pha description suffix.
+        rows[3].series_description = rows[2].series_description
+        rows[3].image_type = ("ORIGINAL", "P")
+        return rows
+
+    def test_explicit_roles_clear_wrong_view_but_keep_raw_evidence(self):
+        rows = self.legacy()
+        mappings = {"saved": audit.normalize(audit.heuristics_rf1.infotodict(rows))}
+        raw = audit.inspect(rows, mappings)
+        pending, resolved = audit.reconcile_roles(rows, mappings, raw)
+        self.assertTrue(raw)
+        self.assertEqual(pending, [])
+        self.assertEqual(len(resolved), len(raw))
+        self.assertTrue(all(r["verified_phase"].startswith("26@") for r in resolved))
+
+    def test_real_legacy_repeat_is_not_hidden(self):
+        rows = self.legacy() + self.legacy(27)
+        mappings = {"saved": audit.normalize(audit.heuristics_rf1.infotodict(rows))}
+        raw = audit.inspect(rows, mappings)
+        pending, _ = audit.reconcile_roles(rows, mappings, raw)
+        self.assertTrue(any(r["view"] == "current_RF1" for r in pending))
+        self.assertTrue(any(r["finding"] == "candidate_omitted_from_saved_mapping" for r in pending))
+
+    def test_11935_and_reviewed_repeat_remain_visible(self):
+        rows = episode() + episode(27)
+        mappings = {"saved": selected(rows)}
+        raw = audit.inspect(rows, mappings)
+        pending, resolved = audit.reconcile_roles(rows, mappings, raw)
+        self.assertEqual(pending, raw)
+        self.assertEqual(resolved, [])
+
+    def test_unknown_conflicting_or_missing_phase_evidence_does_not_clear(self):
+        for mode in ["unknown", "conflict", "missing_saved_phase", "wrong_saved_mag"]:
+            rows = self.legacy()
+            mappings = {"saved": audit.normalize(audit.heuristics_rf1.infotodict(rows))}
+            if mode == "unknown":
+                rows[3].image_type = ("ORIGINAL",)
+            elif mode == "conflict":
+                rows[3].image_type = ("NORM", "P")
+            elif mode == "missing_saved_phase":
+                mappings["saved"][("socialdoors", "phase")] = []
+            else:
+                mappings["saved"][("socialdoors", "mag")] = [rows[3].series_id]
+            raw = audit.inspect(rows, mappings)
+            pending, resolved = audit.reconcile_roles(rows, mappings, raw)
+            self.assertEqual(pending, raw, mode)
+            self.assertEqual(resolved, [], mode)
+
+    def test_conflicting_auto_edit_does_not_clear_current_rule_warning(self):
+        rows = self.legacy()
+        good = audit.normalize(audit.heuristics_rf1.infotodict(rows))
+        bad = dict(good)
+        bad[("socialdoors", "phase")] = []
+        mappings = {"auto": good, "edit": bad}
+        pending, resolved = audit.reconcile_roles(rows, mappings, audit.inspect(rows, mappings))
+        self.assertTrue(any(r["view"] == "current_XA30" for r in pending))
+        self.assertTrue(any(r["view"] == "auto_vs_XA30" for r in resolved))
+        self.assertFalse(any(r["view"] == "edit_vs_XA30" for r in resolved))
+
+    def test_role_report_partition_and_integrity(self):
+        with tempfile.TemporaryDirectory() as tmp, redirect_stdout(io.StringIO()):
+            root = Path(tmp)
+            rows = self.legacy()
+            save(root, rows, mapping=audit.heuristics_rf1.infotodict(rows))
+            out = root / "reports"
+            self.assertEqual(audit.build(root, out), 0)
+            self.assertEqual(audit.check(root, out), 0)
+            summary = json.loads((out / "summary.json").read_text())
+            self.assertEqual(summary["finding_rows"], 0)
+            self.assertGreater(summary["resolved_view_artifact_rows"], 0)
+            self.assertEqual(summary["raw_finding_rows"], summary["resolved_view_artifact_rows"])
+            self.assertIn("phase", (out / "series_roles.tsv").read_text())
+            (out / "resolved_view_artifacts.tsv").write_text("changed")
+            with self.assertRaisesRegex(ValueError, "output changed"):
+                audit.check(root, out)
+
     def test_normal_single_run_and_two_ugr_runs_are_not_duplicates(self):
         for rows in [episode(), episode(label="UGR", volumes=960) +
                      episode(27, label="UGR", volumes=960)]:

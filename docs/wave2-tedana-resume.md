@@ -1,5 +1,19 @@
 # October 2026 Intake and Wave-2 Completion
 
+## Completed Production Batch
+
+The [October 21 completion record](../logs/records/20261021-003945_wave2-tedana-finish-20261021-003945.md)
+has command exit 0 and `ALL STAGES PASSED`: all 20 ses-02 production TEDANA runs,
+confounds, canonical QC for 2,781 acquired runs, scanner-era QC, and the
+1,056-slot baseline handoff passed. Subjects: 11083, 11084, 11110, 11120, 11193.
+The earlier missing-TEDANA finding below is historical, not an outstanding job.
+This is not evidence that ses-02 task-level L1/L2 analyses have run.
+
+The separate 8,343-job cohort AIC/KIC/MDL experiment does not gate this production
+closeout or the baseline no-TEDANA paper analyses. 10964 ses-02 remains on the
+behavioral-source hold. The October 21 intake found no other new-session
+candidate, but did not inventory new files inside existing sessions.
+
 ## Reviewed Scope
 
 The October 16 intake found six new ses-02 candidates. The five-subject

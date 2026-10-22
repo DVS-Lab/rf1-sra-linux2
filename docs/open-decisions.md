@@ -42,13 +42,20 @@ not authorization to overwrite production outputs or alter this snapshot.
 **2026-10-21 wave-2 completion:** the October 16 intake and processing logs
 confirm ses-02 imaging for 11083, 11084, 11110, 11120, and 11193 through
 fMRIPrep. The older "11083 session-02 imaging to locate" item below is therefore
-superseded, not a remaining lab question. The October 21 QC build found these
-20 runs missing TEDANA metrics and failed its check; scanner-era QC and the
-new handoff must follow successful completion. The scoped
-[preserve-existing resume](wave2-tedana-resume.md) is ready for Linux2 execution,
-not yet recorded as complete. 10964's unresolved behavioral-source linkage
-remains separate. Refresh intake before claiming that newer downloads are
-accounted for; no new eligibility or QC-based exclusions are authorized.
+superseded, not a remaining lab question. The initial October 21 QC build found
+20 runs missing TEDANA metrics. The subsequent
+[completed resume record](../logs/records/20261021-003945_wave2-tedana-finish-20261021-003945.md)
+now supersedes that failure: all 20 production TEDANA/confound runs, canonical
+QC (2,781 acquired runs), scanner-era QC, and the 1,056-slot baseline handoff
+passed. Do not rerun this completed batch because the separate cohort PCA
+benchmark remains in progress. This certifies technical processing, not ses-02
+task-level FEAT completion or a new exclusion decision.
+
+The [October 21 intake](../logs/records/20261021-003821_source-intake-20261021-003821.md)
+reported only 10964 ses-02 as a new-session candidate; its unresolved
+behavioral-source linkage remains on hold. The intake does not certify later
+downloads or additional scans inside existing session folders. No new
+eligibility or QC-based exclusions are authorized.
 
 **2026-10-19 task-availability handoff:** audit the full approved MRI roster for
 baseline Social Doors run 1 and UGR runs 1/2 before freezing the paper samples.
