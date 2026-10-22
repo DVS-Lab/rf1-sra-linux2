@@ -8,6 +8,27 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
+**2026-10-21 unselected no-TEDANA source closeout:** the complete 47-row
+preparation review and saved acquisition inventories are reconciled in the
+[scoped evidence ledger](no-tedana-unselected-reconciliation.md). Forty slots
+are unavailable in the reviewed dataset, not routine processing failures.
+Preserve the three existing model holds/exclusions and the one very short
+Doors input. Two Social Doors partial acquisitions (10812, 11203) remain
+unapproved salvage candidates. 11935 has two full-length Social Doors-labeled
+acquisitions, complete behavior for both tasks, and no Doors-labeled series;
+the heuristic keeps only the last matching single-run series. Exact conversion
+mapping and actual task chronology must be established before any relabeling.
+No eligibility, QC policy, or production data were changed. The existing
+verified L1/L2 outputs do not by themselves certify this recovery candidate.
+
+The 22:12 mapping report now confirms live Social Doors BOLD series 29, with
+saved magnitude/phase selection 29/30 and both SBRefs 23/27. Pair 25/26 was
+omitted from the saved task mapping. Verify the actual selected SBRef and obtain
+the narrow acquisition-order fact (which episode presented faces versus Doors).
+Existing behavior has relative onsets only, so task identity is not yet established.
+The evidence ledger records both conditional repair paths; neither has been
+applied, and the existing coverage exclusion remains unchanged.
+
 **2026-10-21 coverage decision:** the PI approved a run-level `<95%` canonical
 target-coverage exclusion for the baseline no-TEDANA paper handoff, retaining
 eligible alternative runs and independent tasks/sessions. Do not apply a blanket
