@@ -1141,6 +1141,13 @@ It preserves independent single-run/task handoff alternatives; no QC flag is
 an automatic exclusion and no L3 cohort is assigned. The original frozen runner
 is unchanged. See [the follow-up runbook](../docs/no-tedana-finish.md).
 
+`handoff_coverage95.py build/check` subsequently applies the PI-approved
+run-level coverage >=95% criterion to a new private paper handoff. It preserves
+settled exclusions and good single-run alternatives, never admits an excluded
+run through paired L2, and leaves all other QC flags descriptive. Counts separate
+the imaging cohort from optional approved pre-imaging paper rosters. See the
+[coverage95 handoff runbook](../docs/coverage95-paper-handoff.md).
+
 ## XA60 Coverage Inspection
 
 `inspect_xa60_coverage.py` creates private read-only comparisons of coverage-flagged

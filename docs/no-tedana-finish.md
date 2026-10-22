@@ -128,6 +128,12 @@ substitute another PID. Twenty workers are a ceiling, not a memory guarantee.
 
 ## Handoff, not an automatic L3 cohort
 
+**2026-10-21 paper decision:** use the separate
+[coverage95 handoff](coverage95-paper-handoff.md) after this runner completes.
+It applies the PI-approved run-level coverage cutoff, preserves good single
+runs and settled decisions, and exports selected inputs without changing this
+frozen runner or its candidate table. Boxplot flags remain descriptive.
+
 `handoff_candidates.tsv` lists contrast-specific cope/varcope/mask/DOF and FEAT
 paths. `run_review.tsv` contains task/session/run-specific flags and decisions.
 The candidate table deliberately includes alternatives. It must NOT be fed

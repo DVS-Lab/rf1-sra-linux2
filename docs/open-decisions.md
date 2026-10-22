@@ -8,6 +8,16 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
+**2026-10-21 coverage decision:** the PI approved a run-level `<95%` canonical
+target-coverage exclusion for the baseline no-TEDANA paper handoff, retaining
+eligible alternative runs and independent tasks/sessions. Do not apply a blanket
+five-subject exclusion. The [coverage95 export](coverage95-paper-handoff.md)
+keeps settled source decisions intact and QC flags separate. Linux2 validation
+is required before using the selected inputs. Exact paper Ns require the
+approved pre-imaging survey/linkage rosters; the known frozen imaging plan is
+not itself either paper's cohort. A separate 11935 investigation is diagnostic,
+not authorization to overwrite production outputs or alter this snapshot.
+
 **2026-10-21 wave-2 completion:** the October 16 intake and processing logs
 confirm ses-02 imaging for 11083, 11084, 11110, 11120, and 11193 through
 fMRIPrep. The older "11083 session-02 imaging to locate" item below is therefore
