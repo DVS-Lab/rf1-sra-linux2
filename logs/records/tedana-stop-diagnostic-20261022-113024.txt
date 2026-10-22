@@ -1,0 +1,111 @@
+Thu Oct 22 11:30:24 AM EDT 2026
+=== Live coordinator and workers ===
+No matching processes
+=== Restart log ending ===
+COMPLETED nss-mdl-fastica sub-10974_ses-02_task-socialdoors_run-1 (2786/8343)
+STARTED nss-kic-fastica sub-10977_ses-01_task-ugr_run-1
+COMPLETED nss-mdl-fastica sub-10974_ses-02_task-ugr_run-1 (2787/8343)
+STARTED nss-mdl-fastica sub-10977_ses-01_task-ugr_run-1
+COMPLETED nss-kic-fastica sub-10974_ses-02_task-doors_run-1 (2788/8343)
+STARTED nss-fastica sub-10977_ses-01_task-ugr_run-2
+COMPLETED nss-fastica sub-10974_ses-02_task-doors_run-1 (2789/8343)
+STARTED nss-kic-fastica sub-10977_ses-01_task-ugr_run-2
+COMPLETED nss-fastica sub-10974_ses-01_task-ugr_run-1 (2790/8343)
+STARTED nss-mdl-fastica sub-10977_ses-01_task-ugr_run-2
+COMPLETED nss-fastica sub-10974_ses-01_task-sharedreward_run-1 (2791/8343)
+STARTED nss-fastica sub-10979_ses-01_task-doors_run-1
+COMPLETED nss-kic-fastica sub-10974_ses-01_task-trust_run-1 (2792/8343)
+STARTED nss-kic-fastica sub-10979_ses-01_task-doors_run-1
+COMPLETED nss-fastica sub-10974_ses-01_task-trust_run-1 (2793/8343)
+STARTED nss-mdl-fastica sub-10979_ses-01_task-doors_run-1
+COMPLETED nss-kic-fastica sub-10974_ses-01_task-trust_run-2 (2794/8343)
+STARTED nss-fastica sub-10979_ses-01_task-sharedreward_run-1
+COMPLETED nss-mdl-fastica sub-10974_ses-01_task-trust_run-2 (2795/8343)
+STARTED nss-kic-fastica sub-10979_ses-01_task-sharedreward_run-1
+COMPLETED nss-fastica sub-10974_ses-01_task-trust_run-2 (2796/8343)
+STARTED nss-mdl-fastica sub-10979_ses-01_task-sharedreward_run-1
+HEARTBEAT finished=2796/8343 pending_or_running=5547
+COMPLETED nss-mdl-fastica sub-10974_ses-02_task-ugr_run-2 (2797/8343)
+STARTED nss-fastica sub-10979_ses-01_task-sharedreward_run-2
+HEARTBEAT finished=2797/8343 pending_or_running=5546
+COMPLETED nss-kic-fastica sub-10974_ses-02_task-ugr_run-2 (2798/8343)
+STARTED nss-kic-fastica sub-10979_ses-01_task-sharedreward_run-2
+COMPLETED nss-fastica sub-10974_ses-02_task-ugr_run-2 (2799/8343)
+STARTED nss-mdl-fastica sub-10979_ses-01_task-sharedreward_run-2
+COMPLETED nss-fastica sub-10977_ses-01_task-doors_run-1 (2800/8343)
+STARTED nss-fastica sub-10979_ses-01_task-socialdoors_run-1
+HEARTBEAT finished=2800/8343 pending_or_running=5543
+HEARTBEAT finished=2800/8343 pending_or_running=5543
+COMPLETED nss-kic-fastica sub-10977_ses-01_task-socialdoors_run-1 (2801/8343)
+STARTED nss-kic-fastica sub-10979_ses-01_task-socialdoors_run-1
+COMPLETED nss-kic-fastica sub-10977_ses-01_task-doors_run-1 (2802/8343)
+STARTED nss-mdl-fastica sub-10979_ses-01_task-socialdoors_run-1
+COMPLETED nss-kic-fastica sub-10977_ses-01_task-sharedreward_run-2 (2803/8343)
+STARTED nss-fastica sub-10979_ses-01_task-trust_run-1
+COMPLETED nss-mdl-fastica sub-10977_ses-01_task-socialdoors_run-1 (2804/8343)
+STARTED nss-kic-fastica sub-10979_ses-01_task-trust_run-1
+COMPLETED nss-fastica sub-10977_ses-01_task-sharedreward_run-2 (2805/8343)
+STARTED nss-mdl-fastica sub-10979_ses-01_task-trust_run-1
+COMPLETED nss-fastica sub-10977_ses-01_task-socialdoors_run-1 (2806/8343)
+STARTED nss-fastica sub-10979_ses-01_task-trust_run-2
+COMPLETED nss-mdl-fastica sub-10977_ses-01_task-ugr_run-1 (2807/8343)
+STARTED nss-kic-fastica sub-10979_ses-01_task-trust_run-2
+COMPLETED nss-kic-fastica sub-10977_ses-01_task-ugr_run-1 (2808/8343)
+STARTED nss-mdl-fastica sub-10979_ses-01_task-trust_run-2
+COMPLETED nss-fastica sub-10977_ses-01_task-ugr_run-1 (2809/8343)
+STARTED nss-fastica sub-10983_ses-01_task-doors_run-1
+COMPLETED nss-mdl-fastica sub-10977_ses-01_task-ugr_run-2 (2810/8343)
+STARTED nss-kic-fastica sub-10983_ses-01_task-doors_run-1
+COMPLETED nss-fastica sub-10977_ses-01_task-ugr_run-2 (2811/8343)
+STARTED nss-mdl-fastica sub-10983_ses-01_task-doors_run-1
+COMPLETED nss-kic-fastica sub-10977_ses-01_task-ugr_run-2 (2812/8343)
+STARTED nss-fastica sub-10983_ses-01_task-sharedreward_run-1
+COMPLETED nss-mdl-fastica sub-10979_ses-01_task-doors_run-1 (2813/8343)
+STARTED nss-kic-fastica sub-10983_ses-01_task-sharedreward_run-1
+COMPLETED nss-kic-fastica sub-10979_ses-01_task-doors_run-1 (2814/8343)
+STARTED nss-mdl-fastica sub-10983_ses-01_task-sharedreward_run-1
+COMPLETED nss-fastica sub-10979_ses-01_task-doors_run-1 (2815/8343)
+STARTED nss-fastica sub-10983_ses-01_task-sharedreward_run-2
+COMPLETED nss-fastica sub-10977_ses-01_task-sharedreward_run-1 (2816/8343)
+STARTED nss-kic-fastica sub-10983_ses-01_task-sharedreward_run-2
+COMPLETED nss-mdl-fastica sub-10979_ses-01_task-sharedreward_run-1 (2817/8343)
+STARTED nss-mdl-fastica sub-10983_ses-01_task-sharedreward_run-2
+COMPLETED nss-kic-fastica sub-10979_ses-01_task-sharedreward_run-1 (2818/8343)
+STARTED nss-fastica sub-10983_ses-01_task-socialdoors_run-1
+COMPLETED nss-mdl-fastica sub-10977_ses-01_task-trust_run-1 (2819/8343)
+STARTED nss-kic-fastica sub-10983_ses-01_task-socialdoors_run-1
+COMPLETED nss-fastica sub-10979_ses-01_task-sharedreward_run-1 (2820/8343)
+STARTED nss-mdl-fastica sub-10983_ses-01_task-socialdoors_run-1
+COMPLETED nss-kic-fastica sub-10977_ses-01_task-trust_run-1 (2821/8343)
+STARTED nss-fastica sub-10983_ses-01_task-trust_run-1
+COMPLETED nss-fastica sub-10977_ses-01_task-trust_run-1 (2822/8343)
+STARTED nss-kic-fastica sub-10983_ses-01_task-trust_run-1
+COMPLETED nss-mdl-fastica sub-10977_ses-01_task-doors_run-1 (2823/8343)
+STARTED nss-mdl-fastica sub-10983_ses-01_task-trust_run-1
+COMPLETED nss-mdl-fastica sub-10977_ses-01_task-sharedreward_run-2 (2824/8343)
+STARTED nss-fastica sub-10983_ses-01_task-trust_run-2
+COMPLETED nss-mdl-fastica sub-10977_ses-01_task-sharedreward_run-1 (2825/8343)
+STARTED nss-kic-fastica sub-10983_ses-01_task-trust_run-2
+COMPLETED nss-kic-fastica sub-10977_ses-01_task-sharedreward_run-1 (2826/8343)
+STARTED nss-mdl-fastica sub-10983_ses-01_task-trust_run-2
+HEARTBEAT finished=2826/8343 pending_or_running=5517
+HEARTBEAT finished=2826/8343 pending_or_running=5517
+COMPLETED nss-mdl-fastica sub-10979_ses-01_task-sharedreward_run-2 (2827/8343)
+STARTED nss-fastica sub-10983_ses-01_task-ugr_run-1
+COMPLETED nss-kic-fastica sub-10979_ses-01_task-sharedreward_run-2 (2828/8343)
+STARTED nss-kic-fastica sub-10983_ses-01_task-ugr_run-1
+COMPLETED nss-fastica sub-10979_ses-01_task-sharedreward_run-2 (2829/8343)
+STARTED nss-mdl-fastica sub-10983_ses-01_task-ugr_run-1
+COMPLETED nss-fastica sub-10979_ses-01_task-socialdoors_run-1 (2830/8343)
+STARTED nss-fastica sub-10983_ses-01_task-ugr_run-2
+HEARTBEAT finished=2830/8343 pending_or_running=5513
+COMPLETED nss-kic-fastica sub-10979_ses-01_task-socialdoors_run-1 (2831/8343)
+STARTED nss-kic-fastica sub-10983_ses-01_task-ugr_run-2
+HEARTBEAT finished=2831/8343 pending_or_running=5512
+=== Recorded run ending ===
+tail: cannot open 'logs/records/20261022-105741_tedana-cohort-pca-resume30-20261022-105741.md' for reading: No such file or directory
+=== Kernel OOM evidence, if permitted ===
+Hint: You are currently not seeing messages from other users and the system.
+      Users in groups 'adm', 'systemd-journal' can see all messages.
+      Pass -q to turn off this notice.
+No journal files were opened due to insufficient permissions.
