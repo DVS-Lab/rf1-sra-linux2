@@ -72,6 +72,50 @@ repair/promotion is a separate, explicitly reviewed step.
 The self-contained runner is tracked at `code/run_11935_initialization.py`.
 Pull this repository normally; no SCP of code, pip install, or image rebuild is needed.
 
+### Continue the completed October 22 reference tests
+
+The `11935-init-test-20261022-095859` record completed all ten reference
+conditions. Both full runs stopped during configuration initialization, before
+functional processing. The experiment-generated filter used numeric `run: 1`;
+fMRIPrep 25.2.5 checks string membership while rehydrating that value and raises
+`TypeError`. This is not a BIDS image problem or a change to the canonical
+`code/fmriprep_config.json`. The runner now serializes the same run selector as
+the string `"1"` for compatibility.
+
+Reuse the completed reference evidence with a NEW output directory:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+git pull --ff-only
+SOURCE="$PWD/work/11935-init-test-20261022-095859"
+STAMP=11935-init-test-$(date +%Y%m%d-%H%M%S)
+OUT="$PWD/work/$STAMP"
+python3 code/run_11935_initialization.py --output "$OUT" \
+  --reuse-reference-test "$SOURCE" --dry-run
+```
+
+After that preview succeeds, in the same shell:
+
+```bash
+mkdir -p logs/runs
+nohup setsid -f -w bash code/run_logged.sh \
+  --label "$STAMP" --include-full-log -- \
+  env PYTHONUNBUFFERED=1 python3 code/run_11935_initialization.py \
+    --output "$OUT" --reuse-reference-test "$SOURCE" --nprocs 8 \
+  > "logs/runs/${STAMP}.nohup.out" 2>&1 &
+echo "Results: $OUT"
+tail -f "logs/runs/${STAMP}.nohup.out"
+```
+
+Reuse checks the ten expected completed conditions, saved evidence checksums,
+current input checksums, exact patch, and container source/versions. It copies
+reference evidence into the new experiment, leaves the old package untouched,
+and launches only the two full functional comparisons with fresh caches and
+independent FreeSurfer copies. It does not infer that the reference masks are
+scientifically acceptable merely because the conditions completed.
+
+### Start a new experiment including all reference tests
+
 On Linux2, from the repository root:
 
 ```bash

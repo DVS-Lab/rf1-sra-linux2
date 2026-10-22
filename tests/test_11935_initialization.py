@@ -1,5 +1,6 @@
 """Local safety/unit tests. Actual ANTs/fMRIPrep integration runs on Linux2."""
 import argparse
+from enum import Enum
 import json
 from pathlib import Path
 import sys
@@ -66,7 +67,7 @@ class InitializationTests(unittest.TestCase):
         filters = experiment.bids_filter()
         self.assertEqual(set(filters), {"bold", "sbref"})
         for row in filters.values():
-            self.assertEqual((row["session"], row["task"], row["run"]), ("01", "socialdoors", 1))
+            self.assertEqual((row["session"], row["task"], row["run"]), ("01", "socialdoors", "1"))
             self.assertEqual(row["part"], [None, "mag"])
         original = experiment.full_command(self.args, self.output, "affine", "/env/util.py")
         patched = experiment.full_command(self.args, self.output, "rigid", "/env/util.py")
@@ -82,6 +83,94 @@ class InitializationTests(unittest.TestCase):
             self.assertEqual(cmd[cmd.index("--random-seed") + 1], str(experiment.FULL_SEED))
             self.assertEqual(cmd[cmd.index("--omp-nthreads") + 1], "1")
             self.assertEqual(cmd[cmd.index("--nprocs") + 1], "8")
+
+    def test_filter_survives_25_2_5_config_rehydration(self):
+        class Query(Enum):
+            NONE = 1
+        # Mirror parser null conversion, followed by the installed config.py operation.
+        def parsed(value):
+            if isinstance(value, list):
+                return [parsed(item) for item in value]
+            return Query.NONE if value is None else value
+        def rehydrated(value):
+            if isinstance(value, list):
+                return [rehydrated(item) for item in value]
+            return getattr(Query, value[7:-4]) if not isinstance(value, Query) and 'Query' in value else value
+        with self.assertRaises(TypeError):
+            rehydrated(1)
+        filters = json.loads(json.dumps(experiment.bids_filter()))
+        for row in filters.values():
+            for value in row.values():
+                rehydrated(parsed(value))
+
+    def reference_package(self):
+        source = self.root / "work/previous"
+        (source / "patch").mkdir(parents=True)
+        original = "def init_enhance_and_skullstrip_bold_wf():\n    transform=('Affine', 0.1),\n    name='init_aff'\n"
+        (source / "patch/original_util.py").write_text(original)
+        (source / "patch/util.py").write_text(experiment.patch_source(original))
+        experiment.write_json(source / "patch/provenance.json", dict(installed_module="/env/util.py",
+            original_sha256=experiment.sha(source / "patch/original_util.py"),
+            patched_sha256=experiment.sha(source / "patch/util.py")))
+        experiment.write_json(source / "state.json", dict(production_inputs_unchanged=True,
+            reference_hashes_unchanged=True, seeds=list(experiment.SEEDS), full_seed=experiment.FULL_SEED))
+        images = experiment.inventory(self.root)
+        manifest = []
+        (source / "inputs").mkdir()
+        for label, path in images.items():
+            copied = source / "inputs" / (label + ".nii.gz")
+            copied.write_bytes(path.read_bytes())
+            manifest.append(dict(label=label, copied=str(copied.relative_to(source)), sha256=experiment.sha(path)))
+        experiment.write_json(source / "inputs.json", manifest)
+        results = []
+        for seed in experiment.SEEDS:
+            for mode in ("affine", "rigid"):
+                folder = source / "pairs" / f"seed_{seed}_{mode}"
+                folder.mkdir(parents=True)
+                for name in ("mask.nii.gz", "prior.nii.gz", "enhanced.nii.gz", "bias.nii.gz", "initialization.mat"):
+                    (folder / name).write_bytes(b"synthetic reference output")
+                results.append(dict(seed=seed, mode=mode, status="completed"))
+        experiment.write_json(source / "paired-results.json", results)
+        for name in ("paired-comparison.json", "paired-stability.json"):
+            experiment.write_json(source / name, {})
+        hashes = [dict(path=str(p.relative_to(source)), sha256=experiment.sha(p))
+                  for p in source.rglob("*") if p.is_file() and p.relative_to(source).parts[0] in {"inputs", "pairs", "patch"}]
+        experiment.write_json(source / "evidence-hashes.json", hashes)
+        return source
+
+    def test_reuse_preserves_old_results_and_never_runs_seed_stage(self):
+        source = self.reference_package()
+        before = {p: experiment.sha(p) for p in source.rglob("*") if p.is_file()}
+        self.args.reuse_reference_test = source
+        with patch.object(experiment.shutil, "which", return_value="apptainer"), \
+                patch.object(experiment.subprocess, "run", side_effect=self.fake_run) as runner:
+            self.assertEqual(experiment.host(self.args), 0)
+            self.assertEqual(runner.call_count, 5)
+            self.assertTrue(all("pairs" not in call.args[0] for call in runner.call_args_list))
+            self.assertIn("reuse-check", runner.call_args_list[0].args[0])
+        self.assertEqual(before, {p: experiment.sha(p) for p in before})
+        self.assertFalse((self.output / "pair_cache").exists())
+        self.assertEqual(json.loads((self.output / "filter.json").read_text())["bold"]["run"], "1")
+
+    def test_reuse_rejects_changed_current_reference(self):
+        source = self.reference_package()
+        images = experiment.inventory(self.root)
+        images["sbref_echo1"].write_bytes(b"changed reference")
+        with self.assertRaisesRegex(ValueError, "Current reference input differs"):
+            experiment.check_reference_reuse(self.root, source, self.output, images)
+
+    def test_reuse_rejects_incomplete_or_corrupt_evidence(self):
+        source = self.reference_package()
+        images = experiment.inventory(self.root)
+        result_path = source / "paired-results.json"
+        rows = json.loads(result_path.read_text())
+        experiment.write_json(result_path, rows[:-1])
+        with self.assertRaisesRegex(ValueError, "ten completed"):
+            experiment.check_reference_reuse(self.root, source, self.output, images)
+        experiment.write_json(result_path, rows)
+        (source / "pairs" / f"seed_{experiment.SEEDS[0]}_affine/mask.nii.gz").write_bytes(b"corrupted")
+        with self.assertRaisesRegex(ValueError, "hash mismatch"):
+            experiment.check_reference_reuse(self.root, source, self.output, images)
 
     def test_anatomy_collection_cannot_reuse_functional_outputs(self):
         paths = experiment.anat_files(self.root)

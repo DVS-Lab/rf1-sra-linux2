@@ -75,9 +75,59 @@ def patch_source(source):
 
 
 def bids_filter():
+    # 25.2.5 rehydrates filters with `'Query' in value`; a numeric run raises TypeError.
     return {kind: dict(datatype="func", suffix=kind, subject="11935", session="01",
-                       task="socialdoors", run=1, part=[None, "mag"])
+                       task="socialdoors", run="1", part=[None, "mag"])
             for kind in ("bold", "sbref")}
+
+
+def check_reference_reuse(project, source, output, images):
+    source = source.resolve()
+    if project / "work" not in source.parents or source == output or source in output.parents:
+        raise ValueError("Reused reference experiment must be a separate directory under PROJECT/work")
+    state = json.loads((source / "state.json").read_text())
+    if not state.get("production_inputs_unchanged") or not state.get("reference_hashes_unchanged"):
+        raise ValueError("Previous experiment did not verify source preservation")
+    if state.get("seeds") != list(SEEDS) or state.get("full_seed") != FULL_SEED:
+        raise ValueError("Previous seeds differ from this experiment")
+    results = json.loads((source / "paired-results.json").read_text())
+    expected = {(seed, mode) for seed in SEEDS for mode in ("affine", "rigid")}
+    if (len(results) != len(expected) or
+            {(r["seed"], r["mode"]) for r in results if r.get("status") == "completed"} != expected):
+        raise ValueError("Previous experiment lacks ten completed reference conditions")
+    manifest = json.loads((source / "inputs.json").read_text())
+    if len(manifest) != len(images) or {r["label"] for r in manifest} != set(images):
+        raise ValueError("Reference input inventory differs")
+    for row in manifest:
+        if sha(images[row["label"]]) != row["sha256"]:
+            raise ValueError("Current reference input differs: " + row["label"])
+    hashes = json.loads((source / "evidence-hashes.json").read_text())
+    checked = set()
+    for row in hashes:
+        rel = Path(row["path"])
+        if not rel.parts or rel.parts[0] not in {"inputs", "pairs", "patch"}:
+            continue
+        path = (source / rel).resolve()
+        if rel.is_absolute() or source not in path.parents or str(rel) in checked or sha(path) != row["sha256"]:
+            raise ValueError("Reused evidence path/hash mismatch")
+        checked.add(str(rel))
+    required = {"patch/provenance.json", "patch/original_util.py", "patch/util.py"}
+    required.update(r["copied"] for r in manifest)
+    for seed, mode in expected:
+        required.update(f"pairs/seed_{seed}_{mode}/{name}" for name in (
+            "mask.nii.gz", "prior.nii.gz", "enhanced.nii.gz", "bias.nii.gz", "initialization.mat"))
+    if not required.issubset(checked):
+        raise ValueError("Reused evidence checksums are incomplete")
+    original = (source / "patch/original_util.py").read_text()
+    patched = source / "patch/util.py"
+    provenance = json.loads((source / "patch/provenance.json").read_text())
+    if (patch_source(original) != patched.read_text() or
+            sha(source / "patch/original_util.py") != provenance["original_sha256"] or
+            sha(patched) != provenance["patched_sha256"]):
+        raise ValueError("Previous patch does not match the exact one-line backport")
+    for name in ("paired-comparison.json", "paired-stability.json"):
+        json.loads((source / name).read_text())
+    return source
 
 
 def anat_files(project):
@@ -158,6 +208,9 @@ def host(args):
     if not 1 <= args.nprocs <= 16:
         raise ValueError("Use 1-16 total full-run processes; OMP stays at one")
     images = inventory(args.project)
+    reuse = None
+    if getattr(args, "reuse_reference_test", None) is not None:
+        reuse = check_reference_reuse(args.project, args.reuse_reference_test, output, images)
     anatomy = anat_files(args.project)
     fsroot = args.project / "derivatives/freesurfer"
     fs_subjects = [p for p in (fsroot / "sub-11935", fsroot / "sub-11935_ses-01") if p.is_dir()]
@@ -165,7 +218,10 @@ def host(args):
         raise ValueError("Need existing FreeSurfer subject and license")
     if not args.image.is_file() or not args.templateflow.is_dir() or not shutil.which("apptainer"):
         raise ValueError("Need existing image, TemplateFlow cache and apptainer")
-    print("PLAN: five paired seeds, ten sequential pre-SDC tests, then two sequential full functional runs.")
+    if reuse:
+        print(f"PLAN: reuse ten completed reference tests from {reuse}; run only two fresh full functional comparisons.")
+    else:
+        print("PLAN: five paired seeds, ten sequential pre-SDC tests, then two sequential full functional runs.")
     print("Original and one-line rigid backport; fixed full-run seed; no production changes.")
     print("Anatomy-only reuse: %d files. Full functional cache reuse: NONE." % len(anatomy))
     if args.dry_run:
@@ -174,6 +230,13 @@ def host(args):
     output.mkdir(parents=True)
     for name in ("inputs", "patch", "evidence", "home", ".mpl"):
         (output / name).mkdir()
+    if reuse:
+        # Never alter the old experiment or reuse its failed full-run caches.
+        shutil.copytree(reuse / "pairs", output / "pairs")
+        shutil.copytree(reuse / "patch", output / "patch", dirs_exist_ok=True)
+        for name in ("paired-results.json", "paired-comparison.json", "paired-stability.json"):
+            shutil.copyfile(reuse / name, output / name)
+        write_json(output / "reference-reuse.json", dict(source=str(reuse), verified=True))
     shutil.copyfile(Path(__file__), output / "run_11935_initialization.py")
     write_json(output / "filter.json", bids_filter())
     records = []
@@ -207,13 +270,15 @@ def host(args):
     before = signatures(sorted(protected))
     write_json(output / "protected-input-signatures.json", before)
     state = dict(status="running", validated=False, seeds=list(SEEDS), full_seed=FULL_SEED,
-                 production_replacement=False, patch=PATCH_URL)
+                 production_replacement=False, patch=PATCH_URL,
+                 reference_tests_reused_from=str(reuse) if reuse else None)
     write_json(output / "state.json", state)
     error = None
     try:
         base = container_base(args, output)
         run_command(base + [str(args.image.resolve()), "python", "/out/run_11935_initialization.py",
-                            "--inside", "pairs"], output, "paired-references")
+                            "--inside", "reuse-check" if reuse else "pairs"], output,
+                    "reference-reuse-check" if reuse else "paired-references")
         patch = json.loads((output / "patch/provenance.json").read_text())
         failures = []
         for mode in ("affine", "rigid"):
@@ -282,6 +347,35 @@ def check_volume(path, expected=None):
     return img
 
 
+def check_anatomy_cache(root):
+    from smriprep.utils.bids import collect_derivatives
+    cache = collect_derivatives(derivatives_dir=str(root / "anatomy"), subject_id="11935",
+                               std_spaces=["MNI152NLin6Asym", "fsnative"])
+    required = {"t1w_preproc", "t1w_mask", "t1w_dseg", "t1w_tpms"}
+    if not required.issubset(cache):
+        raise ValueError("Anatomy-only cache is incomplete: " + str(sorted(required - cache.keys())))
+    for space in ("MNI152NLin6Asym", "fsnative"):
+        if not {"forward", "reverse"}.issubset(cache.get("transforms", {}).get(space, {})):
+            raise ValueError("Missing precomputed bidirectional anatomical transform: " + space)
+    write_json(root / "anatomy-cache.json", cache)
+
+
+def check_reused_container():
+    import niworkflows.func.util as util
+    root = Path("/out")
+    provenance = json.loads((root / "patch/provenance.json").read_text())
+    versions = {p: importlib.metadata.version(p) for p in ("fmriprep", "niworkflows", "nipype", "smriprep")}
+    installed = Path(util.__file__).resolve()
+    if (versions != provenance["versions"] or str(installed) != provenance["installed_module"] or
+            sha(installed) != provenance["original_sha256"] or
+            sha(root / "patch/util.py") != provenance["patched_sha256"]):
+        raise ValueError("Container/source differs from the completed reference experiments")
+    check_anatomy_cache(root)
+    write_json(root / "reference-reuse-check.json", dict(verified=True, versions=versions))
+    print("VERIFIED: completed reference evidence and container source match; no seed tests rerun.", flush=True)
+    return 0
+
+
 def paired_tests():
     import nibabel as nib
     import numpy as np
@@ -305,16 +399,7 @@ def paired_tests():
                original_sha256=sha(original), patched_sha256=sha(root / "patch/util.py"), url=PATCH_URL,
                change="init_aff only: Affine[0.1] -> Rigid[0.1]; norm unchanged",
                threads=1, seed_scope="ANTS_RANDOM_SEED; single-threaded ANTs; no original historical seed available"))
-    from smriprep.utils.bids import collect_derivatives
-    cache = collect_derivatives(derivatives_dir="/out/anatomy", subject_id="11935",
-                               std_spaces=["MNI152NLin6Asym", "fsnative"])
-    required = {"t1w_preproc", "t1w_mask", "t1w_dseg", "t1w_tpms"}
-    if not required.issubset(cache):
-        raise ValueError("Anatomy-only cache is incomplete: " + str(sorted(required - cache.keys())))
-    for space in ("MNI152NLin6Asym", "fsnative"):
-        if not {"forward", "reverse"}.issubset(cache.get("transforms", {}).get(space, {})):
-            raise ValueError("Missing precomputed bidirectional anatomical transform: " + space)
-    write_json(root / "anatomy-cache.json", cache)
+    check_anatomy_cache(root)
     config.update_config({"execution": {"remove_unnecessary_outputs": False,
                                         "stop_on_first_crash": True, "crashfile_format": "txt"}})
     image = check_volume(root / "inputs/sbref_echo1.nii.gz")
@@ -571,13 +656,17 @@ def main():
     parser.add_argument("--licenses", type=Path, default=Path("/ZPOOL/data/tools/licenses"))
     parser.add_argument("--nprocs", type=int, default=8)
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--inside", choices=("pairs", "validate"), help=argparse.SUPPRESS)
+    parser.add_argument("--reuse-reference-test", type=Path,
+                        help="Reuse ten checksum-verified reference conditions; run only fresh full comparisons")
+    parser.add_argument("--inside", choices=("pairs", "validate", "reuse-check"), help=argparse.SUPPRESS)
     parser.add_argument("--mode", choices=("affine", "rigid"), help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.inside:
         if Path.cwd() != Path("/out"):
             raise ValueError("Container stage must run in /out")
-        return paired_tests() if args.inside == "pairs" else validate_full(args.mode)
+        if args.inside == "pairs":
+            return paired_tests()
+        return check_reused_container() if args.inside == "reuse-check" else validate_full(args.mode)
     if args.output is None:
         parser.error("--output required")
     return host(args)

@@ -63,7 +63,8 @@ pipeline stages. They read production inputs but write only under
 initialization across five paired seeds and two isolated full functional runs.
 It writes only to a new ignored `work/` directory; it never replaces production
 outputs or changes QC/exclusion decisions. See the
-[11935 initialization runbook](../docs/11935-initialization-test.md).
+[11935 initialization runbook](../docs/11935-initialization-test.md), including
+checksum-verified reuse of completed reference tests before fresh full runs.
 
 `make_repair_runlists.py` is the filesystem audit helper for recovery runs. It
 does not launch processing; it writes targeted runlists and a missing-path TSV
