@@ -27,6 +27,14 @@ and separate BIDS/derivatives. Complete FreeSurfer anatomy is copied (not linked
 when available. 10964 baseline anatomy is copied for ses-02 preprocessing;
 baseline functional data and existing production derivatives are untouched.
 
+Lab permissions: the runner explicitly sets `umask 0000`, inherited by its
+children. Launch shells must also set `umask 0000` before log redirection. New
+isolated copies use shared file/directory modes without importing source ACLs or
+restrictive modes; no original permissions are changed. Existing parent-directory
+permissions, ACLs, ownership restrictions and read-only mounts can still deny
+access. Inspect the private traceback before attempting any permission repair;
+do not recursively chmod production or source data.
+
 No promotion command is provided. Passing this runner certifies staged repair
 products through confounds, NOT production installation, L1/L2, QC/handoff
 refresh, or a scientific inclusion decision. After inspecting the passing logs,
@@ -72,6 +80,7 @@ preflight only; proceed only if both plans pass:
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2
+umask 0000
 git pull --ff-only
 export AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
 export REPAIR_DIR="$PWD/work/reviewed-source-repairs-v1"
@@ -88,6 +97,7 @@ Build the two repairs sequentially, not two concurrent fMRIPrep jobs:
 
 ```bash
 STAMP=reviewed-source-repairs-$(date +%Y%m%d-%H%M%S)
+umask 0000
 mkdir -p logs/runs
 nohup setsid -f -w bash code/run_logged.sh \
   --label "$STAMP" --include-full-log -- bash -euc '
@@ -105,3 +115,14 @@ tail -30 "logs/runs/${STAMP}.nohup.out"
 Expect two isolated-repair `CHECK PASSED` results and command exit 0. Share the
 run record before any production installation. No production file deletion,
 manual task rename, source-exclusion change, or benchmark restart is required.
+
+### Permission Failure Before Conversion
+
+The October 23 preflight passed, including a unique 10964 four-run timestamp
+match (Doors 9, Faces 13, UGR 17/22). The first build stopped with PermissionError
+before launching conversion. The tracked log does not identify the denied path;
+the traceback remains in `work/reviewed-source-repairs-v1/10964-error-private.txt`.
+Metadata-preserving copying has been replaced, but that is not a diagnosis of
+this specific failure. Preserve the failed workspace for inspection. Once the
+denied path is understood, use a fresh isolated workspace for the updated code;
+do not delete or edit the old receipt to bypass its code/input checks.

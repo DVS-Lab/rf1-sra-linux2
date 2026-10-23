@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import sys
 import traceback
@@ -56,6 +57,29 @@ def signatures(paths):
 def code_hashes(root):
     return {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(root.rglob("*")) if p.is_file() and "__pycache__" not in p.parts}
+
+
+def copy_shared_file(source, destination):
+    """Copy bytes, not source ACLs/modes, into a new lab-shared file."""
+    with source.open("rb") as reader, destination.open("xb") as writer:
+        shutil.copyfileobj(reader, writer)
+    destination.chmod(0o777 if source.stat().st_mode & 0o111 else 0o666)
+
+
+def copy_shared_tree(source, destination):
+    """Do not inherit restrictive directory metadata or link back to originals."""
+    require(not source.is_symlink(), "Refusing a directory symlink in the repair copy")
+    destination.mkdir(parents=True, exist_ok=False)
+    destination.chmod(0o777)
+    for entry in sorted(source.iterdir()):
+        if entry.name == "__pycache__":
+            continue
+        target = destination / entry.name
+        if entry.is_dir():
+            copy_shared_tree(entry, target)
+        else:
+            require(stat.S_ISREG(entry.stat().st_mode), "Repair copy contains a nonregular file")
+            copy_shared_file(entry, target)
 
 
 def protected_paths(project, subject):
@@ -194,21 +218,24 @@ def initialize(project, destination, subject):
     receipt = {"subject": subject, "production": str(project), "code": code_hashes(project / "code"),
                "protected": signatures(protected_paths(project, subject)), "state": "initializing"}
     write_json(destination / "repair.json", receipt)
-    shutil.copytree(project / "code", destination / "code", ignore=shutil.ignore_patterns("__pycache__"))
+    print("Initializing isolated code copy (lab-shared permissions)", flush=True)
+    copy_shared_tree(project / "code", destination / "code")
     bids = destination / "bids"
     bids.mkdir()
     for name in ("dataset_description.json", "participants.tsv", "participants.json", ".bidsignore"):
         source = project / "bids" / name
         if source.is_file():
-            shutil.copy2(source, bids / name)
+            copy_shared_file(source, bids / name)
     if subject == "10964":
         source = project / "bids/sub-10964/ses-01/anat"
         require(source.is_dir() and bool(list(source.glob("*_T1w.nii.gz"))), "10964 baseline anatomy missing")
-        shutil.copytree(source, bids / "sub-10964/ses-01/anat")
+        print("Copying preserved baseline anatomy into isolated repair", flush=True)
+        copy_shared_tree(source, bids / "sub-10964/ses-01/anat")
     fs = project / "derivatives/freesurfer" / f"sub-{subject}"
     if (fs / "scripts/recon-all.done").is_file() and (fs / "mri/aparc+aseg.mgz").is_file():
         # Independent copies, not symlinks/hardlinks: FreeSurfer may write on resume.
-        shutil.copytree(fs, destination / "derivatives/freesurfer" / f"sub-{subject}")
+        print(f"Copying completed FreeSurfer anatomy for {subject}", flush=True)
+        copy_shared_tree(fs, destination / "derivatives/freesurfer" / f"sub-{subject}")
         print(f"Copied completed FreeSurfer anatomy for {subject}; original unchanged", flush=True)
     (destination / "subject.txt").write_text(subject + "\n")
     receipt["state"] = "ready"
@@ -308,6 +335,8 @@ def run(args):
 
 
 def main():
+    # Lab policy applies to this process and all pipeline children, not originals.
+    os.umask(0o000)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("plan", "build", "check"))
     parser.add_argument("--subject", choices=tuple(SPECS), required=True)

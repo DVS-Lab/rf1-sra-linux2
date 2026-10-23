@@ -1,5 +1,7 @@
 import hashlib
 import json
+import os
+import stat
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -14,6 +16,49 @@ import heuristics_11935 as heuristic
 from convert_behavior import resolve_sources
 from run_reviewed_source_repairs import initialize, timing_matches, validate_bids
 import run_reviewed_source_repairs as runner
+
+
+def test_shared_copy_does_not_inherit_readonly_modes(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "data").write_text("unchanged")
+    (source / "script").write_text("#!/bin/sh\n")
+    (source / "data").chmod(0o444)
+    (source / "script").chmod(0o555)
+    source.chmod(0o555)
+    before = runner.signatures([source])
+    destination = tmp_path / "copy"
+    old = os.umask(0o077)
+    try:
+        runner.copy_shared_tree(source, destination)
+    finally:
+        os.umask(old)
+    assert runner.signatures([source]) == before
+    assert stat.S_IMODE(source.stat().st_mode) == 0o555
+    assert stat.S_IMODE((source / "data").stat().st_mode) == 0o444
+    assert stat.S_IMODE(destination.stat().st_mode) == 0o777
+    assert stat.S_IMODE((destination / "data").stat().st_mode) == 0o666
+    assert stat.S_IMODE((destination / "script").stat().st_mode) == 0o777
+    assert (destination / "data").read_text() == "unchanged"
+    with pytest.raises(FileExistsError):
+        runner.copy_shared_file(source / "data", destination / "data")
+
+
+def test_cli_enforces_lab_umask_for_files_and_children(tmp_path, monkeypatch):
+    def run(args):
+        path = tmp_path / "created"
+        path.write_text("shared")
+        assert stat.S_IMODE(path.stat().st_mode) == 0o666
+        result = runner.subprocess.check_output(
+            [sys.executable, "-c", "import os; print(os.umask(0))"], text=True)
+        assert result.strip() == "0"
+    monkeypatch.setattr(runner, "run", run)
+    monkeypatch.setattr(sys, "argv", ["repair", "plan", "--subject", "10964", "--private-dir", str(tmp_path)])
+    old = os.umask(0o077)
+    try:
+        assert runner.main() == 0
+    finally:
+        os.umask(old)
 
 
 def seqs():
