@@ -26,6 +26,9 @@ project under ignored `work/`, copied pipeline code, a private scratch tree,
 and separate BIDS/derivatives. Complete FreeSurfer anatomy is copied (not linked)
 when available. 10964 baseline anatomy is copied for ses-02 preprocessing;
 baseline functional data and existing production derivatives are untouched.
+Only Git-tracked files under `code/` are hashed and copied; incidental logs,
+caches and other untracked files are not pipeline inputs. Missing or unreadable
+tracked files still stop the repair. Code readability is also checked by `plan`.
 
 Lab permissions: the runner explicitly sets `umask 0000`, inherited by its
 children. Launch shells must also set `umask 0000` before log redirection. New
@@ -83,7 +86,7 @@ cd /ZPOOL/data/projects/rf1-sra-linux2
 umask 0000
 git pull --ff-only
 export AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
-export REPAIR_DIR="$PWD/work/reviewed-source-repairs-v1"
+export REPAIR_DIR="$PWD/work/reviewed-source-repairs-v2"
 "$AUDIT_PYTHON" -c 'import pydicom, nibabel; print("Repair dependencies available")'
 bash code/run_logged.sh --label "reviewed-repair-plan-$(date +%Y%m%d-%H%M%S)" \
   --include-full-log -- bash -euc '
@@ -119,10 +122,14 @@ manual task rename, source-exclusion change, or benchmark restart is required.
 ### Permission Failure Before Conversion
 
 The October 23 preflight passed, including a unique 10964 four-run timestamp
-match (Doors 9, Faces 13, UGR 17/22). The first build stopped with PermissionError
-before launching conversion. The tracked log does not identify the denied path;
-the traceback remains in `work/reviewed-source-repairs-v1/10964-error-private.txt`.
-Metadata-preserving copying has been replaced, but that is not a diagnosis of
-this specific failure. Preserve the failed workspace for inspection. Once the
-denied path is understood, use a fresh isolated workspace for the updated code;
-do not delete or edit the old receipt to bypass its code/input checks.
+match (Doors 9, Faces 13, UGR 17/22). The private traceback subsequently identified
+the failure: the old recursive code hash tried to read untracked `code/nohup.out`.
+It was not a failure to write imaging outputs or a demonstrated umask problem.
+The operator removed that incidental file. The corrected snapshot uses only
+tracked code, so another local log cannot cause the same failure.
+
+That attempt created `sub-10964-project/` before hashing, but never wrote its
+receipt or copied data. Preserve the v1 workspace for inspection and use the
+fresh v2 path above with the updated code. Initialization now checks code and
+protected inputs before creating the project directory. No imaging work was
+completed by this failed attempt, so this restart discards no completed stages.

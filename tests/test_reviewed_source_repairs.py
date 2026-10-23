@@ -18,6 +18,47 @@ from run_reviewed_source_repairs import initialize, timing_matches, validate_bid
 import run_reviewed_source_repairs as runner
 
 
+def test_code_snapshot_ignores_untracked_unreadable_logs(tmp_path, monkeypatch):
+    project = tmp_path / "repo"
+    code = project / "code"
+    code.mkdir(parents=True)
+    script = code / "pipeline.py"
+    script.write_text("# tracked pipeline\n")
+    (code / "nohup.out").write_text("untracked log")
+    runner.subprocess.run(["git", "init", "-q", str(project)], check=True)
+    runner.subprocess.run(["git", "-C", str(project), "add", "code/pipeline.py"], check=True)
+    original = Path.read_bytes
+    def read_bytes(path):
+        if path.name == "nohup.out":
+            raise PermissionError("incidental log must never be opened")
+        return original(path)
+    monkeypatch.setattr(Path, "read_bytes", read_bytes)
+    destination = project / "work/repair"
+    receipt = runner.initialize(project, destination, "11935")
+    assert set(receipt["code"]) == {"pipeline.py"}
+    assert not (destination / "code/nohup.out").exists()
+    assert runner.code_hashes(destination / "code", receipt["code"]) == receipt["code"]
+    script.write_text("# tracked change\n")
+    assert runner.code_hashes(code, runner.tracked_code_paths(code)) != receipt["code"]
+    script.unlink()
+    with pytest.raises(FileNotFoundError):
+        runner.code_hashes(code, runner.tracked_code_paths(code))
+
+
+def test_unreadable_tracked_code_fails_before_creating_workspace(tmp_path, monkeypatch):
+    code = tmp_path / "code"
+    code.mkdir()
+    (code / "pipeline.py").write_text("# fixture\n")
+    monkeypatch.setattr(runner, "tracked_code_paths", lambda root: ["pipeline.py"])
+    def unreadable(path):
+        raise PermissionError("tracked pipeline unreadable")
+    monkeypatch.setattr(Path, "read_bytes", unreadable)
+    destination = tmp_path / "work/repair"
+    with pytest.raises(PermissionError):
+        runner.initialize(tmp_path, destination, "11935")
+    assert not destination.exists()
+
+
 def test_shared_copy_does_not_inherit_readonly_modes(tmp_path):
     source = tmp_path / "source"
     source.mkdir()
@@ -167,6 +208,7 @@ def test_isolated_runner_resume_and_unchanged_production(tmp_path, monkeypatch):
     excluded.mkdir()
     private = production / "work/repairs"
     monkeypatch.setattr(runner, "behavior_preflight", lambda *a: None)
+    monkeypatch.setattr(runner, "tracked_code_paths", lambda root: ["example.py"])
     monkeypatch.setattr(runner, "validate_bids", lambda *a: None)
     monkeypatch.setattr(runner, "validate_mriqc", lambda *a: None)
     calls = []

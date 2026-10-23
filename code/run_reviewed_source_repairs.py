@@ -54,9 +54,33 @@ def signatures(paths):
     return result
 
 
-def code_hashes(root):
-    return {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in sorted(root.rglob("*")) if p.is_file() and "__pycache__" not in p.parts}
+def tracked_code_paths(root):
+    output = subprocess.check_output(
+        ["git", "-C", str(root.parent), "ls-files", "--cached", "-z", "--", root.name])
+    paths = sorted({str(Path(os.fsdecode(p)).relative_to(root.name))
+                    for p in output.split(b"\0") if p})
+    require(bool(paths), "No Git-tracked pipeline code found")
+    return paths
+
+
+def code_hashes(root, paths):
+    result = {}
+    for name in paths:
+        relative = Path(name)
+        require(not relative.is_absolute() and ".." not in relative.parts,
+                "Invalid path in code snapshot")
+        path = root / relative
+        require(path.resolve().is_relative_to(root.resolve()), "Code path escapes snapshot root")
+        result[name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return result
+
+
+def copy_code_snapshot(root, destination, paths):
+    destination.mkdir(parents=True, exist_ok=False)
+    for name in paths:
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        copy_shared_file(root / name, target)
 
 
 def copy_shared_file(source, destination):
@@ -214,12 +238,13 @@ def validate_mriqc(project, subject):
 def initialize(project, destination, subject):
     require(destination.is_relative_to(project / "work"), "Repair destination must be inside ignored work")
     require(not destination.exists(), "New repair project must not already exist")
-    destination.mkdir(parents=True)
-    receipt = {"subject": subject, "production": str(project), "code": code_hashes(project / "code"),
+    code = code_hashes(project / "code", tracked_code_paths(project / "code"))
+    receipt = {"subject": subject, "production": str(project), "code": code,
                "protected": signatures(protected_paths(project, subject)), "state": "initializing"}
+    destination.mkdir(parents=True)
     write_json(destination / "repair.json", receipt)
     print("Initializing isolated code copy (lab-shared permissions)", flush=True)
-    copy_shared_tree(project / "code", destination / "code")
+    copy_code_snapshot(project / "code", destination / "code", code)
     bids = destination / "bids"
     bids.mkdir()
     for name in ("dataset_description.json", "participants.tsv", "participants.json", ".bidsignore"):
@@ -253,6 +278,8 @@ def run(args):
     behavior_preflight(args.behavior_root, subject)
     print(f"ISOLATED REPAIR {subject}; production, exclusions, QC and paper handoff remain unchanged", flush=True)
     if args.command == "plan":
+        code = code_hashes(project / "code", tracked_code_paths(project / "code"))
+        print(f"CODE PASSED: {len(code)} tracked pipeline files readable; untracked logs ignored", flush=True)
         if subject == "10964":
             private.mkdir(parents=True, exist_ok=True)
             timestamp_check(args.source_root, args.behavior_root, private)
@@ -272,7 +299,8 @@ def run(args):
         write_json(validation, {"validated": False, "status": "checking_or_building"})
         require(receipt["state"] == "ready" and receipt["subject"] == subject and receipt["production"] == str(project),
                 "Interrupted or mismatched initialization; inspect preserved workspace")
-        require(receipt["code"] == code_hashes(project / "code") == code_hashes(destination / "code"),
+        require(receipt["code"] == code_hashes(project / "code", tracked_code_paths(project / "code"))
+                == code_hashes(destination / "code", receipt["code"]),
                 "Repair code changed; use a new isolated workspace")
         require(receipt["protected"] == signatures(protected_paths(project, subject)), "Production inputs changed since repair initialization")
         if previous.get("validated"):
