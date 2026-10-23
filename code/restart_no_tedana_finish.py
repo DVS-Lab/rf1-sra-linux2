@@ -28,13 +28,13 @@ def processes():
     return result
 
 
-def session_members(table, pid, private):
+def session_members(table, pid, private, script_name='finish_no_tedana.py', scope_option='--private-dir'):
     row = table[pid]
     argv = row['argv']
     if (row['uid'] != os.getuid() or not Path(argv[0]).name.startswith('python')
-            or not any(Path(a).name == 'finish_no_tedana.py' for a in argv)
-            or 'run' not in argv or '--private-dir' not in argv
-            or Path(argv[argv.index('--private-dir') + 1]).resolve() != private):
+            or not any(Path(a).name == script_name for a in argv)
+            or 'run' not in argv or scope_option not in argv
+            or Path(argv[argv.index(scope_option) + 1]).resolve() != private):
         raise ValueError('PID is not the requested Python follow-up runner')
     sid = row['sid']
     leader = table.get(sid, {})
@@ -63,7 +63,7 @@ def send(pid, row, sig):
             pass
 
 
-def stop(pid, private):
+def stop(pid, private, script_name='finish_no_tedana.py', scope_option='--private-dir'):
     original = processes()[pid]
     frozen = {}
     try:
@@ -71,12 +71,12 @@ def stop(pid, private):
             table = processes()
             if table.get(pid, {}).get('start') != original['start']:
                 raise ValueError('Runner exited or PID changed; no restart performed')
-            members = session_members(table, pid, private)
+            members = session_members(table, pid, private, script_name, scope_option)
             for p, row in members.items():
                 send(p, row, signal.SIGSTOP)
                 frozen[p] = row
             time.sleep(0.1)
-            after = session_members(processes(), pid, private)
+            after = session_members(processes(), pid, private, script_name, scope_option)
             if all(r['state'] in {'T', 't'} for r in after.values()) and set(after) <= set(frozen):
                 break
         else:

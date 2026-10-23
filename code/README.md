@@ -67,6 +67,13 @@ outputs or changes QC/exclusion decisions. See the
 checksum-verified reuse of completed reference tests before fresh full runs,
 and `--validate-existing` for report/export-only checks of saved full outputs.
 
+`run_11935_completion.sh` stages the approved two-run source/masking repair,
+installs reviewed products at canonical paths, rebuilds production/no-TEDANA
+activation L1/L2, and resumes a versioned cohort PCA comparison. It preserves
+other subjects/runs and archives retired bytes. See the
+[11935 production repair runbook](../docs/11935-production-repair.md) for image
+approval, active-job guards, partial-attempt preservation, and L3 handoff limits.
+
 `make_repair_runlists.py` is the filesystem audit helper for recovery runs. It
 does not launch processing; it writes targeted runlists and a missing-path TSV
 under `logs/runlists/`.

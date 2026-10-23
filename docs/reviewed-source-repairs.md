@@ -1,5 +1,10 @@
 # Reviewed 10964 And 11935 Repairs
 
+For the subsequent 11935-only masking/source installation and downstream
+rebuild, use the [production repair runbook](11935-production-repair.md).
+The original two-subject runner below remains staging-only and unpatched;
+its historical outputs are not a substitute for that corrected two-run build.
+
 ## Decisions And Scope
 
 - 11935 ses-01: PI-approved Faces/Social Doors series 25/26 with magnitude
