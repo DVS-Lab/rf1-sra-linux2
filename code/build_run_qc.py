@@ -410,7 +410,10 @@ def build_target_mask(
 
 
 def compute_coverage(target_path: Path, run_mask_path: Path) -> float:
-    np, _pd, nib, resample_from_to, _plt = science_modules()
+    # Image-only callers do not need the workbook/report-writing dependencies.
+    import numpy as np
+    import nibabel as nib
+    from nibabel.processing import resample_from_to
     target = nib.load(str(target_path))
     run_mask = nib.load(str(run_mask_path))
     if len(run_mask.shape) != 3:

@@ -204,11 +204,48 @@ class InitializationTests(unittest.TestCase):
             cache = self.output / "pair_cache"
             cache.mkdir()
             (cache / "cached-result.pklz").write_bytes(b"no archive")
-        if "validate" in cmd:
+        if "validate" in cmd or "validate-saved" in cmd:
             mode = cmd[cmd.index("--mode") + 1]
             experiment.write_json(self.output / ("full-" + mode + "-validation.json"),
                                   dict(canonical_coverage_pct=99.5))
         return types.SimpleNamespace(returncode=0)
+
+    def test_validation_only_never_launches_processing_or_modifies_old_outputs(self):
+        source = self.reference_package()
+        for mode in ("affine", "rigid"):
+            folder = source / "full" / mode / "derivatives/sub-11935/ses-01/func"
+            folder.mkdir(parents=True)
+            (folder / "preprocessed_bold.nii.gz").write_bytes(b"synthetic saved series")
+        self.args.validate_existing = source
+        before = {p: experiment.sha(p) for p in source.rglob("*") if p.is_file()}
+        with patch.object(experiment.shutil, "which", return_value="apptainer"), \
+                patch.object(experiment.subprocess, "run", side_effect=self.fake_run) as runner:
+            self.assertEqual(experiment.validate_existing(self.args), 0)
+            self.assertEqual(runner.call_count, 2)
+            for call in runner.call_args_list:
+                cmd = call.args[0]
+                self.assertIn("validate-saved", cmd)
+                self.assertIn(f"{source}:/experiment:ro", cmd)
+                self.assertNotIn("fmriprep", cmd)
+                self.assertNotIn("pairs", cmd)
+        self.assertEqual(before, {p: experiment.sha(p) for p in before})
+        self.assertFalse((self.output / "full").exists())
+        state = json.loads((self.output / "state.json").read_text())
+        self.assertTrue(state["validated"])
+        self.assertFalse(state["processing_rerun"])
+        self.assertTrue(state["source_products_unchanged"])
+
+    def test_validation_only_dry_run_writes_nothing(self):
+        source = self.reference_package()
+        for mode in ("affine", "rigid"):
+            (source / "full" / mode / "derivatives/sub-11935/ses-01/func").mkdir(parents=True)
+        self.args.validate_existing = source
+        self.args.dry_run = True
+        with patch.object(experiment.shutil, "which", return_value="apptainer"), \
+                patch.object(experiment.subprocess, "run") as runner:
+            self.assertEqual(experiment.validate_existing(self.args), 0)
+            runner.assert_not_called()
+        self.assertFalse(self.output.exists())
 
     def test_host_copies_not_links_and_archives_only_evidence(self):
         inputs = {str(p): experiment.sha(p) for p in self.root.rglob("*") if p.is_file()}
@@ -310,8 +347,15 @@ class ImageIntegrityTests(unittest.TestCase):
             command.parent.mkdir(parents=True)
             command.write_text("antsAI -t Rigid[0.1]")
             with patch.object(inspect_xa60_coverage, "montage"):
-                self.assertEqual(experiment.validate_full("rigid", root, project), 0)
-                record = json.loads((root / "full-rigid-validation.json").read_text())
+                report = Path(folder) / "report"
+                report.mkdir()
+                original_paths = [p for p in root.rglob("*") if p.is_file()]
+                before = {p: experiment.sha(p) for p in original_paths}
+                # Image-only validation must not invoke the XLSX dependency gate.
+                with patch.object(inspect_xa60_coverage.qc, "science_modules", side_effect=RuntimeError("openpyxl unavailable")):
+                    self.assertEqual(experiment.validate_full("rigid", root, project, report_root=report), 0)
+                self.assertEqual(before, {p: experiment.sha(p) for p in original_paths})
+                record = json.loads((report / "full-rigid-validation.json").read_text())
                 self.assertEqual(record["confound_rows"], 218)
                 self.assertEqual(record["canonical_coverage_pct"], 100.0)
                 self.assertFalse(record["scientific_acceptance"])

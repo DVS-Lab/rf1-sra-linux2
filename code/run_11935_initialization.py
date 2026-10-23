@@ -201,6 +201,81 @@ def guard_output(project, output):
         raise ValueError("Output/archive exists; use a new timestamp (never overwrite)")
 
 
+def archive_evidence(output):
+    members = [p for p in sorted(output.iterdir())
+               if p.is_file() or p.name in {"inputs", "patch", "evidence", "pairs"}]
+    archive_path = output.with_suffix(".tar.gz")
+    with tarfile.open(archive_path, "w:gz") as archive:
+        for path in members:
+            archive.add(path, arcname=output.name + "/" + path.name)
+    print("Experiment results/archive: " + str(output), flush=True)
+    print(str(archive_path), flush=True)
+
+
+def validate_existing(args):
+    project, output = args.project.resolve(), args.output.resolve()
+    args.project = project
+    guard_output(project, output)
+    source = check_reference_reuse(project, args.validate_existing, output, inventory(project))
+    if not args.image.is_file() or not shutil.which("apptainer"):
+        raise ValueError("Need the existing fMRIPrep container and apptainer for image validation")
+    for mode in ("affine", "rigid"):
+        if not (source / "full" / mode / "derivatives/sub-11935/ses-01/func").is_dir():
+            raise ValueError("Saved full-run output directory is missing: " + mode)
+    print(f"PLAN: validate/export saved full runs from {source}; NO processing or seed tests will run.", flush=True)
+    if args.dry_run:
+        print("DRY RUN: no files changed.")
+        return 0
+    output.mkdir(parents=True)
+    for name in ("inputs", "pairs", "patch"):
+        shutil.copytree(source / name, output / name)
+    for name in ("paired-results.json", "paired-comparison.json", "paired-stability.json", "inputs.json"):
+        shutil.copyfile(source / name, output / name)
+    shutil.copyfile(source / "state.json", output / "source-experiment-state.json")
+    shutil.copyfile(Path(__file__), output / "run_11935_initialization.py")
+    for name in ("home", ".mpl", "evidence"):
+        (output / name).mkdir()
+    protected = []
+    for folder in (source / "inputs", source / "pairs", source / "patch",
+                   source / "full/affine/derivatives", source / "full/rigid/derivatives"):
+        protected.extend(p for p in folder.rglob("*") if p.is_file())
+    before = signatures(protected)
+    state = dict(status="validating", validated=False, source_experiment=str(source),
+                 processing_rerun=False, production_replacement=False, scientific_acceptance=False)
+    write_json(output / "state.json", state)
+    error = None
+    try:
+        failures = []
+        base = container_base(args, output) + ["--bind", f"{source}:/experiment:ro"]
+        for mode in ("affine", "rigid"):
+            try:
+                run_command(base + [str(args.image.resolve()), "python", "/out/run_11935_initialization.py",
+                                    "--inside", "validate-saved", "--mode", mode], output, "validate-" + mode)
+            except RuntimeError as exc:
+                failures.append(dict(mode=mode, error=str(exc)))
+        if failures:
+            write_json(output / "validation-failures.json", failures)
+            raise RuntimeError("Saved full-run validation failed; processing was NOT rerun")
+        state.update(status="technical_checks_passed", validated=True)
+    except BaseException as exc:
+        error = exc
+        state.update(status="validation_failed", error_type=type(exc).__name__, error=str(exc))
+        (output / "error.txt").write_text(traceback.format_exc())
+    finally:
+        state["source_products_unchanged"] = before == signatures(protected)
+        if not state["source_products_unchanged"]:
+            state.update(status="failed_source_change", validated=False)
+        write_json(output / "state.json", state)
+        make_report(output)
+        archive_evidence(output)
+    if error:
+        raise error
+    if not state["validated"]:
+        raise ValueError("Saved products changed during validation")
+    print("CHECK PASSED: both saved full runs validated/exported; no processing rerun. Visual review remains.", flush=True)
+    return 0
+
+
 def host(args):
     args.project = args.project.resolve()
     output = args.output.resolve()
@@ -308,13 +383,7 @@ def host(args):
         write_json(output / "state.json", state)
         make_report(output)
         # Export evidence only. Full 4D BOLD, FreeSurfer, anatomy and cache stay on Linux2.
-        members = [p for p in sorted(output.iterdir())
-                   if p.is_file() or p.name in {"inputs", "patch", "evidence", "pairs"}]
-        with tarfile.open(output.with_suffix(".tar.gz"), "w:gz") as archive:
-            for path in members:
-                archive.add(path, arcname=output.name + "/" + path.name)
-        print("Experiment results/archive: " + str(output), flush=True)
-        print(str(output.with_suffix(".tar.gz")), flush=True)
+        archive_evidence(output)
     if error:
         raise error
     if not state["validated"]:
@@ -496,12 +565,14 @@ def one(folder, pattern):
     return paths[0]
 
 
-def validate_full(mode, root=Path("/out"), project=Path("/project")):
+def validate_full(mode, root=Path("/out"), project=Path("/project"), report_root=None):
     import nibabel as nib
     import numpy as np
     sys.path.insert(0, str(project / "code"))
     import build_run_qc as qc
     from inspect_xa60_coverage import montage
+
+    report_root = root if report_root is None else report_root
 
     derivative = root / "full" / mode / "derivatives"
     func = derivative / "sub-11935/ses-01/func"
@@ -564,9 +635,7 @@ def validate_full(mode, root=Path("/out"), project=Path("/project")):
     original_mni = one(production_func, STEM + "_part-mag_space-MNI152NLin6Asym*_desc-preproc_bold.nii.gz")
     original_img, new_img = nib.load(original_mni), nib.load(mni)
     same_grid = original_img.shape[:3] == new_img.shape[:3] and np.allclose(original_img.affine, new_img.affine, atol=1e-4)
-    if not same_grid:
-        raise ValueError("Full-run MNI grid differs from production grid; do not promote")
-    dest = root / "evidence" / mode
+    dest = report_root / "evidence" / mode
     dest.mkdir(exist_ok=True, parents=True)
     for p in sorted(func.glob("*.nii.gz")):
         img = nib.load(p)
@@ -611,13 +680,15 @@ def validate_full(mode, root=Path("/out"), project=Path("/project")):
     expected = "Rigid[0.1]" if mode == "rigid" else "Affine[0.1]"
     if not ai_commands or any(expected not in text for text in ai_commands):
         raise ValueError("Full-run initialization commands do not verify the assigned condition")
+    if not same_grid:
+        raise ValueError("Full-run MNI grid differs from production grid; evidence exported, do not promote")
     row = dict(mode=mode, technical_checks_passed=True, scientific_acceptance=False,
                volumes=nvol, confound_rows=len(data), canonical_coverage_pct=coverage,
                same_MNI_grid_as_production=bool(same_grid), products=checks,
                target_sha256=sha(target), initialization_verified=expected,
                coreg_sources=sources,
                caveat="Coverage is descriptive; inspect native masks, SDC and registration before acceptance.")
-    write_json(root / ("full-" + mode + "-validation.json"), row)
+    write_json(report_root / ("full-" + mode + "-validation.json"), row)
     print(f"VALIDATED {mode}: {nvol} volumes; 4 echoes; confounds aligned; coverage={coverage:.3f}%", flush=True)
     return 0
 
@@ -656,9 +727,12 @@ def main():
     parser.add_argument("--licenses", type=Path, default=Path("/ZPOOL/data/tools/licenses"))
     parser.add_argument("--nprocs", type=int, default=8)
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--reuse-reference-test", type=Path,
+    existing = parser.add_mutually_exclusive_group()
+    existing.add_argument("--reuse-reference-test", type=Path,
                         help="Reuse ten checksum-verified reference conditions; run only fresh full comparisons")
-    parser.add_argument("--inside", choices=("pairs", "validate", "reuse-check"), help=argparse.SUPPRESS)
+    existing.add_argument("--validate-existing", type=Path,
+                          help="Validate/export existing full outputs into a new --output directory; no processing")
+    parser.add_argument("--inside", choices=("pairs", "validate", "reuse-check", "validate-saved"), help=argparse.SUPPRESS)
     parser.add_argument("--mode", choices=("affine", "rigid"), help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.inside:
@@ -666,10 +740,12 @@ def main():
             raise ValueError("Container stage must run in /out")
         if args.inside == "pairs":
             return paired_tests()
+        if args.inside == "validate-saved":
+            return validate_full(args.mode, root=Path("/experiment"), report_root=Path("/out"))
         return check_reused_container() if args.inside == "reuse-check" else validate_full(args.mode)
     if args.output is None:
         parser.error("--output required")
-    return host(args)
+    return validate_existing(args) if args.validate_existing is not None else host(args)
 
 
 if __name__ == "__main__":

@@ -72,6 +72,56 @@ repair/promotion is a separate, explicitly reviewed step.
 The self-contained runner is tracked at `code/run_11935_initialization.py`.
 Pull this repository normally; no SCP of code, pip install, or image rebuild is needed.
 
+### Validate and export the completed October 23 full runs
+
+Both conditions in `11935-init-test-20261023-001417` reported `fMRIPrep finished
+successfully!`. Their post-run checks then failed because image-only coverage
+calculation invoked the cohort-QC dependency gate, unnecessarily requiring
+`openpyxl` inside the fMRIPrep image. Coverage calculation now imports only
+NumPy, nibabel and SciPy; its formula, resampling and denominator are unchanged.
+No spreadsheet package installation or container modification is needed.
+
+Do not rerun fMRIPrep or the seed tests. Preview validation/export only:
+
+```bash
+cd /ZPOOL/data/projects/rf1-sra-linux2
+git pull --ff-only
+SOURCE="$PWD/work/11935-init-test-20261023-001417"
+STAMP=11935-validation-$(date +%Y%m%d-%H%M%S)
+OUT="$PWD/work/$STAMP"
+python3 code/run_11935_initialization.py \
+  --validate-existing "$SOURCE" --output "$OUT" --dry-run
+```
+
+After the preview passes, run in the same shell:
+
+```bash
+bash code/run_logged.sh --label "$STAMP" --include-full-log -- \
+  env PYTHONUNBUFFERED=1 python3 code/run_11935_initialization.py \
+    --validate-existing "$SOURCE" --output "$OUT"
+echo "Evidence archive: ${OUT}.tar.gz"
+```
+
+This mounts the completed experiment read-only and writes a NEW report/archive.
+It performs no preprocessing, reference enhancement or FreeSurfer work, and
+does not overwrite the existing experiment, its original failed run record,
+archive, BIDS or production derivatives. It reads the saved 4D files for checks
+and the exported temporal mean; allow time for decompression and checksums.
+The new `state.json` records `processing_rerun: false` and source preservation.
+
+After both validations pass, on the Mac:
+
+```bash
+scp 'tug87422@CLA19787.tu.temple.edu:/ZPOOL/data/projects/rf1-sra-linux2/work/11935-validation-*.tar.gz' \
+  "$HOME/Downloads/"
+```
+
+Extract the new validation archive, not just the earlier experiment archive.
+It contains the paired-seed evidence PLUS full-run native/MNI masks and
+references, registration/SDC reportlets, validation JSON and coverage values.
+Full 4D BOLD and caches stay on Linux2. Open `index.html` and inspect both modes;
+completion alone does not establish that rigid initialization caused recovery.
+
 ### Continue the completed October 22 reference tests
 
 The `11935-init-test-20261022-095859` record completed all ten reference
