@@ -1,0 +1,9 @@
+subject | task | series | source
+11924 | socialdoors | 25 | sub-11924_ses-01_task-socialdoors_run-1_echo-1_part-mag_bold.json
+11924 | doors | 29 | sub-11924_ses-01_task-doors_run-1_echo-1_part-mag_bold.json
+11928 | socialdoors | 25 | sub-11928_ses-01_task-socialdoors_run-1_echo-1_part-mag_bold.json
+11928 | doors | 29 | sub-11928_ses-01_task-doors_run-1_echo-1_part-mag_bold.json
+11929 | socialdoors | 25 | sub-11929_ses-01_task-socialdoors_run-1_echo-1_part-mag_bold.json
+11929 | doors | 29 | sub-11929_ses-01_task-doors_run-1_echo-1_part-mag_bold.json
+11935 | socialdoors | 29 | sub-11935_ses-01_task-socialdoors_run-1_echo-1_part-mag_bold.json
+11935 | doors | unresolved | 0 sidecars
