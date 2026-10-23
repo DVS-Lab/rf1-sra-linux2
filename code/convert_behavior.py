@@ -288,6 +288,18 @@ def _resolve_socialdoors_sources(
     resolutions = {run: SourceResolution("missing") for run in expected_runs}
     if 1 not in resolutions:
         return resolutions
+    if subject == "10964" and session == "02":
+        from reviewed_behavior_sources import wave2_source
+        try:
+            source = wave2_source(behavior_root, task)
+        except ValueError as exc:
+            resolutions[1] = SourceResolution("ambiguous", detail=str(exc))
+        else:
+            resolutions[1] = SourceResolution(
+                "available", source,
+                "Ryan/PI reviewed wave-2 source mislabeled ses-01; original bytes preserved",
+            )
+        return resolutions
     source_dir = behavior_root / TASK_SOURCE_DIRS[task] / subject
     if not source_dir.is_dir():
         return resolutions

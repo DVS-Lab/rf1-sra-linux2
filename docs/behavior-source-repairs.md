@@ -3,6 +3,47 @@
 This file records historical private-source repairs that affect canonical BIDS
 events. Trial-level data remain in the private `rf1-sra` repository.
 
+## 10964 Wave-2 Label Decision (2026-10-22)
+
+Ryan reported erroneous wave-1 selection for Faces/Doors at wave 2, with UGR
+correctly labeled wave 2. The PI accepted this explanation. No repeat lab
+request is pending; source repair and Linux2 validation are still pending.
+
+Implementation update (2026-10-23): `reviewed_behavior_sources.py` now maps the
+hash-checked newer files to logical ses-02 without renaming or altering their
+bytes, while retaining the baseline resolver and checking original source and
+runtime hashes. The [isolated repair runbook](reviewed-source-repairs.md) replaces
+manual file relabeling with this reproducible override. Linux2 timing validation
+and processing must still pass; production products have not been replaced.
+
+Read-only verification of private source commit `f26395c04` and current source:
+
+- The eight new Faces/Doors files with `ses-01` names were additions. Older
+  `ses-1` events and sessionless baseline files remain unchanged in tracked
+  history. The suspected baseline overwrite is not supported by that history.
+- Both older and newer Faces/Doors sources convert to 40/40 trials, with
+  different trial fingerprints between visits. Current baseline resolution
+  selects the older `ses-1` events by historical canonical fingerprint; ses-02
+  still resolves as missing for these tasks.
+- Newer Faces/Doors runtime records have absolute, timezone-qualified scanner
+  trigger and completion times on the same day as the correctly labeled ses-02
+  UGR records. Doors contains an earlier started-only attempt and a later
+  completed attempt; Faces contains one started/completed pair. Exact visit
+  timestamps remain in private source records, not this public ledger.
+
+Next engineering steps:
+
+1. Preserve original bytes, hashes, Git provenance, and all baseline files.
+   Correct only the newer Faces/Doors session labels and explicitly document
+   any internal session-field corrections without altering trials or timings.
+2. Match the completed task triggers against original, unshifted DICOM
+   acquisitions, checking consistent scanner/behavior clock offsets across
+   tasks and distinguishing the earlier Doors attempt. Shifted BIDS dates and
+   file/commit modification times are not synchronization evidence.
+3. Recheck baseline source fingerprints and existing events, validate all four
+   ses-02 task runs, then resume the standard processing stages with preservation
+   of complete outputs. No QC exclusions or paper handoff decisions change.
+
 ## Resolved 2026-08-22
 
 - Shared Reward raw run labels are one-based. This is present in the task's

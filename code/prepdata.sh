@@ -129,6 +129,10 @@ if [[ "$ses" == "01" ]]; then
   seen="$(date -d "@$epoch" '+%Y-%m-%d %H:%M:%S')"
 fi
 
+if [[ "$sub" == "11935" && "$ses" == "01" ]]; then
+  heuristic_name="heuristics_11935.py"
+  seen="Ryan/PI reviewed Faces 25/26, Doors 29/30"
+fi
 heuristic_host="${scriptdir}/${heuristic_name}"
 rf1_require_file "$heuristic_host"
 echo "Heuristic chosen for sub-${sub} ses-${ses}: ${heuristic_name} [seen=${seen}; cutoff=${cutoff}]"
@@ -140,6 +144,10 @@ done
 
 target_session="${bidsroot}/sub-${sub}/ses-${ses}"
 target_heudiconv="${bidsroot}/.heudiconv/${sub}/ses-${ses}"
+if [[ "$sub" == "11935" && "$ses" == "01" && -e "$target_session" ]]; then
+  echo "Refusing reconversion over 11935: use the isolated reviewed-source repair runner." >&2
+  exit 1
+fi
 if [[ "$sub" == "10668" && "$ses" == "01" && -e "$target_session" ]]; then
   echo "Refusing reconversion over sub-10668 ses-01: use repair_10668.py for the preserved live repair." >&2
   echo "Fresh conversion is supported when no canonical session exists; archive existing data/derivatives first." >&2

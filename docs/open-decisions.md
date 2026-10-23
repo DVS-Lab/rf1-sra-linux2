@@ -8,6 +8,35 @@ decision is resolved.
 
 ## Current Evidence Snapshot
 
+**2026-10-23 repair implementation:** the [counterbalance peer report](../logs/records/11935-counterbalance-peers-20261022-235625.txt)
+corroborates 11935's approved reconstruction: all three April peers use Faces
+series 25 and Doors series 29. The [isolated repair runner](reviewed-source-repairs.md)
+now implements that explicit mapping and the hash-bound 10964 wave-2 source
+override. It preserves original behavior and production files, checks 10964's
+completed trigger times against DICOM chronology, and rebuilds isolated products
+through confounds. Linux2 execution/validation and production promotion remain
+pending. Do not mutate the running cohort benchmark's frozen production inputs
+or replace Jacob's handoff; no settled exclusion has changed.
+
+**2026-10-22 Ryan/PI source-mapping decisions:** the PI accepted Ryan's
+reconstruction for 11935 ses-01: series 25/26 is Faces/Social Doors, and 29/30
+is Doors. This is an approved interpretation, not timestamp-proven identity;
+Ryan reported that the session notes say Doors twice and inferred a note typo.
+The human mapping question is closed. The controlled repair/rebuild and
+acquisition-specific reference checks remain pending; the paper exclusion and
+frozen handoff remain unchanged. See the [repair contract](no-tedana-unselected-reconciliation.md#approved-mapping-and-pending-repair).
+
+For 10964 ses-02, Ryan confirmed erroneous wave-1 selection for Faces/Doors
+and correct wave-2 selection for UGR. Private source history shows the newer
+`ses-01` files were added, not replacements of the older `ses-1`/sessionless
+baseline files. Both newer tasks have 40 trials and completed runtime records.
+The current converter still resolves baseline to the historical fingerprints.
+Do not repeat the lab question: implement a provenance-preserving session-label
+repair, then validate against original acquisition timestamps (including the
+earlier incomplete Doors start) before releasing ses-02 into processing.
+See [10964 evidence and remaining engineering work](behavior-source-repairs.md#10964-wave-2-label-decision-2026-10-22).
+Neither repair has been applied or validated on Linux2 by this documentation.
+
 **2026-10-21 unselected no-TEDANA source closeout:** the complete 47-row
 preparation review and saved acquisition inventories are reconciled in the
 [scoped evidence ledger](no-tedana-unselected-reconciliation.md). Forty slots
@@ -52,8 +81,9 @@ benchmark remains in progress. This certifies technical processing, not ses-02
 task-level FEAT completion or a new exclusion decision.
 
 The [October 21 intake](../logs/records/20261021-003821_source-intake-20261021-003821.md)
-reported only 10964 ses-02 as a new-session candidate; its unresolved
-behavioral-source linkage remains on hold. The intake does not certify later
+reported only 10964 ses-02 as a new-session candidate; the October 22 decision
+above resolves the human source-label question, but its technical repair and
+validation remain pending. The intake does not certify later
 downloads or additional scans inside existing session folders. No new
 eligibility or QC-based exclusions are authorized.
 

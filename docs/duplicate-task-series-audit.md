@@ -99,11 +99,14 @@ do not weaken the criteria to obtain an expected count.
 
 No subject-specific suppression list is used. Thus the settled 11116 ses-02
 return-visit selection and 10929 UGR phase shortage can still appear; preserve
-their approved dispositions in `docs/open-decisions.md`. 11935 remains open
-pending Ryan's task-order evidence. This audit does not assert live SBRef identity
+their approved dispositions in `docs/open-decisions.md`. The October 22 PI
+decision accepts Ryan's Faces-first/Doors-second reconstruction for 11935;
+technical repair and reference verification remain pending, not another lab
+question. See the [approved repair contract](no-tedana-unselected-reconciliation.md#approved-mapping-and-pending-repair).
+This audit does not assert live SBRef identity
 or change the current coverage95 exclusion.
 
-## Exact question for Ryan: 11935
+## Historical Question For Ryan: 11935 (Closed 2026-10-22)
 
 > For **11935 ses-01**, can you check the session/acquisition notes for the
 > actual order of **Social Doors faces versus Doors**? We found two full-length
@@ -115,5 +118,6 @@ or change the current coverage95 exclusion.
 > independently establish that mapping. If the notes do not establish the order,
 > please say so rather than inferring it from the usual task order.
 
-No relabeling is authorized by this question. Correct task identities and
-acquisition-specific SBRefs must be established before any recovery/rebuild.
+The question alone did not authorize relabeling. The subsequent PI decision
+authorizes the reconstruction documented above; acquisition-specific references
+and all repaired products still require technical validation.

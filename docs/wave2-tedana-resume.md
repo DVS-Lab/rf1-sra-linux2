@@ -10,8 +10,11 @@ The earlier missing-TEDANA finding below is historical, not an outstanding job.
 This is not evidence that ses-02 task-level L1/L2 analyses have run.
 
 The separate 8,343-job cohort AIC/KIC/MDL experiment does not gate this production
-closeout or the baseline no-TEDANA paper analyses. 10964 ses-02 remains on the
-behavioral-source hold. The October 21 intake found no other new-session
+closeout or the baseline no-TEDANA paper analyses. 10964 ses-02 still awaits
+technical source repair and validation, but the October 22 Ryan/PI review
+resolved its wrong-wave-label explanation; no repeat lab question is pending.
+See [the repair evidence](behavior-source-repairs.md#10964-wave-2-label-decision-2026-10-22).
+The October 21 intake found no other new-session
 candidate, but did not inventory new files inside existing sessions.
 
 ## Reviewed Scope

@@ -2,6 +2,62 @@
 
 ## 11935 Mapping Verification
 
+### Approved Mapping And Pending Repair
+
+On 2026-10-22, the PI accepted Ryan's reconstruction: first acquisition
+25/26 = Faces/Social Doors; second acquisition 29/30 = Doors. Ryan's report
+says the session notes record Doors stimuli twice, but he inferred a typo from
+the availability of both task outputs. Record this as a PI-approved
+interpretation, not independent timestamp confirmation. No further request to
+Ryan is outstanding. The historical questions and alternative repair paths
+below are superseded by this decision, not erased from the evidence record.
+
+The repair must use Faces 25/26 with references 23/24 and Doors 29/30 with
+references 27/28, subject to technical verification of the original series,
+echoes, image roles, and reference pairing. Convert in isolation, preserve
+original files and provenance, and rebuild affected processing and task models;
+do not merely rename existing derivatives. Neither the repair nor its Linux2
+validation has occurred. The existing paper exclusion and frozen Jacob handoff
+stay unchanged even if technical recovery succeeds.
+
+The available 11935 scan-task sources have relative event times, not absolute
+scanner-trigger runtime records. A separate Recall timestamp does not timestamp
+the scan tasks. DICOM times can order the acquisitions but cannot independently
+identify the stimuli shown. This is an older ses-01 case, not the new 10964
+wave-2 visit with runtime timestamp instrumentation.
+
+### Counterbalance Corroboration (2026-10-22)
+
+Read-only private-source review supports the PI's recollection of monthly
+version changes: among visits with available dated Recall outputs in the
+examined March/April/May 2026 sample, all seven March visits used B, all four
+April visits used A, and all four May visits used B. This is an observed sample,
+not a recovered counterbalance schedule or a complete monthly acquisition census.
+The April sample is 11924, 11928, 11929, and 11935; scan/post-scan Git history
+corroborates their month grouping but does not establish within-visit task order.
+11928/11929 share A3 with 11935; 11924 is A4. The numeric suffix is age band,
+not run order. The task program independently prompts for Faces/Doors and A/B;
+A/B controls reference-table stimuli, feedback and timing, not enforced task order.
+
+An independent saved scanner-era representative table contains both tasks for
+11532: Social Doors series 25 and Doors series 29. Its private behavioral files
+are A2 and its dated Recall output is from an earlier April visit. This is
+consistent with Faces-first/Doors-second and exactly the series positions of
+11935's ambiguous pair. It is useful historical corroboration, not proof of
+11935's presented stimuli or the full April 2026 schedule. Source:
+`qc/tedana_audit/scanner_era/dicom_representatives.tsv`.
+
+The [same-month April 2026 report](../logs/records/11935-counterbalance-peers-20261022-235625.txt)
+now confirms Social Doors series 25 and Doors series 29 for all three peers:
+11924, 11928 and 11929. It also confirms that 11935 still has Social Doors series
+29 and no Doors sidecar. This strengthens the approved reconstruction; it does
+not turn scanner protocol labels into independent records of displayed stimuli.
+The [isolated repair runner](reviewed-source-repairs.md) implements the mapping;
+Linux2 build/validation and later production promotion remain pending. No
+production files or paper eligibility change in this review.
+
+### Historical Verification Before The Decision
+
 The [22:12 mapping report](../logs/records/11935-task-mapping-20261021-221243.md)
 at commit `3fa1b0ff` establishes the following, superseding the mapping hypotheses
 below:
@@ -29,7 +85,7 @@ below:
   lengths, file names, Git ordering and scanner labels cannot identify which task
   ran during which acquisition.
 
-### Smallest Remaining Human Fact
+### Historical Human Question (Closed 2026-10-22)
 
 For **11935 session 01**, was the first of the two face-labeled acquisitions
 (functional series 25/26) the faces task and the second (29/30) Doors, or was
@@ -38,7 +94,7 @@ runtime record, including any restart or task/scanner synchronization problem.
 If records do not establish this, keep the identity unresolved rather than
 choosing the usual order. No broad new source search or Jacob QC review is needed.
 
-### Conditional Repair Plan (Not Authorized Or Applied)
+### Historical Conditional Repair Paths (First Path Now Approved)
 
 | Confirmed task order | Correct Social Doors source | Correct Doors source |
 | --- | --- | --- |
