@@ -38,6 +38,10 @@ it does not claim to implement every 25.2.7 fix or require reprocessing everyone
 
 ## Stage Without Interrupting Production
 
+For the existing October 24 workspace stopped at the FreeSurfer prerequisite,
+use the targeted [FreeSurfer resume](11935-freesurfer-resume.md), not the fresh
+launch below. It preserves completed stages and does not pull into frozen code.
+
 Run on Linux2. The runner uses the current approved behavior and source roots.
 Use a fresh workspace after an intentional runner/code revision; never bypass
 the frozen receipts. Complete checked stages are preserved on ordinary resume.

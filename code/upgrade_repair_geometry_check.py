@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 
 import run_reviewed_source_repairs as reviewed
 
@@ -106,6 +107,11 @@ def upgrade(project, destination, apply=False):
                 allowed_old.add(OLDER_11935_CODE[name][0])
             reviewed.require(original["code"].get(name) in allowed_old, "Unrecognized frozen orchestration version")
             payloads[name] = regular(Path(__file__).parent / name)
+            if name == "complete_11935_repair.py" and sha(payloads[name]) == FS_RUNNER_SHA:
+                # Keep the geometry-only migration reproducible after a later
+                # runner upgrade; verify the historical blob before using it.
+                payloads[name] = subprocess.check_output(
+                    ["git", "-C", str(project), "show", "f1ea354b:code/complete_11935_repair.py"])
             reviewed.require(sha(payloads[name]) == new, "Upgrade bundle checksum mismatch")
         actual = reviewed.code_hashes(destination / "code", original["code"])
         for name, digest in actual.items():
@@ -154,13 +160,74 @@ def main():
     parser.add_argument("--project-root", type=Path, required=True)
     parser.add_argument("--workspace", type=Path, required=True)
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--freesurfer", action="store_true", help="Upgrade the already geometry-fixed 11935 completion runner only")
     args = parser.parse_args()
     try:
-        upgrade(args.project_root, args.workspace, args.apply)
-    except (OSError, ValueError) as exc:
+        action = upgrade_freesurfer if args.freesurfer else upgrade
+        action(args.project_root, args.workspace, args.apply)
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
         print(f"STOPPED: {exc}")
         return 1
     return 0
+
+
+FS_RUNNER_SHA = "027df08109eaf086921b7d7f41312c2d12f3cd840716d5a8787b759d86d900c6"
+
+
+def upgrade_freesurfer(project, destination, apply=False):
+    project, destination = project.resolve(), destination.absolute()
+    reviewed.require(destination.resolve() == destination and destination.is_relative_to(project / "work")
+                     and destination.name == "sub-11935-project", "Expected isolated 11935 workspace")
+    reviewed.require((destination / "code").resolve() == destination / "code", "Staged code directory cannot be a symlink")
+    name = "complete_11935_repair.py"
+    runner = destination / "code" / name
+    payload = regular(Path(__file__).parent / name)
+    reviewed.require(sha(payload) == FS_RUNNER_SHA, "FreeSurfer upgrade bundle mismatch")
+    with ExitStack() as stack:
+        for name_lock in ("11935.lock", ".stage.lock"):
+            lock = stack.enter_context((destination.parent / name_lock).open("a+"))
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        path = destination / "repair.json"
+        current_bytes = regular(path)
+        current = json.loads(current_bytes)
+        backup = destination / "freesurfer-name-upgrade-v1"
+        reviewed.require(backup.resolve() == backup, "Upgrade backup cannot be a symlink")
+        original_bytes = regular(backup / "repair.json") if backup.exists() else current_bytes
+        original = json.loads(original_bytes)
+        reviewed.require(original.get("subject") == "11935" and original.get("state") == "ready"
+                         and original.get("production") == str(project) and original.get("geometry_check_upgrade"),
+                         "Expected geometry-upgraded 11935 receipt")
+        old_sha = VERSIONS[name][1]
+        reviewed.require(original["code"].get(name) == original.get("completion_runner_sha256") == old_sha,
+                         "Unrecognized frozen completion runner")
+        reviewed.require(original["protected"] == reviewed.signatures(reviewed.protected_paths(project, "11935")),
+                         "Protected production inputs changed")
+        actual = reviewed.code_hashes(destination / "code", original["code"])
+        for file, digest in actual.items():
+            allowed = (old_sha, FS_RUNNER_SHA) if file == name and backup.exists() else (original["code"][file],)
+            reviewed.require(digest in allowed, f"Unexpected frozen code change: {file}")
+        updated = json.loads(original_bytes)
+        updated["code"][name] = FS_RUNNER_SHA
+        updated["completion_runner_sha256"] = FS_RUNNER_SHA
+        updated["freesurfer_name_upgrade"] = "freesurfer-name-upgrade-v1/repair.json"
+        reviewed.require(current in (original, updated), "Receipt changed outside the FreeSurfer upgrade")
+        if current == updated and actual[name] == FS_RUNNER_SHA:
+            print("ALREADY UPGRADED 11935 FreeSurfer naming; completed stages preserved")
+            return
+        preserved = [destination / p for p in ("bids", "derivatives", "completion-stages", "logs/geometry")]
+        before = reviewed.signatures(preserved)
+        if not apply:
+            print("DRY RUN: upgrade only the 11935 FreeSurfer staging/validation code")
+            return
+        if not backup.exists():
+            backup.mkdir()
+            (backup / name).write_bytes(regular(runner))
+            (backup / "repair.json").write_bytes(original_bytes)
+        if sha(regular(runner)) != FS_RUNNER_SHA:
+            replace(runner, payload)
+        reviewed.write_json(path, updated)
+        reviewed.require(before == reviewed.signatures(preserved), "Products changed during code upgrade")
+        print("UPGRADED 11935 FreeSurfer naming; completed outputs and markers untouched")
 
 
 if __name__ == "__main__":

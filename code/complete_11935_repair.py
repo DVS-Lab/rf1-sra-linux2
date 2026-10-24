@@ -126,6 +126,62 @@ def fmriprep_command(args, destination, module_path):
             "--skip-bids-validation", "-w", "/out/functional-cache"]
 
 
+def stage_freesurfer(production, destination, build):
+    """Copy completed anatomy under its real subject ID; never run recon-all."""
+    root = production / "derivatives/freesurfer"
+    candidates = [root / name for name in ("sub-11935", "sub-11935_ses-01")
+                  if (root / name).is_dir()]
+    require(len(candidates) == 1, "Need exactly one existing 11935 FreeSurfer subject directory")
+    source = candidates[0]
+    require(not source.is_symlink(), "FreeSurfer source directory cannot be a symlink")
+    required = ["scripts/recon-all.done", "mri/aparc+aseg.mgz", "mri/brain.mgz",
+                *[f"surf/{hemi}.{surface}" for hemi in ("lh", "rh")
+                  for surface in ("white", "pial", "sphere.reg")]]
+    require(all((source / name).is_file() for name in required), "Complete FreeSurfer source required; no anatomy rerun")
+    require(not list((source / "scripts").glob("IsRunning*")), "FreeSurfer source has an IsRunning marker; inspect before copying")
+    paths = sorted(source.rglob("*"))
+    require(not any(p.is_symlink() and not p.is_file() for p in paths),
+            "FreeSurfer source contains directory or broken symlinks; inspect before copying")
+    files = {str(p.relative_to(source)): initialization.sha(p) for p in paths if p.is_file()}
+    record = destination / "freesurfer-copy.json"
+    expected = dict(source=str(source), subject_id=source.name, files=files)
+    if record.exists():
+        saved = json.loads(record.read_text())
+        require(all(saved.get(k) == v for k, v in expected.items()), "FreeSurfer source changed since copy receipt")
+    else:
+        require(build, "FreeSurfer copy receipt missing; run build to stage verified existing anatomy")
+        write_json(record, dict(**expected, validated=False))
+    target = destination / "derivatives/freesurfer" / source.name
+    require(target.resolve() == target, "FreeSurfer copy destination cannot contain a symlink")
+    alternative = target.parent / ("sub-11935" if source.name.endswith("_ses-01") else "sub-11935_ses-01")
+    require(not alternative.exists() and not alternative.is_symlink(), "Conflicting staged FreeSurfer subject ID")
+    copied = 0
+    for name, digest in files.items():
+        path = target / name
+        require(path.resolve() == path, "Staged FreeSurfer file cannot contain a symlink")
+        if path.exists():
+            require(path.is_file() and initialization.sha(path) == digest, "Existing FreeSurfer copy differs; refusing overwrite")
+            continue
+        require(build, "FreeSurfer copy incomplete; no anatomy rerun")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_name(path.name + ".rf1-copy-tmp")
+        require(not temporary.is_symlink(), "FreeSurfer copy temporary cannot be a symlink")
+        # A previous interrupted copy can leave only this unpublished temporary.
+        if temporary.exists():
+            temporary.unlink()
+        reviewed.copy_shared_file(source / name, temporary)
+        require(initialization.sha(temporary) == digest, "FreeSurfer source changed during copy")
+        os.replace(temporary, path)
+        copied += 1
+    require(files == {str(p.relative_to(source)): initialization.sha(p)
+                      for p in sorted(source.rglob("*")) if p.is_file()}, "FreeSurfer source changed during staging")
+    require(all(initialization.sha(target / name) == digest for name, digest in files.items()), "FreeSurfer copy verification failed")
+    if build and (copied or not json.loads(record.read_text()).get("validated")):
+        write_json(record, dict(**expected, validated=True))
+    print(f"FREESURFER VERIFIED: {source.name}; {len(files)} files; {copied} copied, remainder unchanged; no anatomy processing", flush=True)
+    return target
+
+
 def validate_functional(project, production, report):
     reviewed.validate_bids(project, "11935")
     func = project / "derivatives/fmriprep/sub-11935/ses-01/func"
@@ -321,8 +377,7 @@ def run(args):
             if source.is_dir() and not target.exists():
                 require(args.command == "build", "FreeSurfer reference copy missing")
                 reviewed.copy_shared_tree(source.resolve(), target)
-        fs = destination / "derivatives/freesurfer/sub-11935"
-        require((fs / "scripts/recon-all.done").is_file(), "Complete FreeSurfer copy required; no anatomy rerun")
+        stage_freesurfer(production, destination, args.command == "build")
         write_json(destination / "filter.json", filter_spec())
         patch = stage_patch(args, destination)
         step("fmriprep", fmriprep_command(args, destination, patch["installed_module"]),

@@ -18,10 +18,15 @@ def fixture(tmp_path, monkeypatch, subject='10964'):
     production = tmp_path / 'production'
     code = production / 'code'
     code.mkdir(parents=True)
+    bundle = tmp_path / 'geometry-v1-bundle'
+    bundle.mkdir()
+    monkeypatch.setattr(upgrade, '__file__', str(bundle / 'upgrade_repair_geometry_check.py'))
     for name, (old, new) in upgrade.VERSIONS.items():
         data = subprocess.check_output(['git', 'show', 'ad061b5f:code/' + name], cwd=ROOT)
         assert upgrade.sha(data) == old
-        assert upgrade.sha((ROOT / 'code' / name).read_bytes()) == new
+        payload = subprocess.check_output(['git', 'show', 'f1ea354b:code/' + name], cwd=ROOT)
+        assert upgrade.sha(payload) == new
+        (bundle / name).write_bytes(payload)
         (code / name).write_bytes(data)
     (code / 'unchanged.py').write_text('# immutable processing code\n')
     monkeypatch.setattr(reviewed, 'tracked_code_paths', lambda root: sorted(p.name for p in root.iterdir()))
@@ -146,3 +151,32 @@ def test_older_snapshot_exception_is_narrow(damage):
         subject = '10964'
     with pytest.raises(ValueError, match='differs'):
         upgrade.validate_production_code(subject, frozen, current)
+
+
+def test_freesurfer_upgrade_preserves_other_code_and_products(tmp_path, monkeypatch):
+    production, destination, _ = fixture(tmp_path, monkeypatch, '11935')
+    upgrade.upgrade(production, destination, True)
+    monkeypatch.setattr(upgrade, '__file__', str(ROOT / 'code/upgrade_repair_geometry_check.py'))
+    before = reviewed.signatures([destination / 'bids', destination / 'derivatives', destination / 'stages', production / 'code'])
+    upgrade.upgrade_freesurfer(production, destination, True)
+    receipt = json.loads((destination / 'repair.json').read_text())
+    assert receipt['code'] == reviewed.code_hashes(destination / 'code', receipt['code'])
+    assert receipt['completion_runner_sha256'] == upgrade.FS_RUNNER_SHA
+    assert reviewed.signatures([destination / 'bids', destination / 'derivatives', destination / 'stages', production / 'code']) == before
+    staged = reviewed.signatures([destination])
+    upgrade.upgrade_freesurfer(production, destination, True)
+    assert reviewed.signatures([destination]) == staged
+
+
+def test_geometry_upgrade_with_new_bundle_uses_verified_historical_payload(tmp_path, monkeypatch):
+    production, destination, _ = fixture(tmp_path, monkeypatch, '11935')
+    monkeypatch.setattr(upgrade, '__file__', str(ROOT / 'code/upgrade_repair_geometry_check.py'))
+    real_check_output = subprocess.check_output
+    def git_blob(command):
+        assert command == ['git', '-C', str(production), 'show',
+                           'f1ea354b:code/complete_11935_repair.py']
+        return real_check_output(['git', 'show', command[-1]], cwd=ROOT)
+    monkeypatch.setattr(upgrade.subprocess, 'check_output', git_blob)
+    upgrade.upgrade(production, destination, True)
+    receipt = json.loads((destination / 'repair.json').read_text())
+    assert receipt['completion_runner_sha256'] == upgrade.VERSIONS['complete_11935_repair.py'][1]

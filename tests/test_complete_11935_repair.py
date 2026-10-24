@@ -13,6 +13,88 @@ repair = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(repair)
 
 
+def fs_fixture(tmp_path, subject_id='sub-11935_ses-01'):
+    production = tmp_path / 'production'
+    destination = production / 'work/repair/sub-11935-project'
+    destination.mkdir(parents=True)
+    source = production / 'derivatives/freesurfer' / subject_id
+    for name in ['scripts/recon-all.done', 'mri/aparc+aseg.mgz', 'mri/brain.mgz',
+                 *[f'surf/{hemi}.{surface}' for hemi in ('lh', 'rh')
+                   for surface in ('white', 'pial', 'sphere.reg')]]:
+        file = source / name
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_text(name)
+    return production, destination, source
+
+
+@pytest.mark.parametrize('subject_id', ['sub-11935', 'sub-11935_ses-01'])
+def test_freesurfer_preserves_real_name_and_existing_bytes(tmp_path, subject_id):
+    production, destination, source = fs_fixture(tmp_path, subject_id)
+    before = repair.reviewed.signatures([source])
+    target = repair.stage_freesurfer(production, destination, True)
+    assert target.name == subject_id and target.is_dir() and not target.is_symlink()
+    assert before == repair.reviewed.signatures([source])
+    staged = repair.reviewed.signatures([target, destination / 'freesurfer-copy.json'])
+    repair.stage_freesurfer(production, destination, True)
+    repair.stage_freesurfer(production, destination, False)
+    assert staged == repair.reviewed.signatures([target, destination / 'freesurfer-copy.json'])
+    assert all((target / p.relative_to(source)).read_bytes() == p.read_bytes()
+               for p in source.rglob('*') if p.is_file())
+
+
+@pytest.mark.parametrize('damage', ['missing', 'ambiguous', 'running', 'source_changed', 'copy_changed'])
+def test_freesurfer_refuses_incomplete_or_changed_anatomy(tmp_path, damage):
+    production, destination, source = fs_fixture(tmp_path)
+    if damage == 'missing':
+        (source / 'surf/lh.white').unlink()
+    elif damage == 'ambiguous':
+        (source.parent / 'sub-11935').mkdir()
+    elif damage == 'running':
+        (source / 'scripts/IsRunning.lh+rh').touch()
+    else:
+        target = repair.stage_freesurfer(production, destination, True)
+        bad = source if damage == 'source_changed' else target
+        (bad / 'mri/brain.mgz').write_text('changed')
+    with pytest.raises(ValueError):
+        repair.stage_freesurfer(production, destination, True)
+
+
+def test_freesurfer_file_link_becomes_independent_copy(tmp_path):
+    production, destination, source = fs_fixture(tmp_path)
+    link = source / 'mri/linked.mgz'
+    link.symlink_to(source / 'mri/brain.mgz')
+    target = repair.stage_freesurfer(production, destination, True)
+    assert not (target / 'mri/linked.mgz').is_symlink()
+    assert (target / 'mri/linked.mgz').read_bytes() == link.read_bytes()
+
+
+def test_freesurfer_check_never_creates_missing_copy(tmp_path):
+    production, destination, _ = fs_fixture(tmp_path)
+    with pytest.raises(ValueError, match='receipt missing'):
+        repair.stage_freesurfer(production, destination, False)
+    assert not (destination / 'derivatives').exists()
+
+
+def test_freesurfer_resumes_partial_copy_without_overwriting(tmp_path, monkeypatch):
+    production, destination, source = fs_fixture(tmp_path)
+    copy = repair.reviewed.copy_shared_file
+    calls = []
+    def interrupted(src, dst):
+        calls.append(src)
+        if len(calls) == 3:
+            raise OSError('interrupted')
+        copy(src, dst)
+    monkeypatch.setattr(repair.reviewed, 'copy_shared_file', interrupted)
+    with pytest.raises(OSError, match='interrupted'):
+        repair.stage_freesurfer(production, destination, True)
+    target = destination / 'derivatives/freesurfer' / source.name
+    before = repair.reviewed.signatures([target])
+    monkeypatch.setattr(repair.reviewed, 'copy_shared_file', copy)
+    repair.stage_freesurfer(production, destination, True)
+    after = repair.reviewed.signatures([target])
+    assert all(after[k] == v for k, v in before.items())
+
+
 @pytest.mark.parametrize("name,expected", [
     ("sub-11935_ses-01_task-doors_run-1.warpkit_done", True),
     ("sub-11935_ses-01_task-socialdoors_run-1_echo-1_part-mag_bold.nii.gz", True),
