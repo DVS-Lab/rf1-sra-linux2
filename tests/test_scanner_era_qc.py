@@ -41,6 +41,12 @@ def make_inputs(project: Path) -> tuple[Path, Path]:
             (directory / f"{prefix}.json").write_text(
                 json.dumps({"SoftwareVersions": f"syngo MR {era}"})
             )
+            mriqc = project / "derivatives/mriqc" / f"sub-{subject}" / "ses-01/func" / f"{prefix}.json"
+            mriqc.parent.mkdir(parents=True)
+            mriqc.write_text(json.dumps({"fwhm_avg": era_index + 1, "fwhm_x": era_index,
+                "fwhm_y": era_index + 1, "fwhm_z": era_index + 2,
+                "spacing_x": 2, "spacing_y": 2, "spacing_z": 3,
+                "provenance": {"version": "24.0.2"}}))
             run_rows.append(
                 {
                     "subject": subject,
@@ -58,6 +64,7 @@ def make_inputs(project: Path) -> tuple[Path, Path]:
                     "brain_coverage_outlier": "FALSE",
                     "imaging_qc_outlier": "FALSE",
                     "qc_status": "pass",
+                    "mriqc_json": mriqc.relative_to(project).as_posix(),
                     "bids_bold": (directory / f"{prefix}.nii.gz")
                     .relative_to(project)
                     .as_posix(),
@@ -118,6 +125,7 @@ def test_summary_reports_e11_deltas() -> None:
         rows.append(
             {
                 "paradigm": "trust",
+                "subject": "10001",
                 "task": "trust",
                 "session": "01",
                 "software_era": era,
@@ -149,7 +157,7 @@ def test_build_check_and_stale_sidecar_detection(tmp_path: Path) -> None:
     assert scanner_qc.build(build_args) == 0
     output = project / "qc" / "scanner_era"
     assert len(scanner_qc.read_tsv(output / "run_metrics.tsv")) == 12
-    assert len(scanner_qc.read_tsv(output / "summary.tsv")) == 48
+    assert len(scanner_qc.read_tsv(output / "summary.tsv")) == 108
     assert len(list((output / "figures").glob("*_by_scanner_era.png"))) == 4
     assert scanner_qc.check(build_args) == 0
 
@@ -170,14 +178,14 @@ def test_unknown_software_version_fails_closed(tmp_path: Path) -> None:
 
 
 def test_scanner_summary_keeps_task_and_session_separate():
-    rows = [dict(paradigm="socialdoors", task=task, session=ses,
+    rows = [dict(subject="10001", paradigm="socialdoors", task=task, session=ses,
                  software_era="E11", tsnr=value, tsnr_outlier=False)
             for task, ses, value in (("doors", "01", 1), ("socialdoors", "01", 20),
                                      ("socialdoors", "02", 100))]
     thresholds = {(r["task"], r["session"], m): {"fence": 0, "direction": "lower"}
                   for r in rows for m in scanner_qc.METRICS}
     result = scanner_qc.summarize(rows, thresholds)
-    assert {(r["task"], r["session"], r["median"]) for r in result} == {
+    assert {(r["task"], r["session"], r["median"]) for r in result if r["metric"] == "tsnr"} == {
         ("doors", "01", 1), ("socialdoors", "01", 20), ("socialdoors", "02", 100)}
 
 
@@ -186,3 +194,68 @@ def test_legacy_pooled_thresholds_rejected(tmp_path):
     path.write_text("paradigm\tmetric\toutlier_direction\tlower_fence\nugr\ttsnr\tlower\t1\n")
     with pytest.raises(ValueError, match="legacy pooled"):
         scanner_qc.load_thresholds(path)
+
+
+def test_anisotropic_smoothness_units_and_xa30_comparison(tmp_path):
+    run_qc, thresholds = make_inputs(tmp_path)
+    rows, _ = scanner_qc.load_run_metrics(tmp_path, run_qc)
+    first = rows[0]
+    assert first["fwhm_avg"] == 2
+    assert first["fwhm_avg_mm"] == pytest.approx((1 * 2 + 2 * 2 + 3 * 3) / 3)
+    assert first["fwhm_avg_mm"] != first["fwhm_avg"] * (2 + 2 + 3) / 3
+    summary = scanner_qc.summarize(rows, scanner_qc.load_thresholds(thresholds))
+    xa60 = next(r for r in summary if r["task"] == "trust" and r["software_era"] == "XA60"
+                and r["metric"] == "fwhm_avg_mm")
+    assert xa60["median_delta_from_xa30"] == pytest.approx(7 / 3)
+    assert xa60["cohort_fence"] is None
+    assert xa60["cohort_outlier_n"] is None
+    assert "brain_coverage_pct" not in scanner_qc.PLOT_METRICS
+    assert "brain_coverage_pct" in scanner_qc.RUN_COLUMNS
+
+
+@pytest.mark.parametrize("damage", ["absent", "invalid", "spacing", "nonfinite"])
+def test_missing_smoothness_retains_run_and_reports_missingness(tmp_path, damage):
+    run_qc, thresholds = make_inputs(tmp_path)
+    record = scanner_qc.read_tsv(run_qc)[0]
+    path = tmp_path / record["mriqc_json"]
+    if damage == "absent":
+        path.unlink()
+    elif damage == "invalid":
+        path.write_text("{")
+    else:
+        data = json.loads(path.read_text())
+        data["spacing_z" if damage == "spacing" else "fwhm_z"] = 0 if damage == "spacing" else "nan"
+        path.write_text(json.dumps(data))
+    rows, _ = scanner_qc.load_run_metrics(tmp_path, run_qc)
+    assert len(rows) == 12 and rows[0]["fwhm_avg_mm"] is None
+    assert rows[0]["imaging_qc_outlier"] is False
+    summary = scanner_qc.summarize(rows, scanner_qc.load_thresholds(thresholds))
+    missing = next(r for r in summary if r["task"] == record["task"] and r["software_era"] == "E11"
+                   and r["metric"] == "fwhm_avg_mm")
+    assert (missing["n"], missing["n_total_runs"], missing["n_missing"]) == (0, 1, 1)
+    assert missing["median"] is None
+
+
+def test_mriqc_provenance_detects_change_and_preserves_canonical_qc(tmp_path):
+    run_qc, thresholds = make_inputs(tmp_path)
+    before = (run_qc.read_bytes(), thresholds.read_bytes())
+    build_args = args(tmp_path, run_qc, thresholds)
+    scanner_qc.build(build_args)
+    assert scanner_qc.check(build_args) == 0
+    path = next((tmp_path / "derivatives/mriqc").rglob("*.json"))
+    data = json.loads(path.read_text())
+    data["fwhm_x"] += 1
+    path.write_text(json.dumps(data))
+    assert scanner_qc.check(build_args) == 1
+    assert (run_qc.read_bytes(), thresholds.read_bytes()) == before
+
+
+def test_smoothness_run_identity_and_path_guard(tmp_path):
+    run_qc, _ = make_inputs(tmp_path)
+    record = scanner_qc.read_tsv(run_qc)[0]
+    record["mriqc_json"] = record["mriqc_json"].replace("run-1", "run-2")
+    with pytest.raises(ValueError, match="identity"):
+        scanner_qc.load_smoothness(tmp_path, record)
+    record["mriqc_json"] = "../other.json"
+    with pytest.raises(ValueError, match="escapes"):
+        scanner_qc.load_smoothness(tmp_path, record)

@@ -665,12 +665,61 @@ recorded thresholds and flags cannot be reproduced. Imaging outliers are
 run-level facts, not automatic participant exclusions. See [the QC
 manual](qc/README.md) for exact definitions and provenance.
 
-The scanner-era extension leaves the canonical run table and task/session thresholds
-unchanged. It stratifies the same four metrics by the privacy-safe BIDS
-`SoftwareVersions` categories E11, XA30, and XA60, writing shareable descriptive
-tables and figures under `qc/scanner_era/`. Treat era differences as
-associations until task/session composition and within-subject evidence have
-been reviewed.
+The scanner-era extension leaves the canonical run table, coverage policy, and
+task/session thresholds unchanged. Its four panels show tSNR, mean FD, TEDANA
+rejected-component count, and MRIQC mean FWHM (mm), stratified by task and session
+and the privacy-safe BIDS `SoftwareVersions` categories E11, XA30, and XA60.
+The coverage panel is replaced, not the underlying coverage metric or rule.
+MRIQC FWHM is stored in voxels; each axis is multiplied by its own MRIQC voxel
+spacing before averaging in mm. This is not the applied FEAT smoothing kernel
+or a measurement of final fMRIPrep/FEAT smoothness. See the
+[MRIQC implementation](https://github.com/nipreps/mriqc/blob/24.0.2/mriqc/interfaces/functional.py).
+
+Shareable outputs under `qc/scanner_era/` include the figures, `report.md`, and
+`summary.tsv` with medians/IQRs, run/participant counts, missingness, and absolute
+and percentage median differences from both E11 and XA30. `run_metrics.tsv`
+retains coverage and adds FWHM in voxel/mm units, axis-specific values, spacing,
+MRIQC version, and missing-data status. Missing smoothness is not zero and does
+not remove a run. No smoothness fence or exclusion is introduced. Repeated runs
+are not independent participants; these descriptive comparisons do not establish
+a scanner/sequence effect, and the code does not calculate significance tests.
+Check spacing, software versions, motion, cohort composition, and within-subject
+evidence before interpreting era differences.
+
+### Scanner-Era Refresh While Repairs Are Running
+
+Repair workspaces pin the tracked code. Do not pull a changed checkout while
+they are running: even an unrelated reporting change can invalidate their final
+code-consistency check. Fetch and extract just the reporting tools into ignored
+work instead. This does not rerun MRIQC, alter imaging inputs, or stop any jobs.
+The original MRIQC JSONs must be available on Linux2; the local clone does not
+contain them, so local test figures are not cohort results.
+
+```bash
+(
+set -euo pipefail
+cd /ZPOOL/data/projects/rf1-sra-linux2
+umask 0000
+git fetch origin
+REV=$(git rev-parse origin/main)
+TOOLS="$PWD/work/scanner-era-tools-${REV}"
+mkdir -p "$TOOLS"
+git archive "$REV" code/build_scanner_era_qc.py code/pipeline_utils.py | tar -x -C "$TOOLS"
+QC_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
+ARGS=(--project-root "$PWD" --run-qc "$PWD/qc/run_qc.tsv"
+      --thresholds "$PWD/qc/thresholds.tsv" --output-dir "$PWD/qc/scanner_era")
+STAMP=scanner-era-smoothness-$(date +%Y%m%d-%H%M%S)
+printf 'Reporting code revision: %s\n' "$REV"
+bash code/run_logged.sh --label "$STAMP" --include-full-log -- \
+  "$QC_PYTHON" "$TOOLS/code/build_scanner_era_qc.py" build "${ARGS[@]}" --overwrite \
+  --check "$QC_PYTHON" "$TOOLS/code/build_scanner_era_qc.py" check "${ARGS[@]}"
+)
+```
+
+The report provenance records reporting-code and input JSON hashes. A successful
+check verifies the report, not complete smoothness availability; inspect the
+reported missing counts. Share only the intended `qc/scanner_era/` outputs and
+the new run record, not the extracted work directory.
 
 ## TEDANA Audit And Sentinel Benchmark
 

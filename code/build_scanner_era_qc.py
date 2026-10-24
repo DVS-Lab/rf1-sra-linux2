@@ -28,6 +28,14 @@ METRICS = {
     ),
     "brain_coverage_pct": ("Brain coverage (%)", "brain_coverage_outlier"),
 }
+SMOOTHNESS = {
+    "fwhm_avg_mm": ("MRIQC smoothness: mean FWHM (mm)", None),
+    "fwhm_avg": ("MRIQC mean FWHM (voxels)", None),
+    **{f"fwhm_{axis}_mm": (f"MRIQC FWHM {axis} (mm)", None) for axis in "xyz"},
+}
+SUMMARY_METRICS = {**METRICS, **SMOOTHNESS}
+PLOT_METRICS = {key: value for key, value in METRICS.items() if key != "brain_coverage_pct"}
+PLOT_METRICS["fwhm_avg_mm"] = SMOOTHNESS["fwhm_avg_mm"]
 RUN_COLUMNS = (
     "subject",
     "session",
@@ -40,6 +48,10 @@ RUN_COLUMNS = (
     "imaging_qc_outlier",
     "qc_status",
     "bids_sidecar",
+    *SMOOTHNESS,
+    *(f"fwhm_{axis}" for axis in "xyz"),
+    *(f"spacing_{axis}" for axis in "xyz"),
+    "smoothness_status", "mriqc_json", "mriqc_version",
 )
 SUMMARY_COLUMNS = (
     "paradigm",
@@ -48,6 +60,7 @@ SUMMARY_COLUMNS = (
     "metric",
     "software_era",
     "n",
+    "n_subjects", "n_total_runs", "n_missing",
     "mean",
     "std",
     "q1",
@@ -61,6 +74,7 @@ SUMMARY_COLUMNS = (
     "cohort_outlier_pct",
     "median_delta_from_e11",
     "median_pct_delta_from_e11",
+    "median_delta_from_xa30", "median_pct_delta_from_xa30",
 )
 PARADIGMS = ("sharedreward", "trust", "ugr", "socialdoors")
 OUTPUTS = (
@@ -189,6 +203,7 @@ def load_run_metrics(
         "bids_bold",
         "imaging_qc_outlier",
         "qc_status",
+        "mriqc_json",
         *METRICS,
         *(flag for _label, flag in METRICS.values()),
     }
@@ -230,6 +245,9 @@ def load_run_metrics(
             for metric, (_label, flag) in METRICS.items():
                 row[metric] = finite(record[metric])
                 row[flag] = parse_bool(record[flag])
+            smoothness, sources = load_smoothness(project, record)
+            row.update(smoothness)
+            sidecars.extend(sources)
             rows.append(row)
             sidecars.append(sidecar)
         except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
@@ -239,6 +257,48 @@ def load_run_metrics(
         suffix = "" if len(failures) <= 25 else f"\n  ... {len(failures) - 25} more"
         raise ValueError(f"scanner era could not be resolved for {len(failures)} run(s):\n  {preview}{suffix}")
     return rows, sidecars
+
+
+def load_smoothness(project: Path, record: dict[str, str]) -> tuple[dict, list[Path]]:
+    """MRIQC 24 functional IQMs store FWHM in voxels, spacing in mm."""
+    row = {key: None for key in (*SMOOTHNESS, *(f"fwhm_{a}" for a in "xyz"),
+                                *(f"spacing_{a}" for a in "xyz"))}
+    row.update(mriqc_json=record["mriqc_json"], mriqc_version="",
+               smoothness_status="missing_mriqc_json")
+    names = [name for name in record["mriqc_json"].split(";") if name]
+    if len(names) != 1:
+        if names:
+            row["smoothness_status"] = "ambiguous_mriqc_json"
+        return row, []
+    path = (project / names[0]).resolve()
+    if Path(names[0]).is_absolute() or not path.is_relative_to(project / "derivatives/mriqc"):
+        raise ValueError("MRIQC JSON path escapes canonical derivative root")
+    prefix = f"sub-{record['subject']}_ses-{record['session']}_task-{record['task']}_run-{record['run']}_"
+    if not path.name.startswith(prefix) or not path.name.endswith("bold.json"):
+        raise ValueError("MRIQC JSON does not match canonical run identity")
+    if not path.is_file():
+        return row, []
+    try:
+        data = json.loads(path.read_text())
+        if not isinstance(data, dict):
+            raise ValueError("expected JSON object")
+    except (ValueError, OSError):
+        row["smoothness_status"] = "invalid_mriqc_json"
+        return row, [path]
+    provenance = data.get("provenance", {})
+    row["mriqc_version"] = str(provenance.get("version", "")) if isinstance(provenance, dict) else ""
+    for key in ("fwhm_avg", *(f"fwhm_{a}" for a in "xyz"), *(f"spacing_{a}" for a in "xyz")):
+        value = finite(data.get(key))
+        row[key] = value if value is not None and value > 0 else None
+    for axis in "xyz":
+        width, spacing = row[f"fwhm_{axis}"], row[f"spacing_{axis}"]
+        if width is not None and spacing is not None:
+            row[f"fwhm_{axis}_mm"] = width * spacing
+    widths = [row[f"fwhm_{axis}_mm"] for axis in "xyz"]
+    if all(value is not None for value in widths):
+        row["fwhm_avg_mm"] = sum(widths) / 3
+    row["smoothness_status"] = "available" if all(row[k] is not None for k in SMOOTHNESS) else "missing_or_invalid_fwhm_or_spacing"
+    return row, [path]
 
 
 def load_thresholds(path: Path) -> dict[tuple[str, str, str], dict[str, Any]]:
@@ -270,59 +330,57 @@ def summarize(
 ) -> list[dict[str, Any]]:
     grouped = defaultdict(list)
     for row in rows:
-        for metric in METRICS:
+        for metric in SUMMARY_METRICS:
             if row.get(metric) is not None:
                 grouped[(row["task"], row["session"], metric, row["software_era"])].append(row)
     output: list[dict[str, Any]] = []
     for task, session in sorted({(r["task"], r["session"]) for r in rows}):
-        for metric, (_label, flag) in METRICS.items():
+        for metric, (_label, flag) in SUMMARY_METRICS.items():
             for era in ERAS:
                 group = grouped.get((task, session, metric, era), [])
                 values = [float(row[metric]) for row in group]
-                if not values:
+                all_rows = [r for r in rows if (r["task"], r["session"], r["software_era"]) == (task, session, era)]
+                if not all_rows:
                     continue
-                mean = sum(values) / len(values)
-                std = math.sqrt(sum((value - mean) ** 2 for value in values) / len(values))
-                threshold = thresholds[(task, session, metric)]
+                mean = sum(values) / len(values) if values else None
+                std = math.sqrt(sum((value - mean) ** 2 for value in values) / len(values)) if values else None
+                threshold = thresholds.get((task, session, metric), {"fence": None, "direction": None})
                 output.append(
                     {
-                        "paradigm": group[0]["paradigm"],
+                        "paradigm": all_rows[0]["paradigm"],
                         "task": task,
                         "session": session,
                         "metric": metric,
                         "software_era": era,
                         "n": len(values),
+                        "n_subjects": len({r["subject"] for r in group}),
+                        "n_total_runs": len(all_rows),
+                        "n_missing": len(all_rows) - len(values),
                         "mean": mean,
                         "std": std,
-                        "q1": linear_quantile(values, 0.25),
-                        "median": linear_quantile(values, 0.5),
-                        "q3": linear_quantile(values, 0.75),
-                        "minimum": min(values),
-                        "maximum": max(values),
+                        "q1": linear_quantile(values, 0.25) if values else None,
+                        "median": linear_quantile(values, 0.5) if values else None,
+                        "q3": linear_quantile(values, 0.75) if values else None,
+                        "minimum": min(values) if values else None,
+                        "maximum": max(values) if values else None,
                         "cohort_fence": threshold["fence"],
                         "outlier_direction": threshold["direction"],
-                        "cohort_outlier_n": sum(row.get(flag) is True for row in group),
+                        "cohort_outlier_n": sum(row.get(flag) is True for row in group) if flag and group else None,
                         "cohort_outlier_pct": 100.0
                         * sum(row.get(flag) is True for row in group)
-                        / len(group),
+                        / len(group) if flag and group else None,
                     }
                 )
-    e11 = {
-        (row["task"], row["session"], row["metric"]): float(row["median"])
+    baselines = {
+        (row["task"], row["session"], row["metric"], row["software_era"]): row["median"]
         for row in output
-        if row["software_era"] == "E11"
     }
     for row in output:
-        baseline = e11.get((row["task"], row["session"], row["metric"]))
-        if baseline is None:
-            row["median_delta_from_e11"] = None
-            row["median_pct_delta_from_e11"] = None
-            continue
-        delta = float(row["median"]) - baseline
-        row["median_delta_from_e11"] = delta
-        row["median_pct_delta_from_e11"] = (
-            100.0 * delta / abs(baseline) if baseline else None
-        )
+        for era in ("E11", "XA30"):
+            baseline = baselines.get((row["task"], row["session"], row["metric"], era))
+            delta = row["median"] - baseline if baseline is not None and row["median"] is not None else None
+            row[f"median_delta_from_{era.lower()}"] = delta
+            row[f"median_pct_delta_from_{era.lower()}"] = 100 * delta / abs(baseline) if delta is not None and baseline else None
     return output
 
 
@@ -350,7 +408,7 @@ def plot_scanner_eras(
             group = [row for row in rows if (row["task"], row["session"]) == (task, session)]
             fig, axes = plt.subplots(2, 2, figsize=(11, 8), constrained_layout=True)
             for axis, (metric, (label, _flag)) in zip(
-                axes.flat, METRICS.items(), strict=True
+                axes.flat, PLOT_METRICS.items(), strict=True
             ):
                 era_values = {
                     era: sorted(
@@ -394,7 +452,10 @@ def plot_scanner_eras(
                             edgecolors="none",
                             rasterized=True,
                         )
-                threshold = thresholds[(task, session, metric)]
+                else:
+                    axis.text(0.5, 0.5, "No available measurements", ha="center",
+                              transform=axis.transAxes)
+                threshold = thresholds.get((task, session, metric), {"fence": None})
                 if threshold["fence"] is not None:
                     axis.axhline(
                         float(threshold["fence"]),
@@ -409,7 +470,8 @@ def plot_scanner_eras(
                     [f"{era}\nn={len(era_values[era])}" for era in ERAS],
                 )
                 axis.set_xlim(0.5, len(ERAS) + 0.5)
-                axis.set_title(label)
+                axis.set_title(label + ("\nDescriptive only; no exclusion threshold"
+                                       if metric in SMOOTHNESS else ""))
                 axis.set_ylabel(label)
                 axis.grid(axis="y", color="#E5E7EB", linewidth=0.7)
             fig.suptitle(
@@ -448,6 +510,12 @@ def make_report(
         "recalculate thresholds within era and does not authorize exclusions.",
         "Scanner era is associated with acquisition date and cohort composition, so",
         "between-era differences are descriptive and should not be read as causal.",
+        "Coverage remains in the underlying table and policy; only its plot panel is replaced.",
+        "Smoothness is MRIQC's functional FWHM estimate, not the FEAT smoothing kernel",
+        "or smoothness measured on the final fMRIPrep/L1 outputs. No smoothness exclusion is applied.",
+        "MRIQC reports FWHM in voxels. Each axis is multiplied by its own MRIQC spacing",
+        "in mm; the plotted value is the arithmetic mean of those three mm estimates.",
+        "Source: https://github.com/nipreps/mriqc/blob/24.0.2/mriqc/interfaces/functional.py",
         "",
         "## Inventory",
         "",
@@ -473,7 +541,7 @@ def make_report(
                 "| --- | ---: | ---: | ---: |",
             ]
         )
-        for metric, (label, _flag) in METRICS.items():
+        for metric, (label, _flag) in PLOT_METRICS.items():
             cells = []
             for era in ERAS:
                 item = lookup.get((task, session, metric, era))
@@ -483,17 +551,29 @@ def make_report(
                     else f"{fmt(item['median'])} [{fmt(item['q1'])}, {fmt(item['q3'])}]"
                 )
             lines.append(f"| {label} | " + " | ".join(cells) + " |")
+        smooth = lookup.get((task, session, "fwhm_avg_mm", "XA60"))
+        if smooth:
+            lines.extend(["", f"XA60 minus XA30 median FWHM: {fmt(smooth['median_delta_from_xa30'])} mm "
+                          f"({fmt(smooth['median_pct_delta_from_xa30'])}%)."])
+        lines.extend(["", "| Era | FWHM runs / total | Participants with FWHM | Missing FWHM |",
+                      "| --- | ---: | ---: | ---: |"])
+        for era in ERAS:
+            item = lookup.get((task, session, "fwhm_avg_mm", era))
+            if item:
+                lines.append(f"| {era} | {item['n']} / {item['n_total_runs']} | {item['n_subjects']} | {item['n_missing']} |")
     lines.extend(
         [
             "",
             "## Interpretation",
             "",
             "Use `summary.tsv` for exact sample sizes, distributions, task/session-fence",
-            "flag rates, and median differences from E11. Large differences should be",
+            "flag rates, axis-specific FWHM, missingness, and median differences from E11 and XA30.",
+            "All measurements are retained regardless of QC flags. Repeated runs are not",
+            "independent participants; these are run-level descriptive comparisons, not significance tests.",
+            "Inspect voxel spacing and MRIQC versions in run_metrics.tsv before interpreting differences.",
+            "Large differences should be",
             "followed by task/session-stratified and, where possible, within-subject",
-            "review before attributing them to scanner software. For brain coverage,",
-            "inspect raw acquisition coverage and fMRIPrep registration/masks to",
-            "distinguish acquisition from processing failures.",
+            "review before attributing them to scanner software or sequence changes.",
         ]
     )
     path.write_text("\n".join(lines) + "\n")
@@ -537,6 +617,7 @@ def build(args: argparse.Namespace) -> int:
     era_counts = {era: sum(row["software_era"] == era for row in rows) for era in ERAS}
     print(f"Scanner-era QC runs: {len(rows)}")
     print("Era counts: " + ", ".join(f"{era}={era_counts[era]}" for era in ERAS))
+    print(f"Smoothness available (mm): {sum(row['fwhm_avg_mm'] is not None for row in rows)}/{len(rows)}")
     print(f"Tracked output: {output}")
     if args.dry_run:
         print("DRY RUN: no scanner-era QC outputs were written.")
@@ -552,8 +633,9 @@ def build(args: argparse.Namespace) -> int:
         plot_scanner_eras(rows, thresholds, stage / "figures")
         make_report(rows, summary, stage / "report.md")
         provenance = {
-            "schema_version": 1,
+            "schema_version": 2,
             "generated_at": utc_now(),
+            "reporting_code_sha256": sha256(Path(__file__)),
             "run_qc": run_qc.relative_to(project).as_posix(),
             "run_qc_sha256": sha256(run_qc),
             "thresholds": thresholds_path.relative_to(project).as_posix(),
@@ -561,8 +643,11 @@ def build(args: argparse.Namespace) -> int:
             "software_era_source": "BIDS echo-2 part-mag SoftwareVersions",
             "allowed_software_eras": list(ERAS),
             "unknown_software_eras": 0,
-            "bids_sidecar_count": len(sidecars),
-            "bids_sidecar_inventory_sha256": input_inventory_digest(sidecars, project),
+            "source_json_count": len(set(sidecars)),
+            "source_json_inventory_sha256": input_inventory_digest(sidecars, project),
+            "smoothness_source": "canonical MRIQC JSON: axis FWHM voxels times axis spacing mm",
+            "smoothness_exclusion_authorized": False,
+            "plot_metrics": list(PLOT_METRICS),
             "causal_claim_authorized": False,
             "era_specific_thresholds_calculated": False,
             "threshold_grouping": ["task", "session"],
@@ -620,8 +705,12 @@ def check(args: argparse.Namespace) -> int:
             relative.as_posix()
         ) != sha256(path):
             failures.append(f"output checksum mismatch: {relative}")
-    if provenance.get("schema_version") != 1:
+    if provenance.get("schema_version") != 2:
         failures.append("unsupported provenance schema")
+    if provenance.get("reporting_code_sha256") != sha256(Path(__file__)):
+        failures.append("reporting code changed; rebuild scanner-era report")
+    if provenance.get("smoothness_exclusion_authorized") is not False or provenance.get("plot_metrics") != list(PLOT_METRICS):
+        failures.append("incorrect smoothness policy or plot metrics")
     if provenance.get("causal_claim_authorized") is not False:
         failures.append("provenance lacks noncausal interpretation guard")
     if provenance.get("era_specific_thresholds_calculated") is not False:
@@ -630,10 +719,10 @@ def check(args: argparse.Namespace) -> int:
         failures.append("run_qc.tsv checksum mismatch")
     if provenance.get("thresholds_sha256") != sha256(thresholds_path):
         failures.append("thresholds.tsv checksum mismatch")
-    if provenance.get("bids_sidecar_inventory_sha256") != input_inventory_digest(
+    if provenance.get("source_json_inventory_sha256") != input_inventory_digest(
         sidecars, project
     ):
-        failures.append("BIDS sidecar inventory checksum mismatch")
+        failures.append("BIDS/MRIQC JSON inventory checksum mismatch")
     run_path = output / "run_metrics.tsv"
     if run_path.is_file() and not compare_rows(read_tsv(run_path), rows, RUN_COLUMNS):
         failures.append("run_metrics.tsv disagrees with live canonical QC/BIDS inputs")
@@ -650,6 +739,7 @@ def check(args: argparse.Namespace) -> int:
         f"CHECK PASSED: scanner-era QC outputs match {len(rows)} canonical run(s) "
         "across E11, XA30, and XA60."
     )
+    print(f"Smoothness available (mm): {sum(row['fwhm_avg_mm'] is not None for row in rows)}/{len(rows)}; no exclusions changed.")
     return 0
 
 
