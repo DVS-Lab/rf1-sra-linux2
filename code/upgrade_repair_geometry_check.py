@@ -19,6 +19,33 @@ VERSIONS = {
         "e133776407da30180982d9822c51e82792f95b01eb4ff79914511f69fed7f79b"),
 }
 
+# ca4323cd -> 591d29d7: 10964-only baseline safeguards and main() umask.
+# Neither change alters the frozen 11935 functional-processing implementation.
+OLDER_11935_CODE = {
+    "run_reviewed_source_repairs.py": (
+        "d41d18f285ea10a4902ef4b7cc94d2e6b7a593fe5ae03fa1671801b2a7bb411c",
+        VERSIONS["run_reviewed_source_repairs.py"][0]),
+    "run_11935_initialization.py": (
+        "8ae38994dc89c636aaf4f13e1674886ee82e75e38d9040cb1a03d9198f4dfc19",
+        "eb1a4607dddd53b9efd61743c1991130ee168d606e94a5578b884c9cd186a6d1"),
+}
+
+
+def validate_production_code(subject, frozen, current):
+    differences = {name: (frozen.get(name), current.get(name))
+                   for name in sorted(frozen.keys() | current.keys())
+                   if frozen.get(name) != current.get(name)}
+    approved = (subject == "11935"
+                and frozen.get("run_reviewed_source_repairs.py") == OLDER_11935_CODE["run_reviewed_source_repairs.py"][0]
+                and all(pair == OLDER_11935_CODE.get(name) for name, pair in differences.items()))
+    reviewed.require(not differences or approved,
+                     "Production checkout differs from frozen receipt: " + ", ".join(differences)
+                     + "; do not pull/reset or bypass this check")
+    if differences:
+        print("RECOGNIZED older 11935 snapshot; reviewed production-only differences: "
+              + ", ".join(differences))
+    return differences
+
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
@@ -68,18 +95,21 @@ def upgrade(project, destination, apply=False):
         reviewed.require(original["state"] == "ready" and original["subject"] == subject
                          and original["production"] == str(project), "Mismatched repair receipt")
         reviewed.require("production_code" not in original, "Unexpected previous code migration")
-        reviewed.require(original["code"] == reviewed.code_hashes(project / "code", reviewed.tracked_code_paths(project / "code")),
-                         "Production checkout differs from frozen receipt; do not pull/reset or bypass this check")
+        production_code = reviewed.code_hashes(project / "code", reviewed.tracked_code_paths(project / "code"))
+        production_differences = validate_production_code(subject, original["code"], production_code)
         reviewed.require(original["protected"] == reviewed.signatures(reviewed.protected_paths(project, subject)),
                          "Protected production inputs changed")
         payloads = {}
         for name, (old, new) in VERSIONS.items():
-            reviewed.require(original["code"].get(name) == old, "Unrecognized frozen orchestration version")
+            allowed_old = {old}
+            if subject == "11935" and name == "run_reviewed_source_repairs.py":
+                allowed_old.add(OLDER_11935_CODE[name][0])
+            reviewed.require(original["code"].get(name) in allowed_old, "Unrecognized frozen orchestration version")
             payloads[name] = regular(Path(__file__).parent / name)
             reviewed.require(sha(payloads[name]) == new, "Upgrade bundle checksum mismatch")
         actual = reviewed.code_hashes(destination / "code", original["code"])
         for name, digest in actual.items():
-            permitted = VERSIONS[name] if saved and name in VERSIONS else (original["code"][name],)
+            permitted = (original["code"][name], VERSIONS[name][1]) if saved and name in VERSIONS else (original["code"][name],)
             reviewed.require(digest in permitted, f"Unexpected staged code change: {name}")
         preserved_paths = [destination / "bids", destination / "derivatives", destination / "stages",
                            destination / "completion-stages", destination / "logs/geometry"]
@@ -87,7 +117,7 @@ def upgrade(project, destination, apply=False):
         if saved:
             reviewed.require(saved["products"] == products, "Products changed during orchestration upgrade")
         updated = json.loads(original_bytes)
-        updated["production_code"] = original["code"]
+        updated["production_code"] = production_code
         updated["code"] = {**original["code"], **{k: v[1] for k, v in VERSIONS.items()}}
         if "completion_runner_sha256" in original:
             reviewed.require(original["completion_runner_sha256"] in VERSIONS["complete_11935_repair.py"],
@@ -108,7 +138,8 @@ def upgrade(project, destination, apply=False):
                 (backup / name).write_bytes(regular(destination / "code" / name))
             (backup / "repair.json").write_bytes(original_bytes)
             reviewed.write_json(journal, dict(original_receipt_sha256=sha(original_bytes),
-                                             replacements=VERSIONS, products=products))
+                                             replacements={k: (original["code"][k], v[1]) for k, v in VERSIONS.items()},
+                                             production_differences=production_differences, products=products))
         for name, payload in payloads.items():
             if sha(regular(destination / "code" / name)) != VERSIONS[name][1]:
                 replace(destination / "code" / name, payload)

@@ -110,3 +110,39 @@ def test_refuse_code_directory_link_to_production(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match='symlink'):
         upgrade.upgrade(production, destination, True)
     assert reviewed.signatures([production / 'code']) == before
+
+
+def test_upgrade_actual_older_11935_snapshot(tmp_path, monkeypatch):
+    production, destination, receipt = fixture(tmp_path, monkeypatch, '11935')
+    for name, (old, new) in upgrade.OLDER_11935_CODE.items():
+        data = subprocess.check_output(['git', 'show', 'ca4323cd:code/' + name], cwd=ROOT)
+        assert upgrade.sha(data) == old
+        (destination / 'code' / name).write_bytes(data)
+        receipt['code'][name] = old
+        newer = subprocess.check_output(['git', 'show', '591d29d7:code/' + name], cwd=ROOT)
+        assert upgrade.sha(newer) == new
+        (production / 'code' / name).write_bytes(newer)
+    reviewed.write_json(destination / 'repair.json', receipt)
+    before = reviewed.signatures([destination / 'bids', destination / 'derivatives', destination / 'stages'])
+    upgrade.upgrade(production, destination, True)
+    updated = json.loads((destination / 'repair.json').read_text())
+    assert updated['code'] == reviewed.code_hashes(destination / 'code', updated['code'])
+    assert updated['production_code'] == reviewed.code_hashes(production / 'code', updated['production_code'])
+    assert updated['code']['run_11935_initialization.py'] == upgrade.OLDER_11935_CODE['run_11935_initialization.py'][0]
+    assert reviewed.signatures([destination / 'bids', destination / 'derivatives', destination / 'stages']) == before
+    upgrade.upgrade(production, destination, True)
+
+
+@pytest.mark.parametrize('damage', ['unrecognized_hash', 'extra_file', 'wrong_subject'])
+def test_older_snapshot_exception_is_narrow(damage):
+    frozen = {k: v[0] for k, v in upgrade.OLDER_11935_CODE.items()}
+    current = {k: v[1] for k, v in upgrade.OLDER_11935_CODE.items()}
+    subject = '11935'
+    if damage == 'unrecognized_hash':
+        current['run_11935_initialization.py'] = 'unexpected'
+    elif damage == 'extra_file':
+        current['fmriprep.sh'] = 'unexpected'
+    else:
+        subject = '10964'
+    with pytest.raises(ValueError, match='differs'):
+        upgrade.validate_production_code(subject, frozen, current)

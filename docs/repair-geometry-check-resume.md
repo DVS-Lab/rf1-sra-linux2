@@ -26,6 +26,26 @@ An interrupted file replacement can be resumed from its journal. Unexpected
 code changes or an active repair cause a stop. The cohort experiment is neither
 locked nor modified. All commands retain `umask 0000`.
 
+### Older 11935 staging workspace
+
+The `20261023-081711_11935-final-stage` log records initialization at `ca4323cd`,
+before 10964's newer snapshot. It completed conversion, WarpKit and MRIQC, then
+stopped because the complete FreeSurfer copy was unavailable. Later logs must
+establish which additional stages finished; the October 24 failure does not
+mean those earlier products were lost.
+
+The first upgrade helper incorrectly required this older 11935 code inventory
+to equal the newer production checkout. The helper now recognizes only the
+exact `ca4323cd` to `591d29d7` differences: the reviewed runner's 10964-only
+baseline safeguards and `run_11935_initialization.py`'s main-entry umask setting.
+The original initialization module stays frozen. All other code, protected
+inputs and stage markers are still checked. Unrecognized differences stop with
+the affected filenames. Do not replace the receipt with current hashes manually.
+
+After 10964 passes, run only `finish-11935` using the newly published helper;
+there is no need to repeat 10964. The two-task build may still stop on a genuine
+missing FreeSurfer prerequisite; it will not silently rerun anatomy.
+
 ## Linux2 launch
 
 After the fix has been published, use its exact commit in `FIX_REF` below. Fetch
