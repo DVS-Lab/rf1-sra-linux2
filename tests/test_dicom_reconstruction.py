@@ -46,6 +46,23 @@ def row():
                 payload=dict(SeriesNumber=13, SeriesDescription="task", EchoTime=.0138))
 
 
+def test_array_declarations_preserved_without_breaking_protocol_parser():
+    block = '\n'.join([
+        '### ASCCONV BEGIN ###',
+        'asGPAData.__attribute__.size = 1',
+        'asGPAData[0].lValue = 7',
+        'sWipMemBlock.alFree.__attribute__.size = 2',
+        'sWipMemBlock.alFree[0] = 3',
+        'sWipMemBlock.alFree[1] = 8',
+        '### ASCCONV END ###',
+    ])
+    parsed, _, declarations = recon.parse_protocol(block, ascconv.parse_ascconv)
+    assert parsed['asGPAData'][0]['lValue'] == 7
+    assert parsed['sWipMemBlock']['alFree'] == [3, 8]
+    assert declarations == ['asGPAData.__attribute__.size = 1',
+                            'sWipMemBlock.alFree.__attribute__.size = 2']
+
+
 @pytest.mark.parametrize("enhanced", [False, True])
 def test_magnitude_echo_identity_and_uid(enhanced):
     ds, r = header(enhanced), row()

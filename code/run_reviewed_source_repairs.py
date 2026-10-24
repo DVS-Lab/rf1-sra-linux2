@@ -290,6 +290,22 @@ def initialize(project, destination, subject):
     return receipt
 
 
+def check_geometry(destination, prefix, execute):
+    """Reuse immutable evidence, but always validate current images against it."""
+    report = Path(str(prefix) + ".json")
+    table = Path(str(prefix) + ".tsv")
+    require(not report.is_symlink() and not table.is_symlink(), "Geometry report cannot be a symlink")
+    if report.exists() or table.exists():
+        require(report.is_file() and table.is_file(), "Incomplete geometry report pair; inspect without overwriting")
+        saved = json.loads(report.read_text())
+        require(Path(saved["fmriprep_root"]).resolve() == (destination / "derivatives/fmriprep").resolve(),
+                "Geometry report belongs to a different repair workspace")
+        print("Reusing frozen geometry audit; verifying current outputs", flush=True)
+    else:
+        execute([sys.executable, "code/fmriprep_geometry.py", "audit", "--report-prefix", prefix])
+    execute([sys.executable, "code/fmriprep_geometry.py", "verify", "--audit-json", report])
+
+
 def run(args):
     project, private = args.project_root.resolve(), args.private_dir.resolve()
     require(private.is_relative_to(project / "work"), "Private directory must be under production work/")
@@ -322,8 +338,8 @@ def run(args):
         write_json(validation, {"validated": False, "status": "checking_or_building"})
         require(receipt["state"] == "ready" and receipt["subject"] == subject and receipt["production"] == str(project),
                 "Interrupted or mismatched initialization; inspect preserved workspace")
-        require(receipt["code"] == code_hashes(project / "code", tracked_code_paths(project / "code"))
-                == code_hashes(destination / "code", receipt["code"]),
+        require(receipt.get("production_code", receipt["code"]) == code_hashes(project / "code", tracked_code_paths(project / "code"))
+                and receipt["code"] == code_hashes(destination / "code", receipt["code"]),
                 "Repair code changed; use a new isolated workspace")
         require(receipt["protected"] == signatures(protected_paths(project, subject)), "Production inputs changed since repair initialization")
         if subject == "10964":
@@ -375,8 +391,7 @@ def run(args):
         checked_step("fmriprep", ["bash", "code/fmriprep.sh", subject],
                      ["bash", "code/check_fmriprep.sh", "--sublist", sublist])
         geometry = destination / "logs/geometry/repaired"
-        execute([py, "code/fmriprep_geometry.py", "audit", "--report-prefix", geometry])
-        execute([py, "code/fmriprep_geometry.py", "verify", "--audit-json", str(geometry) + ".json"])
+        check_geometry(destination, geometry, execute)
         checked_step("tedana", ["bash", "code/run_tedana.sh", "--sublist", sublist, "--session", session, "--jobs", "1"],
                      ["bash", "code/check_tedana.sh", "--sublist", sublist, "--session", session])
         if args.command == "build":

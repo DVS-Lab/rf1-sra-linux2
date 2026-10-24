@@ -57,6 +57,26 @@ def flatten(value, prefix):
         yield prefix, value
 
 
+def parse_protocol(block, parser):
+    # Siemens emits array declarations before indexed values. NiBabel otherwise
+    # constructs a dict for the declaration and then cannot turn it into a list.
+    declarations, lines = [], []
+    for line in block.splitlines():
+        lhs = line.split("=", 1)[0].strip()
+        if re.fullmatch(r"[A-Za-z_][\w.\[\]]*\.__attribute__\.[A-Za-z_]\w*", lhs):
+            declarations.append(line)
+        else:
+            lines.append(line)
+    errors = []
+    for delimiter in ('"', '""'):
+        try:
+            parsed, attributes = parser("\n".join(lines), str_delim=delimiter)
+            return parsed, attributes, declarations
+        except Exception as exc:
+            errors.append(type(exc).__name__)
+    raise ValueError("ASCCONV decode failed: " + ",".join(errors))
+
+
 def select_samples(bids, sessions, eras, count):
     groups = defaultdict(list)
     for path in sorted(bids.glob("sub-*/ses-*/func/*_echo-1*bold.json")):
@@ -154,18 +174,14 @@ def extract_fields(ds, csa_reader, asc_parser):
         # Keep the block intact for NiBabel's structured parser; never execute it.
         blocks = re.findall(r"### ASCCONV BEGIN[^\n]*\n.*?### ASCCONV END[^\n]*", text, re.S)
         for block in blocks:
-            errors = []
-            for delimiter in ('"', '""'):
-                try:
-                    parsed, attributes = asc_parser(block, str_delim=delimiter)
-                    protocols.append(dict(origin=origin, attributes=attributes, values=parsed))
-                    for key, val in flatten(parsed, "ASCCONV"):
-                        add(key, val)
-                    break
-                except Exception as exc:
-                    errors.append(type(exc).__name__)
-            else:
-                notes.append(dict(origin=origin, status="ascconv_decode_error", errors=errors))
+            try:
+                parsed, attributes, declarations = parse_protocol(block, asc_parser)
+                protocols.append(dict(origin=origin, attributes=attributes, values=parsed,
+                                      array_declarations=declarations))
+                for key, val in flatten(parsed, "ASCCONV"):
+                    add(key, val)
+            except Exception as exc:
+                notes.append(dict(origin=origin, status="ascconv_decode_error", error=type(exc).__name__))
 
     opaque = []
     for element in ds.iterall():

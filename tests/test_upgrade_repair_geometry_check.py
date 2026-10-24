@@ -1,0 +1,112 @@
+import fcntl
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'code'))
+import upgrade_repair_geometry_check as upgrade
+import run_reviewed_source_repairs as reviewed
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def fixture(tmp_path, monkeypatch, subject='10964'):
+    production = tmp_path / 'production'
+    code = production / 'code'
+    code.mkdir(parents=True)
+    for name, (old, new) in upgrade.VERSIONS.items():
+        data = subprocess.check_output(['git', 'show', 'ad061b5f:code/' + name], cwd=ROOT)
+        assert upgrade.sha(data) == old
+        assert upgrade.sha((ROOT / 'code' / name).read_bytes()) == new
+        (code / name).write_bytes(data)
+    (code / 'unchanged.py').write_text('# immutable processing code\n')
+    monkeypatch.setattr(reviewed, 'tracked_code_paths', lambda root: sorted(p.name for p in root.iterdir()))
+    destination = production / 'work/repair' / f'sub-{subject}-project'
+    (destination / 'code').mkdir(parents=True)
+    for path in code.iterdir():
+        (destination / 'code' / path.name).write_bytes(path.read_bytes())
+    receipt = dict(state='ready', subject=subject, production=str(production),
+                   code=reviewed.code_hashes(code, reviewed.tracked_code_paths(code)),
+                   protected=reviewed.signatures(reviewed.protected_paths(production, subject)))
+    if subject == '11935':
+        receipt['completion_runner_sha256'] = upgrade.VERSIONS['complete_11935_repair.py'][0]
+    reviewed.write_json(destination / 'repair.json', receipt)
+    for name in ('bids/example.nii.gz', 'derivatives/output.nii.gz', 'stages/fmriprep.json', 'logs/geometry/repaired.json'):
+        path = destination / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('untouched')
+    return production, destination, receipt
+
+
+@pytest.mark.parametrize('subject', ['10964', '11935'])
+def test_upgrade_only_orchestration_and_idempotent(tmp_path, monkeypatch, subject):
+    production, destination, receipt = fixture(tmp_path, monkeypatch, subject)
+    original = reviewed.signatures([production / 'code', destination / 'bids', destination / 'derivatives', destination / 'stages', destination / 'logs'])
+    upgrade.upgrade(production, destination)
+    assert json.loads((destination / 'repair.json').read_text()) == receipt
+    assert not (destination / 'geometry-check-upgrade-v1').exists()
+    upgrade.upgrade(production, destination, True)
+    assert reviewed.signatures([production / 'code', destination / 'bids', destination / 'derivatives', destination / 'stages', destination / 'logs']) == original
+    updated = json.loads((destination / 'repair.json').read_text())
+    assert updated['production_code'] == receipt['code']
+    assert updated['code'] == reviewed.code_hashes(destination / 'code', updated['code'])
+    if subject == '11935':
+        assert updated['completion_runner_sha256'] == upgrade.VERSIONS['complete_11935_repair.py'][1]
+    before = reviewed.signatures([destination])
+    upgrade.upgrade(production, destination, True)
+    assert reviewed.signatures([destination]) == before
+
+
+@pytest.mark.parametrize('damage', ['processing', 'production', 'receipt', 'active'])
+def test_refuse_unrelated_changes_or_active_runner(tmp_path, monkeypatch, damage):
+    production, destination, receipt = fixture(tmp_path, monkeypatch)
+    if damage == 'processing':
+        (destination / 'code/unchanged.py').write_text('changed')
+    elif damage == 'production':
+        (production / 'code/unchanged.py').write_text('changed')
+    elif damage == 'receipt':
+        receipt['state'] = 'initializing'
+        reviewed.write_json(destination / 'repair.json', receipt)
+    else:
+        lock = (destination.parent / '10964.lock').open('a+')
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    before = reviewed.signatures([destination])
+    try:
+        with pytest.raises((ValueError, BlockingIOError)):
+            upgrade.upgrade(production, destination, True)
+    finally:
+        if damage == 'active':
+            lock.close()
+    assert reviewed.signatures([destination]) == before
+
+
+def test_resume_interrupted_upgrade(tmp_path, monkeypatch):
+    production, destination, _ = fixture(tmp_path, monkeypatch)
+    real_replace = upgrade.replace
+    calls = []
+    def interrupt(path, data):
+        calls.append(path)
+        if len(calls) == 2:
+            raise OSError('interrupted')
+        real_replace(path, data)
+    monkeypatch.setattr(upgrade, 'replace', interrupt)
+    with pytest.raises(OSError, match='interrupted'):
+        upgrade.upgrade(production, destination, True)
+    monkeypatch.setattr(upgrade, 'replace', real_replace)
+    upgrade.upgrade(production, destination, True)
+    updated = json.loads((destination / 'repair.json').read_text())
+    assert updated['code'] == reviewed.code_hashes(destination / 'code', updated['code'])
+
+
+def test_refuse_code_directory_link_to_production(tmp_path, monkeypatch):
+    production, destination, _ = fixture(tmp_path, monkeypatch)
+    (destination / 'code').rename(destination / 'old-code')
+    (destination / 'code').symlink_to(production / 'code', target_is_directory=True)
+    before = reviewed.signatures([production / 'code'])
+    with pytest.raises(ValueError, match='symlink'):
+        upgrade.upgrade(production, destination, True)
+    assert reviewed.signatures([production / 'code']) == before

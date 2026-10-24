@@ -19,6 +19,53 @@ import run_reviewed_source_repairs as runner
 import participants
 
 
+def test_geometry_creates_once_then_always_verifies(tmp_path):
+    prefix = tmp_path / 'logs/geometry/repaired'
+    calls = []
+    def execute(command):
+        calls.append(command[2])
+        if command[2] == 'audit':
+            prefix.parent.mkdir(parents=True)
+            Path(str(prefix) + '.json').write_text(json.dumps({
+                'fmriprep_root': str(tmp_path / 'derivatives/fmriprep')}))
+            Path(str(prefix) + '.tsv').write_text('frozen table\n')
+    runner.check_geometry(tmp_path, prefix, execute)
+    before = runner.signatures([prefix.parent])
+    runner.check_geometry(tmp_path, prefix, execute)
+    assert calls == ['audit', 'verify', 'verify']
+    assert runner.signatures([prefix.parent]) == before
+
+
+@pytest.mark.parametrize('damage', ['json_missing', 'tsv_missing', 'wrong_root', 'corrupt'])
+def test_geometry_reuse_fails_closed(tmp_path, damage):
+    prefix = tmp_path / 'repaired'
+    report = Path(str(prefix) + '.json')
+    table = Path(str(prefix) + '.tsv')
+    report.write_text(json.dumps({'fmriprep_root': str(tmp_path / 'derivatives/fmriprep')}))
+    table.write_text('table')
+    if damage == 'json_missing':
+        report.unlink()
+    elif damage == 'tsv_missing':
+        table.unlink()
+    elif damage == 'wrong_root':
+        report.write_text(json.dumps({'fmriprep_root': '/other/derivatives/fmriprep'}))
+    else:
+        report.write_text('{')
+    with pytest.raises(ValueError):
+        runner.check_geometry(tmp_path, prefix, lambda cmd: pytest.fail('Must not run audit/processing'))
+
+
+def test_geometry_verification_failure_propagates(tmp_path):
+    prefix = tmp_path / 'repaired'
+    Path(str(prefix) + '.json').write_text(json.dumps({'fmriprep_root': str(tmp_path / 'derivatives/fmriprep')}))
+    Path(str(prefix) + '.tsv').write_text('table')
+    def fail(command):
+        assert command[2] == 'verify'
+        raise runner.subprocess.CalledProcessError(1, command)
+    with pytest.raises(runner.subprocess.CalledProcessError):
+        runner.check_geometry(tmp_path, prefix, fail)
+
+
 def baseline_project(tmp_path, monkeypatch):
     project = tmp_path / "production"
     (project / "code").mkdir(parents=True)

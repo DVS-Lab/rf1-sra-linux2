@@ -328,8 +328,7 @@ def run(args):
         step("fmriprep", fmriprep_command(args, destination, patch["installed_module"]),
              lambda: execute(["bash", "code/check_fmriprep.sh", "--sublist", sublist]))
         geometry = destination / "logs/geometry/11935-repaired"
-        execute([py, "code/fmriprep_geometry.py", "audit", "--report-prefix", geometry])
-        execute([py, "code/fmriprep_geometry.py", "verify", "--audit-json", str(geometry) + ".json"])
+        reviewed.check_geometry(destination, geometry, execute)
         functional = validate_functional(destination, production, work / "review")
         step("tedana", ["bash", "code/run_tedana.sh", "--sublist", sublist, "--session", "01", "--jobs", "1"],
              lambda: execute(["bash", "code/check_tedana.sh", "--sublist", sublist, "--session", "01", "--expected-runs", "2"]))
