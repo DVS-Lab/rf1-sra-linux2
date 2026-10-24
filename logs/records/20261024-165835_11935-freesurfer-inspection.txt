@@ -1,0 +1,43 @@
+
+ROOT: /ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurfer
+DIRECTORY ABSENT: /ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurfer/sub-11935
+drwxrwxr-x 10 tug87422 domain users 10 Aug 14 16:19 /ZPOOL/data/projects/rf1-sra-linux2/derivatives/freesurfer/sub-11935_ses-01
+PRESENT scripts/recon-all.done
+PRESENT mri/aparc+aseg.mgz
+PRESENT mri/brain.mgz
+PRESENT surf/lh.white
+PRESENT surf/rh.white
+PRESENT surf/lh.pial
+PRESENT surf/rh.pial
+PRESENT surf/lh.sphere.reg
+PRESENT surf/rh.sphere.reg
+
+ROOT: /ZPOOL/data/projects/rf1-sra-linux2/work/11935-final-repair-v1/sub-11935-project/derivatives/freesurfer
+DIRECTORY ABSENT: /ZPOOL/data/projects/rf1-sra-linux2/work/11935-final-repair-v1/sub-11935-project/derivatives/freesurfer/sub-11935
+DIRECTORY ABSENT: /ZPOOL/data/projects/rf1-sra-linux2/work/11935-final-repair-v1/sub-11935-project/derivatives/freesurfer/sub-11935_ses-01
+
+ROOT: /ZPOOL/data/projects/rf1-sra-linux2/work/11935-init-test-20261023-001417/fs/rigid
+DIRECTORY ABSENT: /ZPOOL/data/projects/rf1-sra-linux2/work/11935-init-test-20261023-001417/fs/rigid/sub-11935
+drwxrwxr-x 10 tug87422 domain users 10 Aug 14 16:19 /ZPOOL/data/projects/rf1-sra-linux2/work/11935-init-test-20261023-001417/fs/rigid/sub-11935_ses-01
+PRESENT scripts/recon-all.done
+PRESENT mri/aparc+aseg.mgz
+PRESENT mri/brain.mgz
+PRESENT surf/lh.white
+PRESENT surf/rh.white
+PRESENT surf/lh.pial
+PRESENT surf/rh.pial
+PRESENT surf/lh.sphere.reg
+PRESENT surf/rh.sphere.reg
+
+ROOT: /ZPOOL/data/projects/rf1-sra-linux2/work/11935-init-test-20261023-001417/fs/affine
+DIRECTORY ABSENT: /ZPOOL/data/projects/rf1-sra-linux2/work/11935-init-test-20261023-001417/fs/affine/sub-11935
+drwxrwxr-x 10 tug87422 domain users 10 Aug 14 16:19 /ZPOOL/data/projects/rf1-sra-linux2/work/11935-init-test-20261023-001417/fs/affine/sub-11935_ses-01
+PRESENT scripts/recon-all.done
+PRESENT mri/aparc+aseg.mgz
+PRESENT mri/brain.mgz
+PRESENT surf/lh.white
+PRESENT surf/rh.white
+PRESENT surf/lh.pial
+PRESENT surf/rh.pial
+PRESENT surf/lh.sphere.reg
+PRESENT surf/rh.sphere.reg
