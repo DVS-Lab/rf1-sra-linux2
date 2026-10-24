@@ -2,6 +2,7 @@
 import argparse
 from enum import Enum
 import json
+import os
 from pathlib import Path
 import sys
 import tarfile
@@ -17,6 +18,19 @@ import run_11935_initialization as experiment
 
 
 class InitializationTests(unittest.TestCase):
+    def test_cli_sets_lab_umask_for_saved_validation(self):
+        def validate(args):
+            self.assertEqual(os.umask(0), 0)
+            return 0
+        old = os.umask(0o077)
+        try:
+            with patch.object(sys, "argv", ["validate", "--validate-existing", "/saved",
+                                            "--output", "/new"]), \
+                    patch.object(experiment, "validate_existing", side_effect=validate):
+                self.assertEqual(experiment.main(), 0)
+        finally:
+            os.umask(old)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

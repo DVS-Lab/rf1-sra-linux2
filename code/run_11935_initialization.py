@@ -719,6 +719,7 @@ def make_report(root):
 
 
 def main():
+    os.umask(0o000)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", type=Path, default=Path("/ZPOOL/data/projects/rf1-sra-linux2"))
     parser.add_argument("--output", type=Path)

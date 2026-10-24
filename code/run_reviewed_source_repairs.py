@@ -23,6 +23,7 @@ from reviewed_behavior_sources import wave2_source
 
 ROOT = Path(__file__).resolve().parents[1]
 SPECS = {"10964": "02", "11935": "01"}
+BASELINE_10964 = Path("bids/.heudiconv/10964/ses-01/info/dicominfo_ses-01.tsv")
 
 
 class RepairError(ValueError):
@@ -110,7 +111,24 @@ def protected_paths(project, subject):
     return [project / "bids" / f"sub-{subject}",
             *[project / "derivatives" / name / f"sub-{subject}" for name in
               ("fmriprep", "tedana", "warpkit", "mriqc", "freesurfer", "fsl/confounds_tedana")],
-            project / "code/behavior_curation.tsv", project / "qc/run_disposition.tsv"]
+            project / "code/behavior_curation.tsv", project / "qc/run_disposition.tsv",
+            *([project / BASELINE_10964] if subject == "10964" else [])]
+
+
+def baseline_preflight(project, subject):
+    if subject != "10964":
+        return
+    from participants import source_row, read_existing, age_years, sex_code
+    source = project / BASELINE_10964
+    require(source.is_file(), "10964 baseline HeuDiConv demographics missing; stop before conversion")
+    expected, _ = source_row(source, subject)
+    _, rows, _ = read_existing(project / "bids")
+    current = rows.get("sub-10964")
+    require(current is not None, "10964 baseline participants row missing")
+    for field, normalize in (("age", age_years), ("sex", sex_code)):
+        require(normalize(current[field]) == expected[field],
+                f"10964 baseline {field} disagrees with canonical participants table")
+    print("BASELINE PASSED 10964: HeuDiConv demographics match canonical participants row", flush=True)
 
 
 def behavior_preflight(root, subject):
@@ -238,6 +256,7 @@ def validate_mriqc(project, subject):
 def initialize(project, destination, subject):
     require(destination.is_relative_to(project / "work"), "Repair destination must be inside ignored work")
     require(not destination.exists(), "New repair project must not already exist")
+    baseline_preflight(project, subject)
     code = code_hashes(project / "code", tracked_code_paths(project / "code"))
     receipt = {"subject": subject, "production": str(project), "code": code,
                "protected": signatures(protected_paths(project, subject)), "state": "initializing"}
@@ -252,6 +271,9 @@ def initialize(project, destination, subject):
         if source.is_file():
             copy_shared_file(source, bids / name)
     if subject == "10964":
+        metadata = destination / BASELINE_10964
+        metadata.parent.mkdir(parents=True)
+        copy_shared_file(project / BASELINE_10964, metadata)
         source = project / "bids/sub-10964/ses-01/anat"
         require(source.is_dir() and bool(list(source.glob("*_T1w.nii.gz"))), "10964 baseline anatomy missing")
         print("Copying preserved baseline anatomy into isolated repair", flush=True)
@@ -276,6 +298,7 @@ def run(args):
     require(args.exclusions_root.is_dir(), "Source-exclusion root unavailable")
     require(not (args.exclusions_root / f"Smith-SRA-{subject}").exists(), "Subject is source-excluded")
     behavior_preflight(args.behavior_root, subject)
+    baseline_preflight(project, subject)
     print(f"ISOLATED REPAIR {subject}; production, exclusions, QC and paper handoff remain unchanged", flush=True)
     if args.command == "plan":
         code = code_hashes(project / "code", tracked_code_paths(project / "code"))
@@ -303,6 +326,10 @@ def run(args):
                 == code_hashes(destination / "code", receipt["code"]),
                 "Repair code changed; use a new isolated workspace")
         require(receipt["protected"] == signatures(protected_paths(project, subject)), "Production inputs changed since repair initialization")
+        if subject == "10964":
+            require(hashlib.sha256((destination / BASELINE_10964).read_bytes()).digest()
+                    == hashlib.sha256((project / BASELINE_10964).read_bytes()).digest(),
+                    "Isolated baseline demographics changed; do not regenerate baseline age from wave 2")
         if previous.get("validated"):
             require(previous["outputs"] == signatures([destination / "bids", destination / "derivatives"]),
                     "Previously validated repaired products changed; inspect without overwriting")

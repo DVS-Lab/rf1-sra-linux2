@@ -83,25 +83,49 @@ compact run record can be shared normally.
 
 ## Linux2 Commands
 
-Run from production root after pulling the repair code. The first command is
-preflight only; proceed only if both plans pass:
+### October 24 Recovery
+
+The v2 10964 attempt converted the wave-2 DICOMs, but failed because its isolated
+project lacked the baseline HeuDiConv demographics inventory. The temporary
+conversion stage was removed by prepdata's cleanup; no downstream imaging stage
+completed. The fix validates the baseline age/sex against the canonical table
+before conversion, copies the baseline inventory unchanged, and protects its
+hash. It does not substitute wave-2 age or alter original behavior files.
+
+The separate 11935 affine/rigid experiment completed both full fMRIPrep runs.
+Only its validation failed on an unnecessary spreadsheet dependency. Coverage
+validation now imports only its imaging dependencies. `--validate-existing`
+reads saved products read-only and writes a new report, without rerunning
+fMRIPrep or the paired reference tests.
+
+Use v3 for 10964 because v2 pins the earlier code. Preserve both older workspaces.
+The targeted 11935 source repair uses the newer dedicated runner, not the generic
+two-subject loop. Its corrected Faces/Doors acquisitions are distinct from the
+historically labeled experiment; saved experimental outputs are not transplanted.
+
+Run these preflights, then the sequential background job below. Nothing here
+stops cohort TEDANA, promotes repaired data, changes exclusions, or refreshes QC.
 
 ```bash
 cd /ZPOOL/data/projects/rf1-sra-linux2
 umask 0000
 git pull --ff-only
 export AUDIT_PYTHON=/ZPOOL/data/tools/anaconda/tug87422/envs/tedana-26.0.3/bin/python
-export REPAIR_DIR="$PWD/work/reviewed-source-repairs-v2"
+export REPAIR_10964="$PWD/work/reviewed-source-repairs-v3"
+export SAVED_11935="$PWD/work/11935-init-test-20261023-001417"
+export VALIDATION_11935="$PWD/work/11935-validation-$(date +%Y%m%d-%H%M%S)"
+export REPAIR_DIR="$PWD/work/11935-final-repair-v1"
 "$AUDIT_PYTHON" -c 'import pydicom, nibabel; print("Repair dependencies available")'
-bash code/run_logged.sh --label "reviewed-repair-plan-$(date +%Y%m%d-%H%M%S)" \
-  --include-full-log -- bash -euc '
-    for subject in 10964 11935; do
-      "$AUDIT_PYTHON" code/run_reviewed_source_repairs.py plan \
-        --subject "$subject" --private-dir "$REPAIR_DIR"
-    done'
+"$AUDIT_PYTHON" code/run_reviewed_source_repairs.py plan \
+  --subject 10964 --private-dir "$REPAIR_10964"
+"$AUDIT_PYTHON" code/run_11935_initialization.py --project "$PWD" \
+  --validate-existing "$SAVED_11935" --output "$VALIDATION_11935" --dry-run
+"$AUDIT_PYTHON" code/complete_11935_repair.py plan --work-dir "$REPAIR_DIR"
 ```
 
-Build the two repairs sequentially, not two concurrent fMRIPrep jobs:
+Proceed only after all three plans pass. Validate saved 11935 outputs, build
+10964, then stage the corrected 11935 acquisitions sequentially. Completed
+stages in a compatible existing targeted workspace are preserved.
 
 ```bash
 STAMP=reviewed-source-repairs-$(date +%Y%m%d-%H%M%S)
@@ -109,20 +133,25 @@ umask 0000
 mkdir -p logs/runs
 nohup setsid -f -w bash code/run_logged.sh \
   --label "$STAMP" --include-full-log -- bash -euc '
-    for subject in 10964 11935; do
-      "$AUDIT_PYTHON" code/run_reviewed_source_repairs.py build \
-        --subject "$subject" --private-dir "$REPAIR_DIR" --jobs 8
-      "$AUDIT_PYTHON" code/run_reviewed_source_repairs.py check \
-        --subject "$subject" --private-dir "$REPAIR_DIR"
-    done' > "logs/runs/${STAMP}.nohup.out" 2>&1 &
+    umask 0000
+    "$AUDIT_PYTHON" code/run_11935_initialization.py --project "$PWD" \
+      --validate-existing "$SAVED_11935" --output "$VALIDATION_11935"
+    "$AUDIT_PYTHON" code/run_reviewed_source_repairs.py build \
+      --subject 10964 --private-dir "$REPAIR_10964" --jobs 8
+    "$AUDIT_PYTHON" code/run_reviewed_source_repairs.py check \
+      --subject 10964 --private-dir "$REPAIR_10964"
+    bash code/run_11935_completion.sh stage
+  ' > "logs/runs/${STAMP}.nohup.out" 2>&1 &
 echo "STAMP=$STAMP"
 sleep 5
 tail -30 "logs/runs/${STAMP}.nohup.out"
 ```
 
-Expect two isolated-repair `CHECK PASSED` results and command exit 0. Share the
-run record before any production installation. No production file deletion,
-manual task rename, source-exclusion change, or benchmark restart is required.
+Expect saved-run validation, both staged-repair checks, and command exit 0.
+Share the run record before any production installation. Do not run `promote`,
+`finish`, or `variants` as part of this recovery. Saved validation deliberately
+refuses to overwrite a report directory; a repeated validation needs a fresh
+`VALIDATION_11935` path. Original experiment outputs remain untouched.
 
 ### Permission Failure Before Conversion
 
@@ -135,6 +164,6 @@ tracked code, so another local log cannot cause the same failure.
 
 That attempt created `sub-10964-project/` before hashing, but never wrote its
 receipt or copied data. Preserve the v1 workspace for inspection and use the
-fresh v2 path above with the updated code. Initialization now checks code and
+fresh v2 path at that time. The October 24 recovery above uses v3. Initialization checks code and
 protected inputs before creating the project directory. No imaging work was
 completed by this failed attempt, so this restart discards no completed stages.

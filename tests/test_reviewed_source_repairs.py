@@ -16,6 +16,67 @@ import heuristics_11935 as heuristic
 from convert_behavior import resolve_sources
 from run_reviewed_source_repairs import initialize, timing_matches, validate_bids
 import run_reviewed_source_repairs as runner
+import participants
+
+
+def baseline_project(tmp_path, monkeypatch):
+    project = tmp_path / "production"
+    (project / "code").mkdir(parents=True)
+    (project / "code/example.py").write_text("# fixture\n")
+    monkeypatch.setattr(runner, "tracked_code_paths", lambda root: ["example.py"])
+    anatomy = project / "bids/sub-10964/ses-01/anat"
+    anatomy.mkdir(parents=True)
+    (anatomy / "sub-10964_ses-01_T1w.nii.gz").write_bytes(b"preserved anatomy")
+    baseline = project / runner.BASELINE_10964
+    baseline.parent.mkdir(parents=True)
+    baseline.write_text("patient_age\tpatient_sex\n060Y\tF\n")
+    excluded = tmp_path / "excluded"
+    excluded.mkdir()
+    args = SimpleNamespace(command="build", bids_root=project / "bids",
+                           exclusions_root=excluded, subject="10964", sublist=None,
+                           seqinfo_file=None, eligibility=None, apply=True)
+    assert not participants.execute(args)["issues"]
+    return project, args
+
+
+def test_staged_wave2_uses_baseline_demographics_with_real_validator(tmp_path, monkeypatch):
+    project, args = baseline_project(tmp_path, monkeypatch)
+    before = runner.signatures([project / "bids"])
+    destination = project / "work/repair/sub-10964-project"
+    receipt = runner.initialize(project, destination, "10964")
+    staged = destination / runner.BASELINE_10964
+    assert staged.read_bytes() == (project / runner.BASELINE_10964).read_bytes()
+    assert stat.S_IMODE(staged.stat().st_mode) == 0o666
+    assert project / runner.BASELINE_10964 in runner.protected_paths(project, "10964")
+    assert receipt["state"] == "ready"
+    wave2 = destination / "bids/.heudiconv/10964/ses-02/info/dicominfo_ses-02.tsv"
+    wave2.parent.mkdir(parents=True)
+    wave2.write_text("patient_age\tpatient_sex\n070Y\tF\n")
+    args.bids_root = destination / "bids"
+    args.apply = False
+    assert not participants.execute(args)["issues"]
+    args.command = "check"
+    assert not participants.execute(args)["issues"]
+    _, rows, _ = participants.read_existing(args.bids_root)
+    assert participants.age_years(rows["sub-10964"]["age"]) == "60"
+    assert runner.signatures([project / "bids"]) == before
+
+
+@pytest.mark.parametrize("damage", ["missing", "age", "sex"])
+def test_baseline_failure_stops_before_workspace_creation(tmp_path, monkeypatch, damage):
+    project, _ = baseline_project(tmp_path, monkeypatch)
+    source = project / runner.BASELINE_10964
+    if damage == "missing":
+        source.unlink()
+    else:
+        source.write_text("patient_age\tpatient_sex\n" +
+                          ("061Y\tF\n" if damage == "age" else "060Y\tM\n"))
+    before = runner.signatures([project / "bids"])
+    destination = project / "work/repair"
+    with pytest.raises(ValueError, match="baseline"):
+        runner.initialize(project, destination, "10964")
+    assert not destination.exists()
+    assert runner.signatures([project / "bids"]) == before
 
 
 def test_code_snapshot_ignores_untracked_unreadable_logs(tmp_path, monkeypatch):
