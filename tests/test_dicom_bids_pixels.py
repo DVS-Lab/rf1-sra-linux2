@@ -115,3 +115,82 @@ def test_no_constant_source_or_5d_output():
     with pytest.raises(ValueError, match='3D or 4D'):
         pixels.compare_volume(np.arange(60).reshape(3, 4, 5), np.eye(4),
                               nib.Nifti1Image(np.zeros((3, 4, 5, 2, 2)), np.eye(4)), 0)
+
+
+def test_full_stack_affine_removes_adjacent_rounding_not_pixel_differences():
+    positions = np.zeros((51, 3))
+    positions[:, 2] = np.arange(51) * 2.97
+    positions[1, 2] += .00044
+    affine = np.diag([2.7, 2.7, 2.97044, 1])
+    wrapper = SimpleNamespace(is_multiframe=True, affine=affine, slice_normal=np.array([0, 0, 1]),
+        frames=[SimpleNamespace(PlanePositionSequence=[SimpleNamespace(ImagePositionPatient=p)]) for p in positions])
+    corrected = pixels.volume_affine(wrapper, (3, 4, 51))
+    assert corrected[2, 2] == pytest.approx(2.97)
+    np.testing.assert_array_equal(wrapper.affine, affine)
+    data = np.arange(3 * 4 * 51, dtype=float).reshape(3, 4, 51)
+    image = nib.Nifti1Image(data, np.diag([2.7, 2.7, 2.97, 1]))
+    assert pixels.compare_volume(data, corrected, image, 1e-4)['status'] == 'PASS'
+    changed = data.copy()
+    changed[0, 0, 0] += 1
+    assert pixels.compare_volume(changed, corrected, image, 1e-4)['status'] == 'REVIEW'
+    positions[1, 2] += .1
+    with pytest.raises(ValueError, match='Nonuniform'):
+        pixels.volume_affine(wrapper, (3, 4, 51))
+
+
+def test_retry_keeps_order_and_requires_identical_inventory_and_converter():
+    row = dict(era='XA60', subject='12345', session='01', task='doors', run='1')
+    provenance = dict(inventory_sha256='abc', converter_image_sha256='def')
+    previous = dict(provenance=provenance, samples=[dict(row, status='PASS')])
+    assert pixels.retry_rows([row], previous, provenance) == previous['samples']
+    for changed in [dict(provenance, inventory_sha256='other'), dict(provenance, converter_image_sha256='other')]:
+        with pytest.raises(ValueError):
+            pixels.retry_rows([row], previous, changed)
+    with pytest.raises(ValueError, match='order'):
+        pixels.retry_rows([dict(row, task='socialdoors')], previous, provenance)
+
+
+@pytest.mark.parametrize('change_passed_input', [False, True])
+def test_retry_run_never_reconverts_pass_and_rejects_changed_input(tmp_path, monkeypatch, change_passed_input):
+    root = tmp_path / 'project'
+    root.mkdir()
+    sidecar = root / 'sample.json'
+    sidecar.write_text('{}')
+    bids = sidecar.with_suffix('.nii.gz')
+    bids.write_bytes(b'original NIfTI')
+    source = root / 'source.dcm'
+    source.write_bytes(b'original DICOM')
+    container = root / 'container.sif'
+    container.write_bytes(b'converter')
+    row = dict(era='XA30', session='01', subject='12345', task='doors', run='1',
+               source=str(source), bids=str(sidecar), bids_sha256=pixels.digest(sidecar), status='collected')
+    second = dict(row, subject='12346')
+    inventory = root / 'inventory.json'
+    inventory.write_text(json.dumps(dict(samples=[row, second])))
+    result = dict(row, bids=str(bids), status='PASS', source_sha256=pixels.digest(source), bids_sha256=pixels.digest(bids),
+                  canonical=dict(status='PASS', absolute_tolerance=1e-4),
+                  isolated_conversion=dict(status='PASS', absolute_tolerance=1e-4))
+    previous = root / 'old.json'
+    previous.write_text(json.dumps(dict(provenance=dict(inventory_sha256=pixels.digest(inventory),
+        converter_image_sha256=pixels.digest(container)), samples=[result, dict(second, status='ERROR')])))
+    original = previous.read_bytes()
+    args = SimpleNamespace(project=root, output=root / 'work/retry', inventory=inventory,
+        converter_image=container, retry_report=previous, sessions=['01'], absolute_tolerance=1e-4)
+    monkeypatch.setattr(pixels.subprocess, 'run', lambda *a, **k: SimpleNamespace(returncode=0))
+    calls = []
+    def inspect(row, folder, args):
+        calls.append(row['subject'])
+        assert folder.name == 'sample-002'
+        return dict(row, status='PASS')
+    monkeypatch.setattr(pixels, 'inspect', inspect)
+    if change_passed_input:
+        bids.write_bytes(b'changed')
+        with pytest.raises(ValueError, match='inputs changed'):
+            pixels.run(args)
+        assert not calls
+    else:
+        assert pixels.run(args) == 0
+        assert calls == ['12346']
+        report = json.loads((args.output / 'report-private.json').read_text())
+        assert report['samples'][0] == result
+    assert previous.read_bytes() == original

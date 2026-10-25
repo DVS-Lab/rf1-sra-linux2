@@ -98,8 +98,45 @@ def decode(ds):
         while data.ndim > 3 and data.shape[-1] == 1:
             data = data[..., 0]
         # NiBabel DICOM wrappers use patient LPS; NIfTI uses RAS world coordinates.
-        affine = np.diag([-1., -1., 1., 1.]) @ wrapper.affine
+        affine = np.diag([-1., -1., 1., 1.]) @ volume_affine(wrapper, data.shape)
     return data, affine, np.asarray(wrapper.scale_factors).tolist()
+
+
+def volume_affine(wrapper, shape):
+    """Use the full enhanced-MR stack, not a rounded adjacent-slice difference."""
+    affine = wrapper.affine.copy()
+    if not wrapper.is_multiframe:
+        return affine
+    require(len(shape) == 3, 'Enhanced MR must decode to one 3D volume')
+    positions = np.asarray([frame.PlanePositionSequence[0].ImagePositionPatient
+                            for frame in wrapper.frames], dtype=float)
+    require(positions.shape == (shape[2], 3) and shape[2] > 1,
+            'Need exactly one position per decoded slice')
+    positions = positions[np.argsort(positions @ wrapper.slice_normal)]
+    step = (positions[-1] - positions[0]) / (shape[2] - 1)
+    expected = positions[0] + np.arange(shape[2])[:, None] * step
+    require(np.isfinite(positions).all() and np.linalg.norm(step) > 0
+            and np.max(np.linalg.norm(positions - expected, axis=1)) <= 0.01,
+            'Nonuniform DICOM slice positions; no geometry fitting or resampling allowed')
+    require(np.allclose(affine[:3, 3], positions[0], rtol=0, atol=0.01)
+            and np.dot(step, affine[:3, 2]) > 0,
+            'Decoded slice order does not match DICOM positions')
+    affine[:3, 2] = step
+    return affine
+
+
+def retry_rows(rows, previous, provenance):
+    """Retain original sample numbering; never recompute a verified PASS."""
+    require(previous['provenance']['inventory_sha256'] == provenance['inventory_sha256'],
+            'Retry inventory differs from original')
+    require(previous['provenance']['converter_image_sha256'] == provenance['converter_image_sha256'],
+            'Retry converter differs from original')
+    old = previous['samples']
+    keys = ('era', 'subject', 'session', 'task', 'run')
+    require(len(old) == len(rows) and all(all(a[k] == b[k] for k in keys)
+            for a, b in zip(rows, old)), 'Retry sample order differs from original')
+    require(all(r['status'] in ('PASS', 'ERROR', 'REVIEW') for r in old), 'Unknown previous status')
+    return old
 
 
 def reconvert(source, destination, image):
@@ -177,8 +214,29 @@ def run(args):
                       header_helper_sha256=digest(Path(headers.__file__)),
                       converter_image=str(args.converter_image), converter_image_sha256=digest(args.converter_image),
                       nibabel=nib.__version__, pydicom=pydicom.__version__, numpy=np.__version__)
+    old = None
+    if args.retry_report:
+        old = retry_rows(rows, json.loads(args.retry_report.read_text()), provenance)
+        provenance['retry_report'] = str(args.retry_report.resolve())
+        provenance['retry_report_sha256'] = digest(args.retry_report)
     results = []
     for number, row in enumerate(rows, 1):
+        if old and old[number - 1]['status'] == 'PASS':
+            result = old[number - 1]
+            require(result['source'] == row['source']
+                    and Path(result['bids']) in (Path(row['bids']).with_suffix('.nii.gz'),
+                                                Path(row['bids']).with_suffix('.nii'))
+                    and all(result[k]['status'] == 'PASS'
+                            and result[k]['absolute_tolerance'] <= args.absolute_tolerance
+                            for k in ('canonical', 'isolated_conversion')),
+                    'Previous PASS lineage or tolerance differs; cannot reuse')
+            require(digest(Path(result['source'])) == result['source_sha256']
+                    and digest(Path(result['bids'])) == result['bids_sha256']
+                    and digest(Path(row['bids'])) == row['bids_sha256'],
+                    'Previously passing inputs changed; do not reuse their result')
+            results.append(result)
+            print(f'PRESERVED PASS {number}/{len(rows)}; input hashes verified, no conversion', flush=True)
+            continue
         folder = output / f'sample-{number:03d}'
         folder.mkdir()
         print(f"START {number}/{len(rows)} {row['era']} ses-{row['session']} {row['task']}", flush=True)
@@ -215,6 +273,7 @@ def main():
     parser.add_argument('--project', type=Path, required=True)
     parser.add_argument('--inventory', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--retry-report', type=Path, help='Preserve PASS results after input hash verification; retry only unresolved samples in a new output directory')
     parser.add_argument('--source-root', type=Path, default=Path('/ZPOOL/data/sourcedata/sourcedata/rf1-sra'))
     parser.add_argument('--converter-image', type=Path, default=Path('/ZPOOL/data/tools/heudiconv-1.4.0.sif'))
     parser.add_argument('--sessions', nargs='+', choices=('01', '02'), default=['01', '02'])

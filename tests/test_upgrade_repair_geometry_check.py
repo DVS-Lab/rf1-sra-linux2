@@ -157,6 +157,9 @@ def test_freesurfer_upgrade_preserves_other_code_and_products(tmp_path, monkeypa
     production, destination, _ = fixture(tmp_path, monkeypatch, '11935')
     upgrade.upgrade(production, destination, True)
     monkeypatch.setattr(upgrade, '__file__', str(ROOT / 'code/upgrade_repair_geometry_check.py'))
+    real_check_output = subprocess.check_output
+    monkeypatch.setattr(upgrade.subprocess, 'check_output',
+                        lambda command: real_check_output(['git', 'show', command[-1]], cwd=ROOT))
     before = reviewed.signatures([destination / 'bids', destination / 'derivatives', destination / 'stages', production / 'code'])
     upgrade.upgrade_freesurfer(production, destination, True)
     receipt = json.loads((destination / 'repair.json').read_text())

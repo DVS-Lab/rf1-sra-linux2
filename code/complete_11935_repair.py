@@ -47,10 +47,13 @@ def target_fieldmap(name):
     return any(name.startswith(f"sub-11935_ses-01_acq-{task}_run-1_") for task in TASKS)
 
 
-def filter_spec():
-    return {kind: dict(datatype="func", suffix=kind, subject="11935", session="01",
-                       task=list(TASKS), run="1", part=[None, "mag"])
-            for kind in ("bold", "sbref")}
+def filter_spec(tasks=TASKS):
+    require(set(tasks) <= set(TASKS) and tasks, "Unexpected functional task selection")
+    # fMRIPrep applies sbref filters as overrides to each BOLD run's entities.
+    # Only override part: raw SBRefs lack part-mag. Never broaden task/run here.
+    return {"bold": dict(datatype="func", suffix="bold", subject="11935", session="01",
+                         task=list(tasks), run="1", part=[None, "mag"]),
+            "sbref": dict(part=[None, "mag"])}
 
 
 def prune_conversion(project):
@@ -182,6 +185,23 @@ def stage_freesurfer(production, destination, build):
     return target
 
 
+def validate_reference_sources(project, task, sources):
+    stem = f"sub-11935_ses-01_task-{task}_run-1"
+    expected = f"bids:raw:sub-11935/ses-01/func/{stem}_echo-1_sbref.nii.gz"
+    require([s for s in sources if s.startswith("bids:raw:")] == [expected]
+            and any(f"acq-{task}_run-1_" in s and "desc-coeff_fieldmap" in s for s in sources),
+            f"{task}: functional reference does not identify its matched SBRef/fieldmap; "
+            "stop before TEDANA; do not rewrite Sources to bypass validation")
+    for source in sources:
+        parts = source.split(":", 2)
+        require(len(parts) == 3 and parts[0] == "bids" and parts[1] in ("", "raw"),
+                "Unsupported functional source URI")
+        root = project / ("bids" if parts[1] == "raw" else "derivatives/fmriprep")
+        path = root / parts[2]
+        require(path.resolve().is_relative_to(root.resolve()) and path.is_file(),
+                "Functional reference points to a missing or out-of-root source")
+
+
 def validate_functional(project, production, report):
     reviewed.validate_bids(project, "11935")
     func = project / "derivatives/fmriprep/sub-11935/ses-01/func"
@@ -218,13 +238,7 @@ def validate_functional(project, production, report):
         native_mask = func / f"{stem}_part-mag_desc-brain_mask.nii.gz"
         coreg = func / f"{stem}_part-mag_desc-coreg_boldref.nii.gz"
         sources = json.loads(coreg.with_name(coreg.name.replace(".nii.gz", ".json")).read_text())["Sources"]
-        require(any(f"{stem}_echo-1_sbref.nii.gz" in x for x in sources) and
-                any(f"acq-{task}_run-1_" in x and "desc-coeff_fieldmap" in x for x in sources),
-                "Functional reference does not identify its matched SBRef/fieldmap")
-        for source in sources:
-            if source.startswith("bids::"):
-                require((project / "derivatives/fmriprep" / source.removeprefix("bids::")).is_file(),
-                        "Functional reference points to a missing derivative source")
+        validate_reference_sources(project, task, sources)
         mask = func / f"{stem}_part-mag_space-MNI152NLin6Asym_desc-brain_mask.nii.gz"
         coverage = compute_coverage(production / TARGET, mask)
         require(np.isfinite(coverage), "Nonfinite repaired coverage")
@@ -378,11 +392,19 @@ def run(args):
                 require(args.command == "build", "FreeSurfer reference copy missing")
                 reviewed.copy_shared_tree(source.resolve(), target)
         stage_freesurfer(production, destination, args.command == "build")
-        write_json(destination / "filter.json", filter_spec())
+        recovery = receipt.get("sbref_task_recovery")
+        if recovery:
+            require(recovery["task"] == "socialdoors", "Unexpected SBRef recovery task")
+        write_json(destination / "filter.json", filter_spec(("socialdoors",) if recovery else TASKS))
         patch = stage_patch(args, destination)
-        step("fmriprep", fmriprep_command(args, destination, patch["installed_module"]),
+        stage_name = "fmriprep-socialdoors-sbref" if recovery else "fmriprep"
+        step(stage_name, fmriprep_command(args, destination, patch["installed_module"]),
              lambda: execute(["bash", "code/check_fmriprep.sh", "--sublist", sublist]))
-        geometry = destination / "logs/geometry/11935-repaired"
+        if recovery:
+            for relative, digest in recovery["preserved_files"].items():
+                require(initialization.sha(destination / relative) == digest,
+                        f"Preserved processing changed during targeted recovery: {relative}")
+        geometry = destination / "logs/geometry" / ("11935-sbref-corrected" if recovery else "11935-repaired")
         reviewed.check_geometry(destination, geometry, execute)
         functional = validate_functional(destination, production, work / "review")
         step("tedana", ["bash", "code/run_tedana.sh", "--sublist", sublist, "--session", "01", "--jobs", "1"],

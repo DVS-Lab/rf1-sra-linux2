@@ -118,7 +118,33 @@ def test_full_command_is_two_run_backport_not_cohort_upgrade(tmp_path):
     assert "--cifti-output" in command and "fsLR" in command
     assert "--bids-filter-file" in command
     assert repair.filter_spec()["bold"]["task"] == ["doors", "socialdoors"]
-    assert repair.filter_spec()["sbref"]["run"] == "1"
+    assert repair.filter_spec()["sbref"] == {"part": [None, "mag"]}
+    assert repair.filter_spec(("socialdoors",))["bold"]["task"] == ["socialdoors"]
+
+
+@pytest.mark.parametrize('task', ['doors', 'socialdoors'])
+def test_sbref_filter_preserves_current_task_entities(task):
+    entities = dict(subject='11935', session='01', task=task, run='1', part='mag', suffix='sbref')
+    entities.update(repair.filter_spec()['sbref'])
+    assert entities['task'] == task
+    assert entities['run'] == '1'
+
+
+def test_reference_sources_reject_cross_task_and_missing_files(tmp_path):
+    prefix = 'sub-11935/ses-01/'
+    raw = prefix + 'func/sub-11935_ses-01_task-socialdoors_run-1_echo-1_sbref.nii.gz'
+    fmap = prefix + 'fmap/sub-11935_ses-01_acq-socialdoors_run-1_fmapid-auto00001_desc-coeff_fieldmap.nii.gz'
+    sources = ['bids:raw:' + raw, 'bids::' + fmap]
+    for root, relative in [('bids', raw), ('derivatives/fmriprep', fmap)]:
+        path = tmp_path / root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b'fixture')
+    repair.validate_reference_sources(tmp_path, 'socialdoors', sources)
+    with pytest.raises(ValueError, match='matched SBRef'):
+        repair.validate_reference_sources(tmp_path, 'socialdoors', [sources[0].replace('task-socialdoors', 'task-doors'), sources[1]])
+    (tmp_path / 'bids' / raw).unlink()
+    with pytest.raises(ValueError, match='missing'):
+        repair.validate_reference_sources(tmp_path, 'socialdoors', sources)
 
 
 def test_pruning_archives_only_unrelated_isolated_files(tmp_path, monkeypatch):

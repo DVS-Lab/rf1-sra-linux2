@@ -107,7 +107,7 @@ def upgrade(project, destination, apply=False):
                 allowed_old.add(OLDER_11935_CODE[name][0])
             reviewed.require(original["code"].get(name) in allowed_old, "Unrecognized frozen orchestration version")
             payloads[name] = regular(Path(__file__).parent / name)
-            if name == "complete_11935_repair.py" and sha(payloads[name]) == FS_RUNNER_SHA:
+            if name == "complete_11935_repair.py" and sha(payloads[name]) in (FS_RUNNER_SHA, SBREF_RUNNER_SHA):
                 # Keep the geometry-only migration reproducible after a later
                 # runner upgrade; verify the historical blob before using it.
                 payloads[name] = subprocess.check_output(
@@ -172,6 +172,7 @@ def main():
 
 
 FS_RUNNER_SHA = "027df08109eaf086921b7d7f41312c2d12f3cd840716d5a8787b759d86d900c6"
+SBREF_RUNNER_SHA = "e0d5e1da2032edae4ebcdb1053dd3ab3e1cfb5331ae3cef61a20d9d6be6442e9"
 
 
 def upgrade_freesurfer(project, destination, apply=False):
@@ -182,6 +183,9 @@ def upgrade_freesurfer(project, destination, apply=False):
     name = "complete_11935_repair.py"
     runner = destination / "code" / name
     payload = regular(Path(__file__).parent / name)
+    if sha(payload) == SBREF_RUNNER_SHA:
+        payload = subprocess.check_output(
+            ["git", "-C", str(project), "show", "bd3ff07d:code/complete_11935_repair.py"])
     reviewed.require(sha(payload) == FS_RUNNER_SHA, "FreeSurfer upgrade bundle mismatch")
     with ExitStack() as stack:
         for name_lock in ("11935.lock", ".stage.lock"):
