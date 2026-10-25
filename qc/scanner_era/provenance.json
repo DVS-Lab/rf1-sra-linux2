@@ -6,19 +6,19 @@
   ],
   "causal_claim_authorized": false,
   "era_specific_thresholds_calculated": false,
-  "generated_at": "2026-10-24T16:55:41+00:00",
+  "generated_at": "2026-10-25T16:17:45+00:00",
   "outputs": {
-    "figures/task-doors_ses-01_by_scanner_era.png": "41359e4d0f240f240a693eb5e7798fcc385a982e67d793abcc1bcb21f58b34c7",
-    "figures/task-doors_ses-02_by_scanner_era.png": "bb5cfd47c460d1a9ae5003507cdfd7748c30925a34a7a2552acec35bd6ffe9fc",
+    "figures/task-doors_ses-01_by_scanner_era.png": "4747e07ec964477684eff5a2999b1e7c11d09418ef58de4f35d225f5fffabc4f",
+    "figures/task-doors_ses-02_by_scanner_era.png": "f809e80a5362e11b1e77868716f37c07817bb179e72c1e968f6e905a247508de",
     "figures/task-sharedreward_ses-01_by_scanner_era.png": "086b22b4fc9829d3c467531676a4a2d65aba8223e00f0851c2dd2e3ac0dfd1c0",
-    "figures/task-socialdoors_ses-01_by_scanner_era.png": "0d7c7c1a6b42925431a6ca61a9ac747a1bdd463a67345fde4851c4fce1331228",
-    "figures/task-socialdoors_ses-02_by_scanner_era.png": "789953edc0f389da8301ee37c5bc65218a5e6efc108f34ae51d977dbf77a3e56",
+    "figures/task-socialdoors_ses-01_by_scanner_era.png": "0026c05d45de5a0bcf8f950c7b11aea4857e46fa3a7b383ec1ed24313d141152",
+    "figures/task-socialdoors_ses-02_by_scanner_era.png": "9440d0c2dcfec667133fb79acb488dd9dbc71f390f491e722841fb9d3e7c6e3c",
     "figures/task-trust_ses-01_by_scanner_era.png": "057d1eb289eaa5065240d76d2dc26260f824091a725fd8a543c579863151b9ca",
     "figures/task-ugr_ses-01_by_scanner_era.png": "4e8b6695a57e7b86f8fb10519f32d3538a0b1c05ea9ecc262ab3b798cb3cba4f",
-    "figures/task-ugr_ses-02_by_scanner_era.png": "4be1f8407533a652c79d1ecde494db87e5a0af98a94b4fd2ce3882f69fdc6170",
-    "report.md": "f6204f9225821115971d56a2fb0025b280a15ea68ff8aa3e3c486eb4508cc8b0",
-    "run_metrics.tsv": "d7a368992568f12d85aa3980ccd3b5b9fae4b93708d61ed95429a11301cdac6f",
-    "summary.tsv": "7d22dc11fc8935b9431f81f575be55ee73a39969f23405c286f5c55cfdb518e7"
+    "figures/task-ugr_ses-02_by_scanner_era.png": "d89d0bc52f884bca01eec896c28820237be78bde6430c978c7630940b716e5e3",
+    "report.md": "beef18ba6b21e5d3bfda2818a2255010fbc23cb35b718120f7d525e649c3cef8",
+    "run_metrics.tsv": "484461d94d900f822d50ceaab9523316fcc28ae1b6fe3de5b9cca85ac1676215",
+    "summary.tsv": "5b9492dad30a8723c8ef259d43a5155d4ef53f6ef9d29eab84a3adf3a9f34a3b"
   },
   "plot_metrics": [
     "tsnr",
@@ -28,18 +28,18 @@
   ],
   "reporting_code_sha256": "5679063fd7236e34678c469363ab34d9a8309e0e9e3adb1439f1b5150f3ba02f",
   "run_qc": "qc/run_qc.tsv",
-  "run_qc_sha256": "1c9aa9e22937001f51f6b086eeb2518a7f984b18dee81d050fc7502b817c0953",
+  "run_qc_sha256": "e2adf0c556dc5d32f2622cb1a06c7f9adce5f11e84bec3080001eb3035c8dab5",
   "schema_version": 2,
   "smoothness_exclusion_authorized": false,
   "smoothness_source": "canonical MRIQC JSON: axis FWHM voxels times axis spacing mm",
   "software_era_source": "BIDS echo-2 part-mag SoftwareVersions",
-  "source_json_count": 5562,
-  "source_json_inventory_sha256": "d7c60c88305ebda44acc54964c58c446d91238d8a5db5df5e9382f137e5ac962",
+  "source_json_count": 5572,
+  "source_json_inventory_sha256": "34eeb17659dbf667d507652f6aab36b699ed40172ca65fc9901eafd1e8d8f57c",
   "threshold_grouping": [
     "task",
     "session"
   ],
   "thresholds": "qc/thresholds.tsv",
-  "thresholds_sha256": "d7bd9f05672930a5fb02604e9fd5bf4cdc39c9de87fda08d00649caae7842bb6",
+  "thresholds_sha256": "a2c9625c5c962b7cc5a856d8552eb85ebbea639d01d4f0ae4f5078783dc131f0",
   "unknown_software_eras": 0
 }

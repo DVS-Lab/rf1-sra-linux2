@@ -18,7 +18,7 @@ Source: https://github.com/nipreps/mriqc/blob/24.0.2/mriqc/interfaces/functional
 | --- | ---: | ---: | ---: |
 | E11 | 1556 | 211 | 211 |
 | XA30 | 140 | 18 | 18 |
-| XA60 | 1085 | 155 | 155 |
+| XA60 | 1090 | 156 | 156 |
 
 ## Task doors, Session 01
 
@@ -26,10 +26,10 @@ Values are median [Q1, Q3].
 
 | Metric | E11 | XA30 | XA60 |
 | --- | ---: | ---: | ---: |
-| tSNR | 30 [21.9, 34.8] | 31 [27.1, 35.9] | 42.2 [36.8, 48.5] |
-| Mean framewise displacement | 0.159 [0.116, 0.243] | 0.176 [0.112, 0.304] | 0.15 [0.12, 0.206] |
-| TEDANA rejected components | 9 [8, 12] | 12 [10, 14] | 22 [16, 32] |
-| MRIQC smoothness: mean FWHM (mm) | 6.95 [6.68, 7.25] | 8.16 [7.79, 8.43] | 10.5 [10.2, 10.8] |
+| tSNR | 30 [21.9, 34.8] | 31 [27.1, 35.9] | 42.2 [36.9, 48.8] |
+| Mean framewise displacement | 0.159 [0.116, 0.243] | 0.176 [0.112, 0.304] | 0.15 [0.121, 0.206] |
+| TEDANA rejected components | 9 [8, 12] | 12 [10, 14] | 21.5 [16, 32] |
+| MRIQC smoothness: mean FWHM (mm) | 6.95 [6.68, 7.25] | 8.16 [7.79, 8.43] | 10.5 [10.2, 10.7] |
 
 XA60 minus XA30 median FWHM: 2.3 mm (28.2%).
 
@@ -37,7 +37,7 @@ XA60 minus XA30 median FWHM: 2.3 mm (28.2%).
 | --- | ---: | ---: | ---: |
 | E11 | 197 / 197 | 197 | 0 |
 | XA30 | 17 / 17 | 17 | 0 |
-| XA60 | 123 / 123 | 123 | 0 |
+| XA60 | 124 / 124 | 124 | 0 |
 
 ## Task doors, Session 02
 
@@ -45,17 +45,17 @@ Values are median [Q1, Q3].
 
 | Metric | E11 | XA30 | XA60 |
 | --- | ---: | ---: | ---: |
-| tSNR | NA | 36.7 [36.7, 36.7] | 40.3 [34.9, 47.5] |
-| Mean framewise displacement | NA | 0.123 [0.123, 0.123] | 0.192 [0.162, 0.221] |
-| TEDANA rejected components | NA | 8 [8, 8] | 21 [15.5, 37.5] |
-| MRIQC smoothness: mean FWHM (mm) | NA | 7.48 [7.48, 7.48] | 10.3 [9.74, 10.7] |
+| tSNR | NA | 36.7 [36.7, 36.7] | 40.2 [33.5, 47.4] |
+| Mean framewise displacement | NA | 0.123 [0.123, 0.123] | 0.191 [0.164, 0.22] |
+| TEDANA rejected components | NA | 8 [8, 8] | 20.5 [14.5, 36.8] |
+| MRIQC smoothness: mean FWHM (mm) | NA | 7.48 [7.48, 7.48] | 10.2 [9.71, 10.6] |
 
-XA60 minus XA30 median FWHM: 2.85 mm (38.1%).
+XA60 minus XA30 median FWHM: 2.76 mm (36.9%).
 
 | Era | FWHM runs / total | Participants with FWHM | Missing FWHM |
 | --- | ---: | ---: | ---: |
 | XA30 | 1 / 1 | 1 | 0 |
-| XA60 | 31 / 31 | 31 | 0 |
+| XA60 | 32 / 32 | 32 | 0 |
 
 ## Task sharedreward, Session 01
 
@@ -101,17 +101,17 @@ Values are median [Q1, Q3].
 
 | Metric | E11 | XA30 | XA60 |
 | --- | ---: | ---: | ---: |
-| tSNR | NA | 36.6 [36.6, 36.6] | 39.2 [33.3, 47.9] |
-| Mean framewise displacement | NA | 0.122 [0.122, 0.122] | 0.186 [0.16, 0.232] |
-| TEDANA rejected components | NA | 10 [10, 10] | 22 [15, 34.5] |
-| MRIQC smoothness: mean FWHM (mm) | NA | 7.53 [7.53, 7.53] | 10.3 [9.75, 10.7] |
+| tSNR | NA | 36.6 [36.6, 36.6] | 39.1 [32, 47.9] |
+| Mean framewise displacement | NA | 0.122 [0.122, 0.122] | 0.187 [0.16, 0.231] |
+| TEDANA rejected components | NA | 10 [10, 10] | 21 [14, 33.8] |
+| MRIQC smoothness: mean FWHM (mm) | NA | 7.53 [7.53, 7.53] | 10.3 [9.73, 10.6] |
 
-XA60 minus XA30 median FWHM: 2.79 mm (37.1%).
+XA60 minus XA30 median FWHM: 2.74 mm (36.4%).
 
 | Era | FWHM runs / total | Participants with FWHM | Missing FWHM |
 | --- | ---: | ---: | ---: |
 | XA30 | 1 / 1 | 1 | 0 |
-| XA60 | 31 / 31 | 31 | 0 |
+| XA60 | 32 / 32 | 32 | 0 |
 
 ## Task trust, Session 01
 
@@ -157,17 +157,17 @@ Values are median [Q1, Q3].
 
 | Metric | E11 | XA30 | XA60 |
 | --- | ---: | ---: | ---: |
-| tSNR | NA | 37.7 [36.8, 38.7] | 40.7 [32.9, 44.8] |
-| Mean framewise displacement | NA | 0.121 [0.119, 0.123] | 0.188 [0.163, 0.241] |
-| TEDANA rejected components | NA | 11.5 [11.2, 11.8] | 24 [15, 34] |
-| MRIQC smoothness: mean FWHM (mm) | NA | 7.47 [7.47, 7.48] | 10.4 [9.73, 10.8] |
+| tSNR | NA | 37.7 [36.8, 38.7] | 40.6 [32.3, 44.7] |
+| Mean framewise displacement | NA | 0.121 [0.119, 0.123] | 0.188 [0.164, 0.244] |
+| TEDANA rejected components | NA | 11.5 [11.2, 11.8] | 23 [14.5, 34] |
+| MRIQC smoothness: mean FWHM (mm) | NA | 7.47 [7.47, 7.48] | 10.3 [9.72, 10.8] |
 
-XA60 minus XA30 median FWHM: 2.88 mm (38.6%).
+XA60 minus XA30 median FWHM: 2.83 mm (37.9%).
 
 | Era | FWHM runs / total | Participants with FWHM | Missing FWHM |
 | --- | ---: | ---: | ---: |
 | XA30 | 2 / 2 | 1 | 0 |
-| XA60 | 61 / 61 | 31 | 0 |
+| XA60 | 63 / 63 | 32 | 0 |
 
 ## Interpretation
 

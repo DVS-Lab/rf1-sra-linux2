@@ -1,0 +1,28 @@
+Sun Oct 25 01:56:34 PM EDT 2026
+=== Coordinator or verification ===
+No coordinator or verification process
+=== AFNI workers ===
+No AFNI workers
+=== Recent log endings ===
+
+logs/runs/qc-afni-smoothness-20261025-121138.nohup.out
+| socialdoors | 01 | E11 | 196 | 196 | 0 | 3.3261450000000004 | 4.54746 |
+| socialdoors | 01 | XA30 | 17 | 17 | 0 | 3.34378 | 4.56591 |
+| socialdoors | 01 | XA60 | 124 | 124 | 0 | 3.8332100000000002 | 5.4737849999999995 |
+| socialdoors | 02 | XA30 | 1 | 1 | 0 | 3.42387 | 4.72557 |
+| socialdoors | 02 | XA60 | 32 | 32 | 0 | 3.9272650000000002 | 5.8733450000000005 |
+| trust | 01 | E11 | 380 | 204 | 0 | 3.34346 | 4.56991 |
+| trust | 01 | XA30 | 34 | 17 | 0 | 3.345655 | 4.576874999999999 |
+| trust | 01 | XA60 | 238 | 123 | 0 | 3.916525 | 5.506815 |
+| ugr | 01 | E11 | 388 | 205 | 0 | 3.33781 | 4.560905 |
+| ugr | 01 | XA30 | 34 | 17 | 0 | 3.37085 | 4.619695 |
+| ugr | 01 | XA60 | 238 | 121 | 0 | 3.862495 | 5.4999199999999995 |
+| ugr | 02 | XA30 | 2 | 1 | 0 | 3.39417 | 4.679215 |
+| ugr | 02 | XA60 | 63 | 32 | 0 | 3.93161 | 5.50265 |
+CHECK PASSED: every active run measured; source exclusions separately accounted for
+Measurement exit=0; validation exit=0
+Full tables and figures: /ZPOOL/data/projects/rf1-sra-linux2/work/cohort-smoothness-v1
+No smoothing, task-model rebuild, eligibility change, or cohort TEDANA restart performed.
+
+COMMAND EXIT: 0
+Run record saved: /ZPOOL/data/projects/rf1-sra-linux2/logs/records/20261025-121138_qc-afni-smoothness-20261025-121138.md
