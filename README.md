@@ -609,6 +609,11 @@ The optional `--check` marker starts a checker command that runs only after the
 main command exits 0. If no check is supplied, the record says `Check exit:
 none`; if the main command fails, the check is skipped.
 
+While Linux2 code is frozen, share completed records with the
+[append-only log publisher](docs/publish-run-logs.md), not `git add/commit/push`
+on the older local main. It publishes logs onto current remote main without
+changing the local branch, working files or staging area.
+
 Raw DICOM source directories are treated as immutable by preprocessing scripts.
 Localizer directories are reported but no longer moved out of source data.
 
