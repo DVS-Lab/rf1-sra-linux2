@@ -634,6 +634,11 @@ still require visual and scientific review on Linux2.
 
 ## Full-Cohort Imaging QC
 
+For the post-repair QC refresh and the same AFNI baseline smoothness measurement
+used by Shared Reward, see [Cohort QC Refresh And AFNI Smoothness](docs/cohort-afni-smoothness.md).
+This measures all active tasks/sessions without applying smoothing or changing
+settled exclusions; MRIQC raw-data smoothness remains a separate measurement.
+
 Run the group MRIQC report after the full participant batch completes
 participant MRIQC. Build canonical run imaging QC only after MRIQC, TEDANA,
 and the post-fMRIPrep geometry gate are complete. Do not use cohort Tukey

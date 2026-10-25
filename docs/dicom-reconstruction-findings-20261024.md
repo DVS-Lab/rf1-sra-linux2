@@ -101,3 +101,22 @@ conversion, without registration or interpolation. These sample links started
 as metadata candidates, not exact UID-verified conversion links. A unique full
 volume pixel match provides additional direct linkage; missing/mismatched
 pixels remain unresolved, not automatically evidence of interpolation.
+
+## October 25 closeout and deferred smoothing
+
+The October 24 pixel retry passed all 88 samples, preserving the 69 earlier
+passes and resolving the 19 decoder errors. See
+`logs/records/20261024-213931_sbref-pixels-20261024-213931.md`. Each sample tests
+one echo-1 volume, not every volume in the cohort. Within those samples there
+is no evidence that conversion added interpolation. Together with the raw-BIDS
+smoothness findings, this points upstream of downstream preprocessing, but
+does not establish which scanner reconstruction setting caused the difference.
+The distortion-mode difference remains a candidate, not a causal conclusion.
+
+Deferred at the user's request: evaluate AFNI smoothing to match achieved
+smoothness across subjects, rather than assuming a common applied kernel
+produces common final smoothness. Choose the target and processing placement
+in a separate analysis review, assess results within task and session, and
+preserve current outputs in a separate variant. No smoothing implementation,
+QC threshold, eligibility decision, or production processing changes are
+authorized by this note.
