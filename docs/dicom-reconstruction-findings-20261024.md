@@ -49,6 +49,34 @@ different private element. No new source-data collection was required.
   `alFree[10]`. Slot meanings must be obtained for the exact builds; a raw number
   is not an interpretable denoising or smoothing setting by itself.
 
+## Follow-up: Distortion Mode Interpretation
+
+The exact common field is `ASCCONV.sDistortionCorrFilter.ucMode` in all three
+eras. The [sequence-developer VASO FAQ, question 7](https://layerfmri.com/2021/02/22/vaso_ve/)
+documents this Siemens field as 1 = no distortion filter, 2 = 2D correction,
+4 = 3D correction (3 is redirected to 4). This is direct technical documentation
+from sequence developers, not a CMRR-specific enum declaration for every build.
+Using that mapping, our samples imply E11 off, XA30 2D, XA60 off. This is the
+opposite direction to an accidental XA60 enablement. There is no evidence here
+that the enum meaning changed, but exact-build source definitions have not been
+obtained, and the same field name alone cannot prove that they did not change.
+
+An independent header observation supports this interpretation: all 28 sampled
+XA30 DICOMs report `VolumetricProperties=VOLUME`, versus `DISTORTED` for all 36
+XA60 DICOMs; E11 lacks this attribute. This is corroboration, not a standalone
+gradient-correction flag. Siemens' [XA60 reference handbook, page 196](https://doclib.siemens-healthineers.com/rest/v1/view?document-id=1069431)
+describes geometric 2D/3D Distortion Correction separately from Static Field
+Correction for susceptibility distortions. Do not equate this field with the
+later WarpKit operation.
+
+The newer ses-02 echo times differ by 0, -0.48, -0.98 and -1.46 ms respectively:
+13.80/31.54/49.28/67.02 becomes 13.80/31.06/48.30/65.56 ms. The largest relative
+change is approximately -2.18%. Four sampled runs have the newer setting. The
+same first echo and approximately 0.49-ms reduction per subsequent echo are
+consistent with shorter inter-echo timing, but do not establish why it changed
+or whether the operator edited it. The build association is not causal proof.
+These changes do not explain the ses-01 comparison, whose TEs all match.
+
 ## Interpretation and next useful evidence
 
 The headers identify real version/configuration differences, but do not yet
@@ -65,7 +93,11 @@ guidance](https://downloads.cmrr.umn.edu/software/package/multiband/) requests
 the sequence version, variant and scanner model for technical reports. Share
 only suitably reviewed protocol metadata, not complete participant headers.
 
-Separately, compare spatial smoothness at raw/native magnitude and successive
-processing stages within task/session to localize when the difference appears.
-These sample links were metadata candidates, not exact UID-verified conversion
-links; that limitation remains when attributing a particular BIDS run to a source.
+The user confirms the smoothness difference is already in raw BIDS. Keep this
+investigation strictly to DICOMs and raw BIDS; downstream processing cannot be
+its origin. The [isolated pixel-parity test](dicom-bids-pixel-parity.md) compares
+independently decoded DICOM volumes with canonical raw BIDS and a scratch
+conversion, without registration or interpolation. These sample links started
+as metadata candidates, not exact UID-verified conversion links. A unique full
+volume pixel match provides additional direct linkage; missing/mismatched
+pixels remain unresolved, not automatically evidence of interpolation.
