@@ -614,6 +614,10 @@ While Linux2 code is frozen, share completed records with the
 on the older local main. It publishes logs onto current remote main without
 changing the local branch, working files or staging area.
 
+After processing stops, use the [Git checkout synchronization workflow](docs/git-code-and-log-workflow.md)
+to fast-forward main while preserving already-published untracked records.
+Use Git for code and sanitized logs; reserve SCP for private/large review artifacts.
+
 Raw DICOM source directories are treated as immutable by preprocessing scripts.
 Localizer directories are reported but no longer moved out of source data.
 

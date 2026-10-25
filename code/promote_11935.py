@@ -213,8 +213,15 @@ def staged_files(staged, project):
     protected = ready.get("inputs", {})
     require(isinstance(protected, dict), "invalid ready protected inputs")
     for name, expected in protected.items():
-        path = safe(name)
+        path = Path(name).absolute()
+        require(".." not in path.parts, "protected input path traversal")
         require(project in path.parents, "protected input escapes project")
+        # FreeSurfer surface links are observed only, never copied or replaced.
+        # Keep the strict no-link policy for every publication payload path.
+        if project / "derivatives/freesurfer" in path.parents:
+            safe(project / "derivatives/freesurfer")
+        else:
+            safe(path)
         if expected is None:
             require(not path.exists(), f"protected input appeared: {path}")
         else:
@@ -274,7 +281,8 @@ def merge_scans(project, staged, hashes):
             "staged_sha256": sha256(new)}
 
 
-def external_outputs(root):
+def external_outputs(root, *, file_walker=None):
+    walk = file_walker or files_under
     files, directories, rebuild, l3 = set(), set(), set(), []
     for variant in ("fsl", "fsl-no-tedana-age55"):
         base = child(root, f"derivatives/{variant}")
@@ -293,7 +301,7 @@ def external_outputs(root):
                 rebuild.add(rel)
                 if safe(path).is_dir():
                     directories.add(rel)
-                files.update(p.relative_to(root).as_posix() for p in files_under(path))
+                files.update(p.relative_to(root).as_posix() for p in walk(path))
         ev_session = child(root, f"derivatives/{variant}/EVfiles/{SESSION}")
         if ev_session.exists():
             for folder in ev_session.iterdir():
@@ -307,7 +315,7 @@ def external_outputs(root):
                         rebuild.add(rel)
                         if safe(item).is_dir():
                             directories.add(rel)
-                        files.update(p.relative_to(root).as_posix() for p in files_under(item))
+                        files.update(p.relative_to(root).as_posix() for p in walk(item))
         if base.exists():
             for item in base.iterdir():
                 if item.name.startswith("L3"):

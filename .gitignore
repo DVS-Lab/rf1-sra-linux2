@@ -38,6 +38,9 @@ code/hpc_output/
 *.out
 *.err
 nohup.out
+# Persistent advisory-lock files are runtime coordination, not source files.
+/.11935-repair.lock
+/.reviewed-install.lock
 
 # Large or generated imaging files
 *.nii
