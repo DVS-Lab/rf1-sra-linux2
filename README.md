@@ -636,6 +636,8 @@ still require visual and scientific review on Linux2.
 
 For the post-repair QC refresh and the same AFNI baseline smoothness measurement
 used by Shared Reward, see [Cohort QC Refresh And AFNI Smoothness](docs/cohort-afni-smoothness.md).
+For the separate 6-mm target evaluation, upper-tail checks, and paired plots across
+all tasks/sessions, see [Isolated 6-mm Smoothing Evaluation](docs/cohort-smoothing-6mm-evaluation.md).
 This measures all active tasks/sessions without applying smoothing or changing
 settled exclusions; MRIQC raw-data smoothness remains a separate measurement.
 
