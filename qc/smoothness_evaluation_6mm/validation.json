@@ -1,0 +1,11 @@
+{
+  "all_active_runs_within_target": false,
+  "counts": {
+    "outside_tolerance": 5,
+    "source_excluded": 13,
+    "within_tolerance": 2781
+  },
+  "eligibility_changed": false,
+  "production_promoted": false,
+  "technical_complete": true
+}
