@@ -1,5 +1,9 @@
 # TUBRIC QA: RF1 Validation Report
 
+**Current functional-only view:** [plots, HTML and validation](../tubric_qa_functional/).
+The report below is preserved as the original all-modality snapshot, including
+its now-resolved anatomical duplicate findings and out-of-scope anatomical IQM gaps.
+
 These are **RF1 study results**, not demonstration data for the reusable
 [TUBRIC QA package](https://github.com/DVS-Lab/tubric-qa).
 The package repository contains software, tests, documentation and a synthetic

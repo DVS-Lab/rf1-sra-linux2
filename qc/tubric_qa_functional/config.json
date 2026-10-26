@@ -1,0 +1,86 @@
+{
+  "additional_group_fields": [],
+  "iqr_multiplier": 1.5,
+  "metrics": {
+    "cjv": {
+      "direction": "upper",
+      "label": "Coefficient of joint variation",
+      "modalities": [
+        "T1w",
+        "T2w"
+      ],
+      "unit": "ratio"
+    },
+    "cnr": {
+      "direction": "lower",
+      "label": "Contrast-to-noise ratio",
+      "modalities": [
+        "T1w",
+        "T2w"
+      ],
+      "unit": "ratio"
+    },
+    "dvars_std": {
+      "direction": "upper",
+      "label": "Standardized DVARS",
+      "modalities": [
+        "bold"
+      ],
+      "unit": "ratio"
+    },
+    "efc": {
+      "direction": "upper",
+      "label": "Entropy focus criterion",
+      "modalities": [
+        "bold",
+        "T1w",
+        "T2w"
+      ],
+      "unit": "ratio"
+    },
+    "fber": {
+      "direction": "lower",
+      "label": "Foreground/background energy",
+      "modalities": [
+        "bold",
+        "T1w",
+        "T2w"
+      ],
+      "unit": "ratio"
+    },
+    "fd_mean": {
+      "direction": "upper",
+      "label": "Mean framewise displacement",
+      "modalities": [
+        "bold"
+      ],
+      "unit": "mm"
+    },
+    "fwhm_mean_mm": {
+      "direction": "none",
+      "label": "MRIQC mean directional FWHM",
+      "modalities": [
+        "bold",
+        "T1w",
+        "T2w"
+      ],
+      "unit": "mm"
+    },
+    "tsnr": {
+      "direction": "lower",
+      "label": "Temporal SNR",
+      "modalities": [
+        "bold"
+      ],
+      "unit": "ratio"
+    }
+  },
+  "min_n": 5,
+  "plot_metrics": [
+    "fwhm_mean_mm",
+    "tsnr",
+    "fd_mean"
+  ],
+  "schema_version": 1,
+  "software_labels": {}
+}
