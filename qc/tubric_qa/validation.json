@@ -1,0 +1,24 @@
+{
+  "core_inputs_complete": false,
+  "exclusion_decisions_made": false,
+  "mriqc_status_counts": {
+    "available": 11196,
+    "missing": 396,
+    "not_applicable": 11192
+  },
+  "n_applicable": 11592,
+  "n_identity_or_metadata_issues": 4,
+  "n_images": 22784,
+  "n_images_flagged": 853,
+  "n_missing_core_metrics": 396,
+  "n_mriqc_available": 11196,
+  "n_mriqc_unresolved": 396,
+  "n_not_applicable": 11192,
+  "n_orphan_mriqc": 0,
+  "n_subjects": 354,
+  "schema_version": 1,
+  "selection": {
+    "session": [],
+    "task": []
+  }
+}
