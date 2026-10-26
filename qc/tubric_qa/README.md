@@ -59,11 +59,39 @@ and is not silently relabeled as a complete anatomical QC assessment.
 
 The four identity/metadata issues are **two duplicate anatomical identities**:
 11982 and 12038 each have both `ses-01_T1w.nii` and `ses-01_T1w.nii.gz`.
-They are not scanner-software metadata conflicts. Equality of their actual
-decompressed contents has not yet been verified on Linux2. Use the read-only
-command below; it does not remove files. If identical, the extra uncompressed
-copy can subsequently be archived outside BIDS with provenance. If different,
-keep both pending source review. No fMRI reprocessing is implied by this check.
+They are not scanner-software metadata conflicts. The published Linux2
+diagnostic `20261026-160321_tubric-qa-reconciliation-20261026-160321.md`
+confirmed both pairs are byte-identical after decompression, including headers
+and voxel data. Each decompressed image is 19,267,936 bytes. SHA256:
+
+- 11982: `97860a68869432b0d804e5d87c684ee5b59a956663bb69bec20d3a047170da52`
+- 12038: `1ac9496099e917726a636e2e71e0cc26e778df9e07ef450d39f5b6fcdd675e74`
+
+No fMRI reprocessing is needed. The guarded cleanup below pins these reviewed
+hashes and archives only the extra uncompressed `.nii` copies outside BIDS.
+The archive's `receipt.json` records the original paths, archived paths, content
+hashes and retained compressed-file hashes. Preview is read-only; apply can
+resume an interrupted archive and refuses mismatches or occupied destinations.
+No `.nii.gz`, sidecar, derivative, QC rule, or settled exclusion is modified.
+
+```bash
+python3 code/archive_t1w_duplicates.py preview --project "$PWD"
+python3 code/archive_t1w_duplicates.py apply --project "$PWD"
+python3 code/archive_t1w_duplicates.py check --project "$PWD"
+```
+
+Archive location: `work/t1w-compression-duplicates-20261026/`. Installation
+remains pending until the Linux2 apply/check log confirms success.
+
+The published TUBRIC report remains an immutable **pre-cleanup snapshot**.
+Its four historical duplicate findings are not edited into retrospective
+passes. Artifact-only verification still works; `check --inputs` will correctly
+notice the two intentionally archived paths. A future fresh inventory should
+have 394 anatomical entries rather than 396 (all still without anatomical
+MRIQC). Neither rebuilding this inventory nor running anatomical MRIQC is
+required to validate this cleanup or the completed functional processing.
+
+The original read-only diagnostic can be repeated before archiving:
 
 ```bash
 python3 code/reconcile_tubric_qa.py --project "$PWD" --check-anatomy
