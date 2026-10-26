@@ -80,8 +80,12 @@ python3 code/archive_t1w_duplicates.py apply --project "$PWD"
 python3 code/archive_t1w_duplicates.py check --project "$PWD"
 ```
 
-Archive location: `work/t1w-compression-duplicates-20261026/`. Installation
-remains pending until the Linux2 apply/check log confirms success.
+**Closed on 2026-10-26.** The published
+[archive/check log](../../logs/records/20261026-161907_t1w-duplicate-archive-20261026-161907.md)
+confirms both apply and independent check exited zero. Both uncompressed
+copies are safely archived under `work/t1w-compression-duplicates-20261026/`,
+with `receipt.json`; both retained `.nii.gz` files are byte-unchanged. No
+processing reruns, QC-rule changes or settled-exclusion changes are required.
 
 The published TUBRIC report remains an immutable **pre-cleanup snapshot**.
 Its four historical duplicate findings are not edited into retrospective
