@@ -1,8 +1,11 @@
 # Corrected FD, tSNR and Coverage Handoff
 
-**Latest step:** the independent FD/tSNR handoff has passed on Linux2. Finish with
-the [paired-task intersection below](#paired-task-finalization), not another
-independent handoff build.
+**Latest step:** the independent FD/tSNR handoff has passed on Linux2. Katie's
+final FD/tSNR exclusions are now pending the
+[paired-difference diagnostic](socialdoors-paired-diagnostic.md), including
+flagged but source-valid, coverage-passing pairs. The paired-task intersection
+below is the strict comparison set, not a final Katie instruction. Sophia's
+verified UGR selection remains unchanged. Do not rebuild the independent handoff.
 
 October 27, 2026: the original coverage95 handoff enforced coverage and settled
 decisions but treated FD and tSNR flags as descriptive. That did not implement

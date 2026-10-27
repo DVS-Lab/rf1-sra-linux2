@@ -1,18 +1,29 @@
 # Katie and Sophia: Validated Imaging Handoff
 
-## Current Finalization
+## Current Status: Katie Diagnostic Pending
+
+**October 27 update:** do not finalize Katie's FD/tSNR exclusions yet. The PI
+requested a [paired-difference diagnostic](../socialdoors-paired-diagnostic.md)
+including FD/tSNR-flagged pairs, while preserving settled source exclusions and
+>=95% coverage for each run. The strict both-tasks-pass selection below is now a
+comparison set, not a final instruction for Katie. No exclusion will be assigned
+solely because the Social Doors minus Doors effect is extreme. Sophia's verified
+UGR handoff is unchanged.
+
+## Verified FD/tSNR Handoff and Strict Comparison
 
 The October 27 FD/tSNR handoff passed build and check (both exit 0): independent
 imaging Ns are UGR **137**, Social Doors **129**, and Doors **124**. These are not
 paper Ns. See the [validation record](../../logs/records/20261027-141630_coverage95-fd-tsnr-handoff-20261027-141630.md).
 
-The PI clarified that Katie's Social Doors > nonsocial Doors comparison requires
-**both tasks to pass** in the same session. Finalize that table-only intersection
-using [the paired handoff commands](../fd-tsnr-paper-handoff.md#paired-task-finalization).
+The strict comparison requires **both tasks to pass** in the same session. That
+table-only intersection is available using
+[the paired handoff commands](../fd-tsnr-paper-handoff.md#paired-task-finalization),
+but is not the final Katie selection while the paired diagnostic is pending.
 UGR selections stay byte-for-byte unchanged; settled exclusions remain binding.
 The paired N must come from this final validation, not from either independent N.
 
-After the paired check passes, use this Linux2 root:
+After its check passes, the strict comparison uses this Linux2 root:
 
 ```text
 /ZPOOL/data/projects/rf1-sra-linux2/work/paper-handoff-fd-tsnr-paired-v1/
@@ -31,7 +42,7 @@ The existing cross-task L2 template has a single all-ones EV/contrast and comput
 a mean; it must not substitute for the difference. Use the matched L1 estimates
 in the downstream within-participant contrast procedure. Do not compare the tasks
 as unpaired groups. Intersect with the unchanged October 26 survey/linkage cohorts,
-then rebuild aligned L3 inputs and report final paper Ns. Do not reapply aggregate
+then rebuild aligned L3 inputs once Katie's policy is finalized and report final paper Ns. Do not reapply aggregate
 QC or TEDANA exclusions. No preprocessing, L1, or UGR L2 rerun is needed.
 
 ## Background to the Correction
