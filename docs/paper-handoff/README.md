@@ -1,6 +1,19 @@
 # Katie and Sophia: Validated Imaging Handoff
 
-**Current handoff, October 22, 2026.** Use this page for the papers' revised
+**Correction, October 27, 2026: the coverage-only handoff below is superseded
+for L3 selection.** It did not enforce the intended mean-FD and tSNR exclusions.
+Use the [replacement build and validation instructions](../fd-tsnr-paper-handoff.md).
+The replacement uses upper-tail FD and lower-tail tSNR 1.5-IQR fences within
+task/session, alongside coverage >=95%, and preserves settled exclusions.
+No TEDANA-count exclusion applies. It selects a passing single-run UGR L1 when
+the old paired L2 includes a newly excluded run. Do not merely filter subjects
+from the old input table. New Linux2 validation must establish the corrected Ns
+and paths; 137/145 and the subsequent 110/116 are not final corrected-policy Ns.
+
+## Historical Coverage-Only Handoff
+
+The information below records the October 22 handoff, not current instructions.
+It describes the papers' revised
 **age-55+, ses-01 activation analyses without TEDANA nuisance regressors**.
 Age was selected from Linux2's `bids/participants.tsv`.
 
@@ -38,8 +51,9 @@ exclusion or a reason to substitute an older input list.
   regions; it is not literally all brain tissue.
 - **No TEDANA-component-count exclusion.** These outputs use base fMRIPrep
   nuisance regressors without TEDANA rejected-component regressors.
-- Do not reapply old aggregate imaging-outlier exclusions. FD, tSNR, and other
-  QC flags are descriptive unless an explicit reviewed exclusion applies.
+- Historical policy only: FD and tSNR flags were descriptive. This is the error
+  corrected by the October 27 replacement above. Never use the aggregate flag,
+  which also contains TEDANA and the superseded boxplot coverage criterion.
 - Evaluate each task/session independently. Ses-02 cannot exclude ses-01;
   Doors cannot exclude Social Doors. There is no blanket subject-level QC exclusion.
 - Preserve good UGR runs. The table already selects paired L2 when both runs

@@ -1,5 +1,10 @@
 # Coverage95 paper handoff
 
+**Superseded for paper selection, October 27, 2026.** This historical procedure
+omitted intended FD and tSNR exclusions. Keep its outputs as provenance, but use
+the [corrected FD/tSNR/coverage handoff](fd-tsnr-paper-handoff.md) for new L3 inputs.
+No settled exclusion or completed processing is changed.
+
 For Jacob's current validated paths, starting Ns, selection rules, and next
 steps, use the [canonical paper handoff README](paper-handoff/README.md).
 This page is the technical regeneration runbook, not a request to rerun completed jobs.
