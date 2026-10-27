@@ -1,5 +1,9 @@
 # Corrected FD, tSNR and Coverage Handoff
 
+**Latest step:** the independent FD/tSNR handoff has passed on Linux2. Finish with
+the [paired-task intersection below](#paired-task-finalization), not another
+independent handoff build.
+
 October 27, 2026: the original coverage95 handoff enforced coverage and settled
 decisions but treated FD and tSNR flags as descriptive. That did not implement
 the intended paper policy. This replacement adds the intended exclusions without
@@ -92,3 +96,45 @@ participant-level nonselection reasons.
 Do not share a replacement handoff until its check exits zero. After that,
 regenerate L3 inputs using its exact paths and the unchanged paper covariates.
 No scientific approval or re-review of settled exclusions is needed.
+
+## Paired-Task Finalization
+
+The October 27 14:16:30 Linux2 handoff passed build/check. Its independent imaging
+Ns are UGR 137, Social Doors 129, Doors 124. Five UGR participants switched from a
+pair to their passing single run. The additional rule for Katie is that **both
+Social Doors and Doors must pass**, using each task's own ses-01 fences. Neither
+task's failure excludes a participant from UGR.
+
+Run this with no processing using this checkout active:
+
+```bash
+(
+set -euo pipefail
+umask 0000
+cd /ZPOOL/data/projects/rf1-sra-linux2
+git fetch origin
+python3 code/sync_published_checkout.py --project "$PWD" --apply --processing-stopped
+bash code/run_paired_paper_handoff.sh
+)
+```
+
+The launcher uses the already-validated source at
+`work/coverage95-fd-tsnr-handoff-20261027-141630`, verifies its decisions and selected
+products, and creates `work/paper-handoff-fd-tsnr-paired-v1`. It checks the new
+handoff and publishes logs automatically via `publish_run_logs.py`. If the output
+already exists, it checks it without overwriting. An incomplete or changed
+handoff fails closed. `umask 0000` is retained.
+
+`paired_socialdoors/selected_pairs.tsv` has one row per participant/session/contrast
+with both task L1 paths explicitly named. Both task-specific tables have the same
+subjects and contrast order. `paired_membership.tsv` explains nonselection.
+Individual run decisions are unchanged: a good run is not relabeled as bad when
+its partner fails. The new gate is eligibility for the paired analysis.
+UGR tables are copied byte-for-byte, retaining all passing-run choices.
+
+These tables do not calculate difference images. The current Social Doors L2
+template computes a mean across tasks, not Social Doors minus Doors; Jacob's
+downstream paired contrast must use the matched L1 inputs. This script launches
+no FEAT, MRIQC, fMRIPrep or TEDANA work. Final paper Ns still require the approved
+October 26 survey/linkage intersection. The existing 110/116 cannot be reused as
+final Ns after the corrected imaging policy.

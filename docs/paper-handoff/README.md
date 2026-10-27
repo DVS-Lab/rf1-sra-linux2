@@ -1,5 +1,41 @@
 # Katie and Sophia: Validated Imaging Handoff
 
+## Current Finalization
+
+The October 27 FD/tSNR handoff passed build and check (both exit 0): independent
+imaging Ns are UGR **137**, Social Doors **129**, and Doors **124**. These are not
+paper Ns. See the [validation record](../../logs/records/20261027-141630_coverage95-fd-tsnr-handoff-20261027-141630.md).
+
+The PI clarified that Katie's Social Doors > nonsocial Doors comparison requires
+**both tasks to pass** in the same session. Finalize that table-only intersection
+using [the paired handoff commands](../fd-tsnr-paper-handoff.md#paired-task-finalization).
+UGR selections stay byte-for-byte unchanged; settled exclusions remain binding.
+The paired N must come from this final validation, not from either independent N.
+
+After the paired check passes, use this Linux2 root:
+
+```text
+/ZPOOL/data/projects/rf1-sra-linux2/work/paper-handoff-fd-tsnr-paired-v1/
+```
+
+- Katie: `paired_socialdoors/selected_pairs.tsv` explicitly pairs the corresponding
+  Social Doors and Doors L1 estimates, variance images, masks and DOF files.
+- The `socialdoors/selected_inputs.tsv` and `doors/selected_inputs.tsv` tables
+  contain the identical paired subjects in matching contrast order.
+- Sophia: `ugr/selected_inputs.tsv`, retaining the verified paired L2 or single-run
+  L1 choice based on passing UGR runs.
+- `counts.tsv` and `paired_membership.tsv` document imaging Ns and pairing losses.
+
+These are analysis inputs, not newly computed Social Doors minus Doors maps.
+The existing cross-task L2 template has a single all-ones EV/contrast and computes
+a mean; it must not substitute for the difference. Use the matched L1 estimates
+in the downstream within-participant contrast procedure. Do not compare the tasks
+as unpaired groups. Intersect with the unchanged October 26 survey/linkage cohorts,
+then rebuild aligned L3 inputs and report final paper Ns. Do not reapply aggregate
+QC or TEDANA exclusions. No preprocessing, L1, or UGR L2 rerun is needed.
+
+## Background to the Correction
+
 **Correction, October 27, 2026: the coverage-only handoff below is superseded
 for L3 selection.** It did not enforce the intended mean-FD and tSNR exclusions.
 Use the [replacement build and validation instructions](../fd-tsnr-paper-handoff.md).
