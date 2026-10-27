@@ -1,0 +1,353 @@
+subject	session	diagnostic_pair	group	unavailable_partner_reasons
+10317	01	True	strict_pass	
+10369	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10402	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10418	01	True	strict_pass	
+10462	01	True	strict_pass	
+10478	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10486	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10529	01	True	strict_pass	
+10541	01	True	fd_tsnr_flagged	
+10559	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10572	01	True	strict_pass	
+10581	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10584	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10585	01	True	strict_pass	
+10589	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10590	01	True	strict_pass	
+10596	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10603	01	True	strict_pass	
+10606	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10608	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10617	01	True	strict_pass	
+10636	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10638	01	True	strict_pass	
+10640	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10641	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10642	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10644	01	True	strict_pass	
+10647	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10649	01	True	strict_pass	
+10652	01	True	strict_pass	
+10656	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10657	01	True	fd_tsnr_flagged	
+10661	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10663	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10668	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10673	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10674	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10677	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10685	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10690	01	True	strict_pass	
+10691	01	True	strict_pass	
+10700	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10701	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10713	01	True	fd_tsnr_flagged	
+10716	01	True	strict_pass	
+10718	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10720	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10723	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10741	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10748	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10767	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10770	01	True	strict_pass	
+10777	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10781	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10783	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10785	01	True	strict_pass	
+10794	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10800	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10801	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10802	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10803	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10804	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10806	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10807	01	True	strict_pass	
+10809	01	True	strict_pass	
+10810	01	True	strict_pass	
+10812	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-10812/ses-01/func/sub-10812_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'
+10817	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10827	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10831	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10834	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10836	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10838	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10843	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10850	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10854	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10857	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10858	01	True	fd_tsnr_flagged	
+10860	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10862	01	True	strict_pass	
+10863	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10866	01	True	strict_pass	
+10875	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10881	01	True	fd_tsnr_flagged	
+10886	01	True	fd_tsnr_flagged	
+10887	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10896	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10897	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10898	01	True	strict_pass	
+10908	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10913	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-10913/ses-01/func/sub-10913_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-10913/ses-01/func/sub-10913_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+10918	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10919	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10924	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10926	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10928	01	True	strict_pass	
+10929	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10930	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10938	01	True	strict_pass	
+10940	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10950	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10951	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10952	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10953	01	True	fd_tsnr_flagged	
+10954	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10956	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10958	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10961	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10964	01	True	strict_pass	
+10966	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10969	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10974	01	True	fd_tsnr_flagged	
+10977	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10979	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10983	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10984	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+10998	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11005	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11007	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11012	01	True	strict_pass	
+11016	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11021	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11030	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11031	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11036	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11039	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11042	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11053	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11058	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11060	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11063	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11064	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11065	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11066	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11068	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11071	01	True	strict_pass	
+11072	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11074	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11075	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11075/ses-01/func/sub-11075_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11075/ses-01/func/sub-11075_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11076	01	True	strict_pass	
+11078	01	True	strict_pass	
+11083	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11083/ses-01/func/sub-11083_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11083/ses-01/func/sub-11083_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11084	01	True	strict_pass	
+11085	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11085/ses-01/func/sub-11085_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11085/ses-01/func/sub-11085_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11090	01	True	fd_tsnr_flagged	
+11110	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11110/ses-01/func/sub-11110_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11110/ses-01/func/sub-11110_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11113	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11116	01	True	strict_pass	
+11120	01	True	strict_pass	
+11125	01	False	not_paired	socialdoors:missing_or_invalid:Canonical task EV missing or empty|doors:missing_or_invalid:Canonical task EV missing or empty
+11126	01	True	strict_pass	
+11128	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11128/ses-01/func/sub-11128_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11128/ses-01/func/sub-11128_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11134	01	True	strict_pass	
+11139	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11145	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11145/ses-01/func/sub-11145_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11145/ses-01/func/sub-11145_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11164	01	True	strict_pass	
+11167	01	True	strict_pass	
+11168	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11171	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11177	01	True	strict_pass	
+11192	01	True	strict_pass	
+11193	01	True	strict_pass	
+11201	01	True	fd_tsnr_flagged	
+11203	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11203/ses-01/func/sub-11203_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11203/ses-01/func/sub-11203_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11209	01	True	strict_pass	
+11227	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11238	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11241	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11246	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11276	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11286	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11301	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11311	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11312	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11316	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11317	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11318	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11321	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11325	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11326	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11329	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11330	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11337	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11338	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11340	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11343	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11345	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11348	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11358	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11364	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11367	01	True	strict_pass	
+11374	01	True	fd_tsnr_flagged	
+11376	01	True	strict_pass	
+11377	01	True	strict_pass	
+11387	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11396	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11396/ses-01/func/sub-11396_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11396/ses-01/func/sub-11396_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11410	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11416	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11426	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11430	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11432	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11433	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11435	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11439	01	True	strict_pass	
+11440	01	True	strict_pass	
+11443	01	False	not_paired	socialdoors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11443/ses-01/func/sub-11443_ses-01_task-socialdoors_run-1_part-mag_desc-confounds_timeseries.tsv'|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11443/ses-01/func/sub-11443_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11450	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11451	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11461	01	True	strict_pass	
+11462	01	True	strict_pass	
+11472	01	True	strict_pass	
+11492	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11493	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11498	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11517	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11518	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11523	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11526	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11527	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11529	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11530	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11532	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11533	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11534	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11535	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11536	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11539	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11540	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11542	01	True	strict_pass	
+11545	01	True	strict_pass	
+11551	01	True	strict_pass	
+11559	01	True	strict_pass	
+11560	01	True	fd_tsnr_flagged	
+11563	01	True	strict_pass	
+11565	01	True	strict_pass	
+11570	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11572	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11579	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11586	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11587	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11588	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11591	01	True	strict_pass	
+11597	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11598	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11599	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11600	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11606	01	True	strict_pass	
+11614	01	True	strict_pass	
+11622	01	False	not_paired	doors:exclude_below_95
+11623	01	True	strict_pass	
+11625	01	True	strict_pass	
+11626	01	True	strict_pass	
+11628	01	True	strict_pass	
+11631	01	True	strict_pass	
+11651	01	True	strict_pass	
+11660	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11670	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11674	01	True	strict_pass	
+11679	01	True	strict_pass	
+11681	01	True	strict_pass	
+11692	01	False	not_paired	doors:exclude_below_95
+11694	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11701	01	True	strict_pass	
+11703	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11705	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11709	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11710	01	True	strict_pass	
+11714	01	True	strict_pass	
+11719	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11720	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11722	01	True	strict_pass	
+11723	01	True	strict_pass	
+11736	01	True	strict_pass	
+11744	01	True	strict_pass	
+11746	01	True	strict_pass	
+11748	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11756	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11764	01	True	strict_pass	
+11772	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11773	01	True	strict_pass	
+11774	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11784	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11787	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11788	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11789	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11790	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11793	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11795	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11815	01	True	strict_pass	
+11822	01	True	strict_pass	
+11823	01	True	strict_pass	
+11824	01	True	strict_pass	
+11828	01	True	strict_pass	
+11829	01	True	strict_pass	
+11840	01	True	strict_pass	
+11847	01	True	strict_pass	
+11853	01	True	strict_pass	
+11854	01	True	strict_pass	
+11861	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11866	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11867	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11870	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11872	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11876	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11877	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+11881	01	True	strict_pass	
+11885	01	True	strict_pass	
+11891	01	True	strict_pass	
+11897	01	True	strict_pass	
+11900	01	True	strict_pass	
+11902	01	True	strict_pass	
+11909	01	True	strict_pass	
+11913	01	True	strict_pass	
+11914	01	True	strict_pass	
+11920	01	True	strict_pass	
+11922	01	True	strict_pass	
+11923	01	True	strict_pass	
+11924	01	True	strict_pass	
+11926	01	True	strict_pass	
+11928	01	True	strict_pass	
+11929	01	True	strict_pass	
+11931	01	True	fd_tsnr_flagged	
+11935	01	False	not_paired	socialdoors:exclude_below_95|doors:missing_or_invalid:[Errno 2] No such file or directory: '/ZPOOL/data/projects/rf1-sra-linux2/derivatives/fmriprep/sub-11935/ses-01/func/sub-11935_ses-01_task-doors_run-1_part-mag_desc-confounds_timeseries.tsv'
+11939	01	True	strict_pass	
+11943	01	True	strict_pass	
+11949	01	True	fd_tsnr_flagged	
+11960	01	False	not_paired	socialdoors:exclude_below_95|doors:exclude_below_95
+11969	01	True	strict_pass	
+11974	01	True	strict_pass	
+11976	01	True	strict_pass	
+11982	01	True	strict_pass	
+11984	01	True	strict_pass	
+12008	01	True	strict_pass	
+12011	01	True	strict_pass	
+12013	01	True	strict_pass	
+12018	01	True	strict_pass	
+12020	01	True	strict_pass	
+12021	01	True	strict_pass	
+12031	01	True	strict_pass	
+12032	01	True	strict_pass	
+12033	01	True	strict_pass	
+12036	01	True	strict_pass	
+12037	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12038	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12039	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12041	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12047	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12049	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12051	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12054	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12055	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55
+12057	01	False	not_paired	socialdoors:under_55:Age below 55|doors:under_55:Age below 55

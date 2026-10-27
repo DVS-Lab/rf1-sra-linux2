@@ -1,14 +1,31 @@
 # Katie and Sophia: Validated Imaging Handoff
 
-## Current Status: Katie Diagnostic Pending
+## Current Status: Paired Diagnostic Reviewed
 
-**October 27 update:** do not finalize Katie's FD/tSNR exclusions yet. The PI
-requested a [paired-difference diagnostic](../socialdoors-paired-diagnostic.md)
-including FD/tSNR-flagged pairs, while preserving settled source exclusions and
->=95% coverage for each run. The strict both-tasks-pass selection below is now a
-comparison set, not a final instruction for Katie. No exclusion will be assigned
-solely because the Social Doors minus Doors effect is extreme. Sophia's verified
-UGR handoff is unchanged.
+**October 27 review:** the [paired diagnostic passed](../../logs/records/20261027-145845_socialdoors-paired-diagnostic-20261027-145845.md)
+with 135 source-valid, coverage-passing pairs: **121 pass both tasks' FD/tSNR
+rules; 14 have high FD; none has low-tSNR failure**. The flagged pairs still have
+higher uncertainty after subtraction. The recommendation is to retain the
+already-specified FD/tSNR rules for the primary analysis, not replace them with
+exclusions based on observed effects. The broader 135-pair set is available for
+a labeled sensitivity analysis. See the [review and plots](../../qc/paired_difference/socialdoors-v1/README.md).
+
+The explicit **121-pair input list is now in Git**:
+
+```text
+/ZPOOL/data/projects/rf1-sra-linux2/qc/paired_difference/socialdoors-v1/strict_pairs.tsv
+```
+
+It has four corresponding contrasts per participant and both tasks' exact L1
+COPE/VARCOPE/mask/DOF paths. No further pairing job is needed. Filter to the
+intended contrast and intersect with Katie's approved survey/linkage roster
+before its old imaging-QC exclusions. **121 is the imaging N, not the final paper
+N.** No new exclusion based on contrast effects or uncertainty is assigned.
+
+Sophia's verified UGR selection is unchanged: **137 imaging participants**, using
+`/ZPOOL/data/projects/rf1-sra-linux2/work/coverage95-fd-tsnr-handoff-20261027-141630/ugr/selected_inputs.tsv`.
+Good single-run UGR inputs remain preserved. Settled source exclusions, >=95%
+coverage and the absence of a TEDANA-component-count exclusion remain unchanged.
 
 ## Verified FD/tSNR Handoff and Strict Comparison
 
@@ -16,14 +33,13 @@ The October 27 FD/tSNR handoff passed build and check (both exit 0): independent
 imaging Ns are UGR **137**, Social Doors **129**, and Doors **124**. These are not
 paper Ns. See the [validation record](../../logs/records/20261027-141630_coverage95-fd-tsnr-handoff-20261027-141630.md).
 
-The strict comparison requires **both tasks to pass** in the same session. That
-table-only intersection is available using
-[the paired handoff commands](../fd-tsnr-paper-handoff.md#paired-task-finalization),
-but is not the final Katie selection while the paired diagnostic is pending.
-UGR selections stay byte-for-byte unchanged; settled exclusions remain binding.
-The paired N must come from this final validation, not from either independent N.
+The strict intersection requires **both tasks to pass** in the same session.
+Its 121-pair membership is verified by the diagnostic and independently reproduced
+from the numeric QC values in the Git-shared table above. UGR selections stay
+byte-for-byte unchanged; settled exclusions remain binding.
 
-After its check passes, the strict comparison uses this Linux2 root:
+The older table-only paired wrapper, if run, writes to the root below. It is
+not needed to use the Git-shared 121-pair list above; do not assume it exists:
 
 ```text
 /ZPOOL/data/projects/rf1-sra-linux2/work/paper-handoff-fd-tsnr-paired-v1/
@@ -42,7 +58,7 @@ The existing cross-task L2 template has a single all-ones EV/contrast and comput
 a mean; it must not substitute for the difference. Use the matched L1 estimates
 in the downstream within-participant contrast procedure. Do not compare the tasks
 as unpaired groups. Intersect with the unchanged October 26 survey/linkage cohorts,
-then rebuild aligned L3 inputs once Katie's policy is finalized and report final paper Ns. Do not reapply aggregate
+then rebuild aligned L3 inputs under the agreed policy and report final paper Ns. Do not reapply aggregate
 QC or TEDANA exclusions. No preprocessing, L1, or UGR L2 rerun is needed.
 
 ## Background to the Correction

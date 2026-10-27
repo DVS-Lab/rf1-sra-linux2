@@ -1,8 +1,11 @@
 # Social Doors Minus Doors: Diagnostic, Not Final Exclusions
 
-October 27, 2026: Katie's FD/tSNR selection is pending paired-difference review.
-The strict paired handoff remains a sensitivity comparison, not a newly approved
-final cohort. Sophia's verified UGR selection is unchanged.
+October 27, 2026: the diagnostic and review are complete. See the
+[results and 121-pair strict input table](../qc/paired_difference/socialdoors-v1/README.md).
+The recommendation is to retain the already-specified FD/tSNR policy for the
+primary analysis and use the broader 135-pair set only as a labeled sensitivity
+analysis. The diagnostic itself assigned no final exclusions. Sophia's verified
+UGR selection is unchanged.
 
 ## Scope and Safeguards
 
@@ -84,15 +87,20 @@ Under `/ZPOOL/data/projects/rf1-sra-linux2/work/socialdoors-paired-diagnostic-v1
 - `common_support.nii.gz`, `union_support.nii.gz`: explicit summary domains.
 - `plan.json`, `artifacts.json`: frozen input hashes and verified output hashes.
 
-On the **Mac**, copy the two plots and numeric report for review:
+## Git-Only Report Sharing
 
-```bash
-mkdir -p "$HOME/Downloads/socialdoors-paired-diagnostic-v1"
-scp 'tug87422@CLA19787.tu.temple.edu:/ZPOOL/data/projects/rf1-sra-linux2/work/socialdoors-paired-diagnostic-v1/*.png' "$HOME/Downloads/socialdoors-paired-diagnostic-v1/"
-scp 'tug87422@CLA19787.tu.temple.edu:/ZPOOL/data/projects/rf1-sra-linux2/work/socialdoors-paired-diagnostic-v1/*.tsv' "$HOME/Downloads/socialdoors-paired-diagnostic-v1/"
-scp tug87422@CLA19787.tu.temple.edu:/ZPOOL/data/projects/rf1-sra-linux2/work/socialdoors-paired-diagnostic-v1/summary.json "$HOME/Downloads/socialdoors-paired-diagnostic-v1/"
-```
+The reviewed PNGs and TSVs are now committed under
+`qc/paired_difference/socialdoors-v1/`. Use Git to synchronize these reports,
+tables, plots and their review documentation. Do not use scp/rsync for these
+shareable artifacts. No further transfer is needed for this completed review.
 
-No new message asking Jacob to refinalize Katie's exclusions is needed until this
-check and review finish. The next handoff must state the agreed quality policy,
-preserve the settled exclusions, and distinguish imaging Ns from paper Ns.
+For a future report update, first pass the diagnostic check, copy only its
+explicit report files into this tracked report directory, inspect the diff,
+and commit/push that directory. Do not add the whole ignored work directory or
+NIfTI products. `publish_run_logs.py` still publishes run records only; it does
+not publish plots/tables. Keep the Git-shared strict subset consistent with any
+updated report and rerun its snapshot tests before publishing a changed subset.
+
+Jacob should use the current canonical handoff README and the Git-shared matched
+input table. Preserve the settled exclusions and distinguish imaging Ns from
+paper Ns; there is no need to rerun this completed diagnostic for a transfer.

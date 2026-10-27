@@ -1,11 +1,12 @@
 # Corrected FD, tSNR and Coverage Handoff
 
-**Latest step:** the independent FD/tSNR handoff has passed on Linux2. Katie's
-final FD/tSNR exclusions are now pending the
-[paired-difference diagnostic](socialdoors-paired-diagnostic.md), including
-flagged but source-valid, coverage-passing pairs. The paired-task intersection
-below is the strict comparison set, not a final Katie instruction. Sophia's
-verified UGR selection remains unchanged. Do not rebuild the independent handoff.
+**Latest step:** the FD/tSNR handoff and paired-difference diagnostic passed on
+Linux2. The [completed review](../qc/paired_difference/socialdoors-v1/README.md)
+recommends retaining the existing FD/tSNR rules for the primary analysis:
+121 matched Katie imaging pairs, with 135 pairs available for sensitivity work.
+The explicit strict input table is now in Git; no further pairing job is needed.
+Sophia's verified UGR selection remains unchanged at 137 imaging participants.
+Do not rebuild the independent handoff or infer final survey-linked paper Ns.
 
 October 27, 2026: the original coverage95 handoff enforced coverage and settled
 decisions but treated FD and tSNR flags as descriptive. That did not implement
