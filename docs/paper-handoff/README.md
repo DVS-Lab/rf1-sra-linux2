@@ -1,16 +1,87 @@
 # Katie and Sophia: Validated Imaging Handoff
 
-## Randomise Input Assembly
+## Current Handoff: Validated Randomise Inputs
 
-The [paired-difference bundle runner](../socialdoors-randomise-bundle.md) now
-assembles four Social Doors minus Doors effect stacks, matching masks, subject
-order, and raw/centered QC covariates from the verified strict list below. It
-preserves every settled exclusion and does not rerun L1 or alter UGR. Linux2 must
-run its build/check before these new stacks are considered validated. The pool
-contains 121 participants; Jacob's ordered final survey/linkage cohort is still
-needed to create the paper-specific subset. No statistical design is guessed.
+**October 29: build and independent check both passed (exit 0).** The
+[validation record](../../logs/records/20261029-142504_socialdoors-randomise-pool-20261029-142504.md)
+confirms **121 participants**, four signed Social Doors minus Doors COPE stacks,
+finite masked pixels, matching subject/QC row order, and original input lineage.
+Each contrast's common mask contains 80,305 voxels. This is the age-55+, ses-01
+**imaging pool, not yet Katie's final paper cohort**. No randomise analysis has
+been run. Existing processing and settled exclusions are unchanged.
 
-## Current Status: Paired Diagnostic Reviewed
+### Validated Paths on Linux2
+
+All files below are relative to this existing bundle root:
+
+```text
+/ZPOOL/data/projects/rf1-sra-linux2/work/randomise-socialdoors-age55-pool-v1/
+```
+
+| File | Meaning |
+| --- | --- |
+| `cope-1/difference_4d.nii.gz` | Social Doors win minus Doors win |
+| `cope-2/difference_4d.nii.gz` | Social Doors loss minus Doors loss |
+| `cope-3/difference_4d.nii.gz` | Social Doors decision minus Doors decision |
+| `cope-4/difference_4d.nii.gz` | (Social Doors win-loss) minus (Doors win-loss) |
+| `cope-1/mask.nii.gz` through `cope-4/mask.nii.gz` | Corresponding common analysis masks |
+| `subjects.tsv` | Exact volume order, with zero-based index and one-based volume number |
+| `cohort_ids.tsv` | Same ordered participant IDs in a single `subject` column |
+| `qc_covariates_raw.tsv` | Constituent run metrics, signed FD/tSNR differences, and pair means |
+| `qc_covariates_centered.tsv` | Candidate QC covariates demeaned over these 121 participants |
+| `covariate_centering.json` | Centering means, units, constant columns and candidate rank |
+
+The images are **effect differences, not t/Z differences or cross-task means**.
+They use the existing **sm5 no-TEDANA L1 estimates**, not the experimental AFNI
+6-mm outputs. Use the mask for the chosen contrast and preserve subject order.
+
+### Exclusions Versus Model Covariates
+
+Imaging selection is already applied: settled source exclusions, coverage
+**>=95%**, upper-tail FD and lower-tail tSNR **1.5-IQR fences within task/session**,
+with **both constituent runs required to pass**. Do not reapply older pooled-task,
+coverage-only, or TEDANA-count exclusions. No paired-effect-outlier exclusion is
+used. The broader 135-pair diagnostic below is not this selected 121-pair bundle.
+
+QC covariates are separate candidate model adjustments, not further exclusions:
+`delta_fd` and `delta_tsnr` are Social Doors minus Doors; `pair_mean_fd` and
+`pair_mean_tsnr` describe overall pair quality. No model automatically includes
+all four. The current centered values apply to all 121 participants; **do not use
+them unchanged after subsetting**.
+
+### Jacob's Next Step: Final Cohort List
+
+Please commit an **ordered, one-column TSV headed `subject`**, containing unique
+RF1 IDs after the approved survey/linkage requirements and intersection with
+this strict 121-pair imaging pool, to this repository at:
+
+```text
+docs/paper-handoff/cohorts/katie-final.tsv
+```
+
+The corresponding Linux2 path will be
+`/ZPOOL/data/projects/rf1-sra-linux2/docs/paper-handoff/cohorts/katie-final.tsv`.
+**This file is still needed; it has not been supplied or generated.** No names,
+DOB, raw survey records, or new exclusion review are required. Supply a separate
+roster if a different model uses a different sample.
+
+Once the roster is synchronized through Git, we will assemble the exact final
+subset, recompute its common masks, recenter its QC covariates, validate alignment,
+and report its final N. No preprocessing or L1 rerun is needed. The resulting
+`work/randomise-katie-final-v1/` bundle is **not yet built or validated**. See the
+[exact build/check and log-publishing commands](../socialdoors-randomise-bundle.md).
+
+If we are also assembling the randomise design, send the participant-keyed
+predictor/covariate table and existing model specification: coding, planned
+contrasts, chosen QC terms, and any exchangeability restrictions. The image
+bundle does not guess `design.mat`/`design.con` or launch an analysis.
+
+**Sophia/UGR is unchanged:** 137 imaging participants, preserving good single
+runs, at
+`/ZPOOL/data/projects/rf1-sra-linux2/work/coverage95-fd-tsnr-handoff-20261027-141630/ugr/selected_inputs.tsv`.
+That imaging count is also distinct from the final survey/linkage paper N.
+
+## Background: Paired Diagnostic Reviewed
 
 **October 27 review:** the [paired diagnostic passed](../../logs/records/20261027-145845_socialdoors-paired-diagnostic-20261027-145845.md)
 with 135 source-valid, coverage-passing pairs: **121 pass both tasks' FD/tSNR
@@ -63,7 +134,9 @@ not needed to use the Git-shared 121-pair list above; do not assume it exists:
   L1 choice based on passing UGR runs.
 - `counts.tsv` and `paired_membership.tsv` document imaging Ns and pairing losses.
 
-These are analysis inputs, not newly computed Social Doors minus Doors maps.
+Those older table-only outputs are analysis inputs, not newly computed Social
+Doors minus Doors maps. The validated difference stacks are now available at the
+bundle path at the top of this README.
 The existing cross-task L2 template has a single all-ones EV/contrast and computes
 a mean; it must not substitute for the difference. Use the matched L1 estimates
 in the downstream within-participant contrast procedure. Do not compare the tasks
