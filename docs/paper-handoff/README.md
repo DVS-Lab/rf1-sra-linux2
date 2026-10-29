@@ -1,5 +1,15 @@
 # Katie and Sophia: Validated Imaging Handoff
 
+## Randomise Input Assembly
+
+The [paired-difference bundle runner](../socialdoors-randomise-bundle.md) now
+assembles four Social Doors minus Doors effect stacks, matching masks, subject
+order, and raw/centered QC covariates from the verified strict list below. It
+preserves every settled exclusion and does not rerun L1 or alter UGR. Linux2 must
+run its build/check before these new stacks are considered validated. The pool
+contains 121 participants; Jacob's ordered final survey/linkage cohort is still
+needed to create the paper-specific subset. No statistical design is guessed.
+
 ## Current Status: Paired Diagnostic Reviewed
 
 **October 27 review:** the [paired diagnostic passed](../../logs/records/20261027-145845_socialdoors-paired-diagnostic-20261027-145845.md)
