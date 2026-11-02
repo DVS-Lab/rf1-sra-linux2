@@ -69,37 +69,28 @@ These estimates retain the original L1 **sm5** processing, not the experimental
 AFNI 6-mm smoothness outputs. Completed images are preserved on resume; corrupt
 receipted outputs fail rather than being silently overwritten.
 
-## What Jacob Must Supply
+## Katie's Frozen 97-Person Cohort
 
-For the final images/QC bundle, supply **one ordered ID-only TSV**, committed to:
+**November 1 update:** no new ID list is needed from Jacob. The analysis repository
+has frozen the intersection of its 110-person linked workbook and the settled
+121-pair imaging pool at **97 participants**, preserving all existing exclusions.
+The canonical ordered, one-column `subject` roster is:
 
 ```text
-docs/paper-handoff/cohorts/katie-final.tsv
+/ZPOOL/data/projects/rf1-sra-environment-SD/data/derived/katie-cohort-v1/subjects.tsv
 ```
 
-Its only header is `subject`; subsequent rows are unique five-digit RF1 IDs
-(`sub-` prefix is accepted). This is Katie's approved survey/linkage cohort
-intersected with the current strict 121-pair imaging pool, in the intended L3
-order. Do not apply old TEDANA/coverage-only or pooled-task QC exclusions again.
-Do not send DOB, names, or raw survey records. The builder rejects duplicate,
-unknown, or ineligible IDs; it never silently reduces the cohort. If models use
-different samples, supply a separately named roster for each model and build each
-in a new output directory with the Python CLI.
+Use this file with the Python builder's explicit `--cohort` option. Follow the
+[analysis repository's exact Linux2 verification/build/check/log-publishing commands](https://github.com/DVS-Lab/rf1-sra-environment-SD/blob/main/docs/katie-cohort.md).
+Do not copy the roster by hand or use the old wrapper's `final` shortcut, which
+still expects the unpopulated `docs/paper-handoff/cohorts/katie-final.tsv` placeholder.
+Do not reapply old TEDANA/coverage-only or pooled-task QC exclusions. The builder
+rejects duplicate, unknown or ineligible IDs instead of silently reducing N.
 
-The final cohort file does **not** exist yet. The pool bundle is useful now, but
-must not be called the final paper sample. Once Jacob's file is committed and
-available on Linux2, run:
-
-```bash
-(
-set -euo pipefail
-umask 0000
-cd /ZPOOL/data/projects/rf1-sra-linux2
-git fetch origin
-python3 code/sync_published_checkout.py --project "$PWD" --apply --processing-stopped
-bash code/run_socialdoors_randomise_bundle.sh final
-)
-```
+The table freeze passed local checks. The 97-person image bundle is **not yet
+built or validated**; it still requires the documented Linux2 execution. The
+validated 121-person pool is preserved. Different model samples require separately
+frozen rosters and new output directories, not edits to this frozen cohort.
 
 Final output: `/ZPOOL/data/projects/rf1-sra-linux2/work/randomise-katie-final-v1/`.
 The final check reports the exact N. Changing the roster after a build requires a

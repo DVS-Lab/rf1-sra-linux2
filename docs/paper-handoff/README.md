@@ -49,32 +49,34 @@ QC covariates are separate candidate model adjustments, not further exclusions:
 all four. The current centered values apply to all 121 participants; **do not use
 them unchanged after subsetting**.
 
-### Jacob's Next Step: Final Cohort List
+### Katie's Frozen Cohort: 97 Participants
 
-Please commit an **ordered, one-column TSV headed `subject`**, containing unique
-RF1 IDs after the approved survey/linkage requirements and intersection with
-this strict 121-pair imaging pool, to this repository at:
+**November 1:** the analysis repository now owns the reproducibly frozen
+97-person cohort, intersecting its unchanged 110-person linked workbook with
+this settled 121-pair imaging pool. The 13 not retained preserve existing
+decisions: 11 FD/tSNR-flagged pairs and two Doors coverage failures. No new
+exclusions or rules were introduced. No additional ID list is needed from Jacob.
+
+Canonical ordered, ID-only roster on Linux2 after Git synchronization:
 
 ```text
-docs/paper-handoff/cohorts/katie-final.tsv
+/ZPOOL/data/projects/rf1-sra-environment-SD/data/derived/katie-cohort-v1/subjects.tsv
 ```
 
-The corresponding Linux2 path will be
-`/ZPOOL/data/projects/rf1-sra-linux2/docs/paper-handoff/cohorts/katie-final.tsv`.
-**This file is still needed; it has not been supplied or generated.** No names,
-DOB, raw survey records, or new exclusion review are required. Supply a separate
-roster if a different model uses a different sample.
+See the [frozen roster](https://github.com/DVS-Lab/rf1-sra-environment-SD/blob/main/data/derived/katie-cohort-v1/subjects.tsv),
+[provenance/reconciliation and exact Linux2 commands](https://github.com/DVS-Lab/rf1-sra-environment-SD/blob/main/docs/katie-cohort.md),
+and [model-specification discussion](https://github.com/DVS-Lab/rf1-sra-environment-SD/blob/main/docs/model-specification.md).
+Use the canonical roster via `build_socialdoors_randomise.py --cohort`; do not
+create a hand-edited duplicate in the older `cohorts/katie-final.tsv` placeholder.
 
-Once the roster is synchronized through Git, we will assemble the exact final
-subset, recompute its common masks, recenter its QC covariates, validate alignment,
-and report its final N. No preprocessing or L1 rerun is needed. The resulting
-`work/randomise-katie-final-v1/` bundle is **not yet built or validated**. See the
-[exact build/check and log-publishing commands](../socialdoors-randomise-bundle.md).
+The table freeze has passed local checks. Its 97-person image subset, common
+masks and recentered QC covariates still require the documented Linux2 build/check;
+`work/randomise-katie-final-v1/` is **not yet built or validated**. The validated
+121-person pool above stays untouched. No preprocessing or L1 rerun is needed.
 
-If we are also assembling the randomise design, send the participant-keyed
-predictor/covariate table and existing model specification: coding, planned
-contrasts, chosen QC terms, and any exchangeability restrictions. The image
-bundle does not guess `design.mat`/`design.con` or launch an analysis.
+The user is taking forward Katie's model specification in a dedicated analysis
+chat. Models must be agreed before randomise; the input bundle does not guess
+`design.mat`/`design.con` or launch an analysis.
 
 **Sophia/UGR is unchanged:** 137 imaging participants, preserving good single
 runs, at
