@@ -877,6 +877,7 @@ first `CHECK FAILED` or error line, and whether the case was expected to have
 - [Events response-QC manual](qc/events/README.md)
 - [Open decisions and run-disposition roadmap](docs/open-decisions.md)
 - [Validation history](docs/archive/validation-history.md)
+- [Read-only storage audit and retention plan](docs/storage-audit.md)
 
 Repository-level checks do not require real imaging data or neuroimaging
 containers:
