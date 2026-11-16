@@ -4,6 +4,20 @@ This is an evaluation, not a production migration. It preserves existing BOLD,
 confounds, completed TEDANA, QC thresholds, source-validity decisions, manifests,
 and paper selections. No FEAT or task-level analyses are launched.
 
+## Before/After Figures
+
+The [scanner-era overview](../qc/smoothness_evaluation_6mm/scanner_era_overview/README.md)
+replots the completed paired evaluation with separate session-01/session-02
+figures for classic FWHM and ACF effective FWHM. Points are run-level medians
+and bars are IQRs, not confidence intervals. Both stages use identical paired
+samples and identical axes. All five original off-target outputs remain included;
+the separate `-bmall` retry is not substituted. This is reporting only.
+
+For session 01, the within-task range of scanner-era classic-FWHM medians drops
+by 93.8-99.2%; the ACF median range drops by 52.8-60.7% but remains nonzero.
+This quantifies convergence of these descriptive metrics, not proof that all
+scanner effects are removed. Session 02 has only one XA30 participant per task.
+
 ## Method And Scope
 
 - All ready runs in the completed `work/cohort-smoothness-v1` inventory, across

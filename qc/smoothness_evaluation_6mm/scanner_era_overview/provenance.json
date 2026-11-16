@@ -1,0 +1,15 @@
+{
+  "aggregation": "published_run_median_and_IQR",
+  "bmall_retry_substituted": false,
+  "exclusions_changed": false,
+  "figures": [
+    "ses-01_classic_before_after.png",
+    "ses-01_acf_before_after.png",
+    "ses-02_classic_before_after.png",
+    "ses-02_acf_before_after.png"
+  ],
+  "original_evaluation": true,
+  "script_sha256": "e3c8a9f9c435c7b8aabb0a6c6b7e93e87da3d41877ba60e1e73e26c57ae7c284",
+  "summary_sha256": "058f8f3d4302665bd229c5e38a04c3abb501f613b4e629a36bba827230949174",
+  "validation_sha256": "07eb7802d07623cb210d554f461454a75cc5e4b893d0c318ceeeb3cb8898b440"
+}
