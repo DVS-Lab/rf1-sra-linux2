@@ -132,3 +132,14 @@ and contrast-efficiency checks, and evaluate artifact control and signal
 preservation. Do not select a method by reduced component count, increased N,
 or tSNR alone. Do not regenerate canonical exclusion flags from these audit
 outputs until the method and downstream policy are explicitly approved.
+
+## Scanner-era comparison after completion
+
+From the project root, run `python3 code/report_tedana_cohort_eras.py`.
+This reads only the frozen manifest, its validation receipt and
+`component_summary.tsv`. It requires a complete matched AIC/KIC/MDL triple
+for every original run and reports aggregates only. Compare scanner versions
+within the same task and session. Percentage rejected is the median of
+per-run percentages, not a ratio of medians. The signed MDL minus AIC column
+is calculated within runs before taking the median. Scanner-era comparisons
+are descriptive, not within-person causal estimates; inspect stratum sizes.
