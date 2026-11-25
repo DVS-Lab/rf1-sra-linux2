@@ -15,6 +15,11 @@ run imaging QC.
 `_events.tsv` files. Downstream scientific-analysis repositories consume these
 BIDS events and should not read raw behavioral logs directly.
 
+For the Pari Patel and Shenghan Wang Shared Reward paper, use the
+[Wave 1 post-task ratings](docs/sharedreward-wave1-ratings.md). The handoff
+includes the six original ratings and the signed friend–stranger and
+friend–computer differences for participant-level models.
+
 Baseline `bids/participants.tsv` and its JSON sidecar are maintained from
 saved session-01 HeuDiConv demographics. Existing datasets missing this metadata
 can use the [logged participants recovery](qc/participants/README.md) without

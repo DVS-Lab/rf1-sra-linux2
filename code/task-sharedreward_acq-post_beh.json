@@ -1,0 +1,29 @@
+{
+  "TaskName": "sharedreward",
+  "TaskDescription": "Wave 1 post-task ratings of how it felt to win or lose money with each Shared Reward partner. The PsychoPy program presented the six questions sequentially.",
+  "Instructions": "Please rate how it felt to win money with this partner. The loss question substitutes the word lose for win. Use keys 1 and 3 to move on the scale and 2 to select.",
+  "trial_number": {
+    "Description": "One-based presentation order within the selected administration."
+  },
+  "partner": {
+    "Description": "Partner shown for the rating.",
+    "Levels": {
+      "friend": "Close friend (source Partner 3)",
+      "stranger": "Unfamiliar human partner (source Partner 2)",
+      "computer": "Computer (source Partner 1)"
+    }
+  },
+  "rating_dimension": {
+    "Description": "Outcome the participant rated.",
+    "Levels": {
+      "win": "Winning money with this partner (source Trait 0)",
+      "loss": "Losing money with this partner (source Trait 1)"
+    }
+  },
+  "response": {
+    "Description": "Selected integer rating on the original scale from -5 (negative) through 0 (neutral) to +5 (positive). An unavailable response is n/a.",
+    "Units": "rating scale points",
+    "Minimum": -5,
+    "Maximum": 5
+  }
+}
